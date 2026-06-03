@@ -1,0 +1,20 @@
+{
+  "name": "Xala! — jocs de festa",
+  "short_name": "Xala!",
+  "description": "Jocs de festa en català per jugar en grup.",
+  "lang": "ca",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF3E4",
+  "theme_color": "#E4572E",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
