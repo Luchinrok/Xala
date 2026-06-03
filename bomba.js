@@ -31,7 +31,7 @@ export default {
   title: 'Bomba de paraules',
   tagline: 'Digues, passa i resa que no peti',
   accent: '#E4572E',
-  color: 'var(--ink)',
+  color: 'var(--paper-2)',
   ready: false,
 
   instructions: [

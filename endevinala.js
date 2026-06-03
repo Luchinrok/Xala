@@ -34,7 +34,7 @@ export default {
   title: 'Endevina-la',
   tagline: 'Mòbil al front i a fer el préssec',
   accent: '#E4572E',
-  color: 'var(--ink)',
+  color: 'var(--paper-2)',
   ready: false,
 
   instructions: [

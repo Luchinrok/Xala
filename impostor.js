@@ -43,7 +43,9 @@ export default {
       names: initialNames,
       impostors: 1,
       categoryIds: [CATEGORIES[0].id],
+      hint: false,
       word: null,
+      wordCategory: null,
       roles: [],
       revealIndex: 0,
       eliminated: new Set(),
@@ -83,6 +85,10 @@ export default {
             <span class="val" id="vimp">${state.impostors}</span>
             <button id="imp-inc">+</button>
           </div>
+          <div class="switch-row" style="margin-top:22px">
+            <span class="switch-label">Pista per a l'impostor</span>
+            <button class="switch" id="hint" role="switch" aria-checked="${state.hint}" aria-label="Pista per a l'impostor"></button>
+          </div>
         </div>
 
         <p class="label" style="margin:24px 0 12px">Categories <span style="text-transform:none;font-weight:500;color:var(--ink-soft)">(tria'n les que vulguis)</span></p>
@@ -101,6 +107,12 @@ export default {
       root.querySelector('#back').onclick = goHome;
       root.querySelector('#imp-dec').onclick = () => { state.impostors--; clampImpostors(); };
       root.querySelector('#imp-inc').onclick = () => { state.impostors++; clampImpostors(); };
+
+      const hintSw = root.querySelector('#hint');
+      hintSw.onclick = () => {
+        state.hint = !state.hint;
+        hintSw.setAttribute('aria-checked', String(state.hint));
+      };
 
       root.querySelectorAll('[data-cat]').forEach(b => {
         b.onclick = () => {
@@ -173,8 +185,12 @@ export default {
 
     // ---------- prepara la ronda ----------
     function beginRound() {
-      const pool = CATEGORIES.filter(c => state.categoryIds.includes(c.id)).flatMap(c => c.words);
-      state.word = pool[Math.floor(Math.random() * pool.length)];
+      const pool = CATEGORIES
+        .filter(c => state.categoryIds.includes(c.id))
+        .flatMap(c => c.words.map(w => ({ word: w, cat: c.name })));
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      state.word = pick.word;
+      state.wordCategory = pick.cat;
       const idx = shuffle([...Array(count()).keys()]).slice(0, state.impostors);
       state.roles = Array.from({ length: count() }, (_, i) => idx.includes(i));
       state.revealIndex = 0;
@@ -203,8 +219,11 @@ export default {
       const showRole = () => {
         const isImp = state.roles[state.revealIndex];
         card.classList.remove('tap-hint');
+        const impHint = state.hint
+          ? `<div class="who">Pista: ${state.wordCategory}</div>`
+          : '';
         card.innerHTML = isImp
-          ? `<div class="word">Ets l'impostor</div><div class="who">Dissimula i fes veure que saps la paraula!</div>`
+          ? `<div class="word">Ets l'impostor</div><div class="who">Dissimula i fes veure que saps la paraula!</div>${impHint}`
           : `<div class="word">${state.word}</div><div class="who">Memoritza-la i no la diguis</div>`;
       };
       const cover = () => {

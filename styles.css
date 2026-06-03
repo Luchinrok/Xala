@@ -168,6 +168,22 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 }
 .stepper .val { font-family: var(--font-display); font-weight: 800; font-size: 40px; }
 
+/* interruptor (on/off) */
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.switch-row .switch-label { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
+.switch {
+  flex: 0 0 auto; position: relative; width: 58px; height: 32px;
+  border: 2px solid var(--ink); border-radius: 999px; background: var(--paper);
+  cursor: pointer; transition: background .12s ease; padding: 0;
+}
+.switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--ink); transition: transform .12s ease;
+}
+.switch[aria-checked="true"] { background: var(--accent); }
+.switch[aria-checked="true"]::after { transform: translateX(26px); }
+
 .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .chip {
   border: 2px solid var(--ink); border-radius: 999px; background: var(--paper);
