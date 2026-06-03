@@ -7,6 +7,7 @@
 // ============================================================
 
 import { CATEGORIES } from './impostor-paraules.js';
+import { CATEGORY_ICONS } from './category-icons.js';
 import { getPlayers, setPlayers } from './store.js';
 
 function shuffle(a) {
@@ -92,8 +93,12 @@ export default {
         </div>
 
         <p class="label" style="margin:24px 0 12px">Categories <span style="text-transform:none;font-weight:500;color:var(--ink-soft)">(tria'n les que vulguis)</span></p>
-        <div class="chips" id="chips">
-          ${CATEGORIES.map(c => `<button class="chip ${state.categoryIds.includes(c.id) ? 'on' : ''}" data-cat="${c.id}">${c.name}</button>`).join('')}
+        <div class="cat-grid" id="chips">
+          ${CATEGORIES.map(c => `
+            <button class="cat-tile ${state.categoryIds.includes(c.id) ? 'on' : ''}" data-cat="${c.id}">
+              <span class="cat-tile__icon">${CATEGORY_ICONS[c.id] || ''}</span>
+              <span class="cat-tile__name">${c.name}</span>
+            </button>`).join('')}
         </div>
 
         <p class="label" style="margin:24px 0 12px">Jugadors</p>
@@ -118,9 +123,16 @@ export default {
         b.onclick = () => {
           const id = b.dataset.cat;
           const i = state.categoryIds.indexOf(id);
-          if (i >= 0) { if (state.categoryIds.length > 1) state.categoryIds.splice(i, 1); }
-          else state.categoryIds.push(id);
-          b.classList.toggle('on');
+          if (i >= 0) {
+            // mínim 1: si és l'última seleccionada, no la desactivis
+            if (state.categoryIds.length > 1) {
+              state.categoryIds.splice(i, 1);
+              b.classList.remove('on');
+            }
+          } else {
+            state.categoryIds.push(id);
+            b.classList.add('on');
+          }
         };
       });
 
