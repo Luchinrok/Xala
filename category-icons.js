@@ -16,4 +16,20 @@ export const CATEGORY_ICONS = {
   mon: svg(`<circle cx="32" cy="32" r="20"/><ellipse cx="32" cy="32" rx="20" ry="7.5"/><ellipse cx="32" cy="32" rx="7.5" ry="20"/>`),
 
   esports: svg(`<path d="M22 13 H42 V25 Q42 37 32 37 Q22 37 22 25 Z"/><path d="M22 17 Q11 17 12.5 25 Q14 30 22 30"/><path d="M42 17 Q53 17 51.5 25 Q50 30 42 30"/><line x1="32" y1="37" x2="32" y2="45"/><path d="M23 45 H41 L44 53 H20 Z"/>`),
+
+  professions: svg(`<rect x="12" y="24" width="40" height="27" rx="3"/><path d="M25 24 V19 Q25 16 28 16 H36 Q39 16 39 19 V24"/><line x1="12" y1="37" x2="52" y2="37"/>`),
+
+  transport: svg(`<path d="M12 38 L17 27 Q18 25 20 25 H44 Q46 25 47 27 L52 38"/><path d="M9 38 H55 V46 H9 Z"/><circle cx="21" cy="46" r="4.5"/><circle cx="43" cy="46" r="4.5"/>`),
+
+  roba: svg(`<path d="M25 13 L16 20 L21 28 L25 25 V51 H39 V25 L43 28 L48 20 L39 13 Q32 19 25 13 Z"/>`),
+
+  musica: svg(`<path d="M27 45 V17 L45 13 V41"/><ellipse cx="22" cy="45" rx="6" ry="5"/><ellipse cx="40" cy="41" rx="6" ry="5"/>`),
+
+  natura: svg(`<line x1="32" y1="53" x2="32" y2="30"/><path d="M16 47 Q15 18 47 16 Q46 47 16 47 Z"/>`),
+
+  eines: svg(`<circle cx="32" cy="32" r="10"/><line x1="32" y1="12" x2="32" y2="19"/><line x1="32" y1="45" x2="32" y2="52"/><line x1="12" y1="32" x2="19" y2="32"/><line x1="45" y1="32" x2="52" y2="32"/><line x1="18" y1="18" x2="23" y2="23"/><line x1="41" y1="41" x2="46" y2="46"/><line x1="46" y1="18" x2="41" y2="23"/><line x1="23" y1="41" x2="18" y2="46"/>`),
+
+  tecnologia: svg(`<rect x="14" y="13" width="36" height="25" rx="2"/><path d="M28 38 V44 H36 V38"/><line x1="19" y1="44" x2="45" y2="44"/>`),
+
+  cos: svg(`<circle cx="32" cy="17" r="7"/><line x1="32" y1="24" x2="32" y2="41"/><line x1="19" y1="31" x2="45" y2="31"/><path d="M32 41 L24 54 M32 41 L40 54"/>`),
 };

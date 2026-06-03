@@ -46,7 +46,7 @@ export default {
       categoryIds: [CATEGORIES[0].id],
       hint: false,
       word: null,
-      wordCategory: null,
+      wordHint: null,
       roles: [],
       revealIndex: 0,
       eliminated: new Set(),
@@ -92,14 +92,8 @@ export default {
           </div>
         </div>
 
-        <p class="label" style="margin:24px 0 12px">Categories <span style="text-transform:none;font-weight:500;color:var(--ink-soft)">(tria'n les que vulguis)</span></p>
-        <div class="cat-grid" id="chips">
-          ${CATEGORIES.map(c => `
-            <button class="cat-tile ${state.categoryIds.includes(c.id) ? 'on' : ''}" data-cat="${c.id}">
-              <span class="cat-tile__icon">${CATEGORY_ICONS[c.id] || ''}</span>
-              <span class="cat-tile__name">${c.name}</span>
-            </button>`).join('')}
-        </div>
+        <p class="label" style="margin:24px 0 12px">Categories</p>
+        <button class="btn btn--outline" id="cats">Categories (${state.categoryIds.length})</button>
 
         <p class="label" style="margin:24px 0 12px">Jugadors</p>
         <div class="stack" id="names" style="--stack-gap:10px"></div>
@@ -119,22 +113,7 @@ export default {
         hintSw.setAttribute('aria-checked', String(state.hint));
       };
 
-      root.querySelectorAll('[data-cat]').forEach(b => {
-        b.onclick = () => {
-          const id = b.dataset.cat;
-          const i = state.categoryIds.indexOf(id);
-          if (i >= 0) {
-            // mínim 1: si és l'última seleccionada, no la desactivis
-            if (state.categoryIds.length > 1) {
-              state.categoryIds.splice(i, 1);
-              b.classList.remove('on');
-            }
-          } else {
-            state.categoryIds.push(id);
-            b.classList.add('on');
-          }
-        };
-      });
+      root.querySelector('#cats').onclick = () => { readNames(); screenCategories(); };
 
       root.querySelector('#addp').onclick = () => {
         readNames();
@@ -155,6 +134,41 @@ export default {
       };
 
       renderNames();
+    }
+
+    // ---------- pantalla de categories ----------
+    function screenCategories() {
+      root.innerHTML = `
+        <button class="back" id="back">‹ Configuració</button>
+        <p class="kicker">L'impostor</p>
+        <h2 style="font-size:30px;margin:6px 0 8px">Categories</h2>
+        <p class="muted" style="margin-bottom:18px">Tria'n les que vulguis (mínim 1).</p>
+        <div class="cat-grid" id="catgrid">
+          ${CATEGORIES.map(c => `
+            <button class="cat-tile ${state.categoryIds.includes(c.id) ? 'on' : ''}" data-cat="${c.id}">
+              <span class="cat-tile__icon">${CATEGORY_ICONS[c.id] || ''}</span>
+              <span class="cat-tile__name">${c.name}</span>
+            </button>`).join('')}
+        </div>
+      `;
+
+      root.querySelector('#back').onclick = screenSetup;
+      root.querySelectorAll('[data-cat]').forEach(b => {
+        b.onclick = () => {
+          const id = b.dataset.cat;
+          const i = state.categoryIds.indexOf(id);
+          if (i >= 0) {
+            // mínim 1: si és l'última seleccionada, no la desactivis
+            if (state.categoryIds.length > 1) {
+              state.categoryIds.splice(i, 1);
+              b.classList.remove('on');
+            }
+          } else {
+            state.categoryIds.push(id);
+            b.classList.add('on');
+          }
+        };
+      });
     }
 
     function updateButtons() {
@@ -199,10 +213,10 @@ export default {
     function beginRound() {
       const pool = CATEGORIES
         .filter(c => state.categoryIds.includes(c.id))
-        .flatMap(c => c.words.map(w => ({ word: w, cat: c.name })));
+        .flatMap(c => c.words);
       const pick = pool[Math.floor(Math.random() * pool.length)];
       state.word = pick.word;
-      state.wordCategory = pick.cat;
+      state.wordHint = pick.hint;
       const idx = shuffle([...Array(count()).keys()]).slice(0, state.impostors);
       state.roles = Array.from({ length: count() }, (_, i) => idx.includes(i));
       state.revealIndex = 0;
@@ -232,7 +246,7 @@ export default {
         const isImp = state.roles[state.revealIndex];
         card.classList.remove('tap-hint');
         const impHint = state.hint
-          ? `<div class="who">Pista: ${state.wordCategory}</div>`
+          ? `<div class="who">Pista: ${state.wordHint}</div>`
           : '';
         card.innerHTML = isImp
           ? `<div class="word">Ets l'impostor</div><div class="who">Dissimula i fes veure que saps la paraula!</div>${impHint}`
