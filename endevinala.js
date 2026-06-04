@@ -8,7 +8,7 @@
 // ============================================================
 
 import { CATEGORIES } from './impostor-paraules.js';
-import { CATEGORY_ICONS } from './category-icons.js';
+import { openCategoryScreen, categoriesLabel } from './category-select.js';
 
 // --- Paràmetres del sensor (fàcils de canviar) ---
 // Amb el mòbil en horitzontal al front, l'eix dominant sol ser 'gamma'.
@@ -82,13 +82,7 @@ export default {
         <h2 style="font-size:30px;margin:6px 0 22px">Prepara la ronda</h2>
 
         <p class="label" style="margin:0 0 12px">Categories</p>
-        <div class="cat-grid" id="cats">
-          ${CATEGORIES.map(c => `
-            <button class="cat-tile ${state.categoryIds.includes(c.id) ? 'on' : ''}" data-cat="${c.id}">
-              <span class="cat-tile__icon">${CATEGORY_ICONS[c.id] || ''}</span>
-              <span class="cat-tile__name">${c.name}</span>
-            </button>`).join('')}
-        </div>
+        <button class="btn btn--outline" id="cats">${categoriesLabel(state.categoryIds)}</button>
 
         <p class="label" style="margin:24px 0 12px">Durada</p>
         <div class="btn-row" id="durs">
@@ -103,18 +97,9 @@ export default {
 
       root.querySelector('#back').onclick = leaveHome;
 
-      root.querySelectorAll('[data-cat]').forEach(b => {
-        b.onclick = () => {
-          const id = b.dataset.cat;
-          const i = state.categoryIds.indexOf(id);
-          if (i >= 0) {
-            if (state.categoryIds.length > 1) { state.categoryIds.splice(i, 1); b.classList.remove('on'); }
-          } else {
-            state.categoryIds.push(id);
-            b.classList.add('on');
-          }
-        };
-      });
+      root.querySelector('#cats').onclick = () => {
+        openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: 'Endevina-la', onBack: screenSetup });
+      };
 
       root.querySelectorAll('[data-dur]').forEach(b => {
         b.onclick = () => {
