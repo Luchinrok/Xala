@@ -32,4 +32,6 @@ export const CATEGORY_ICONS = {
   tecnologia: svg(`<rect x="14" y="13" width="36" height="25" rx="2"/><path d="M28 38 V44 H36 V38"/><line x1="19" y1="44" x2="45" y2="44"/>`),
 
   cos: svg(`<circle cx="32" cy="17" r="7"/><line x1="32" y1="24" x2="32" y2="41"/><line x1="19" y1="31" x2="45" y2="31"/><path d="M32 41 L24 54 M32 41 L40 54"/>`),
+
+  marques: svg(`<path d="M30 11 H49 a4 4 0 0 1 4 4 V34 L31 56 a4 4 0 0 1-6 0 L9 40 a4 4 0 0 1 0-6 Z"/><circle cx="43" cy="21" r="3.5"/>`),
 };
