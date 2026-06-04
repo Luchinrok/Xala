@@ -14,6 +14,7 @@
   --line:    #E2D2B6;
 
   --coral:   #E4572E;
+  --ok:      #1F8A70; /* només per al flash d'encertada (Endevina-la) */
 
   --accent:  var(--coral); /* el sobreescriu cada joc */
 
@@ -261,3 +262,69 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1; cursor: pointer;
 }
 .name-del:active { background: var(--paper-2); }
+
+/* ============================================================
+   Endevina-la (mòbil al front, estil Heads Up)
+   ============================================================ */
+.play {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 22px;
+  text-align: center; padding: 24px; min-height: 72vh;
+  border: 2px solid var(--ink); border-radius: var(--r-lg);
+  background: var(--ink); color: var(--paper);
+  box-shadow: var(--shadow);
+}
+.play__top { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+.play__timer { font-family: var(--font-display); font-weight: 800; font-size: 38px; line-height: 1; }
+.play__score { font-family: var(--font-display); font-weight: 800; font-size: 30px; opacity: .85; }
+.play__word { font-family: var(--font-display); font-weight: 800; font-size: clamp(40px, 14vw, 88px); line-height: 1.02; }
+.play__foot { display: flex; flex-direction: column; gap: 10px; }
+.play__hint { font-size: 14px; font-weight: 700; opacity: .8; }
+
+.btn--link {
+  background: none; border: none; color: var(--paper); opacity: .75;
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  text-decoration: underline; cursor: pointer;
+}
+
+/* mode botons (reserva) */
+.play--btns { background: var(--paper); color: var(--ink); justify-content: space-between; gap: 12px; padding: 14px; }
+.zone-mid { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.play__word--mid { color: var(--ink); }
+.play--btns .play__timer, .play--btns .play__score { color: var(--ink); }
+.zone {
+  width: 100%; flex: 1; min-height: 130px;
+  border: 2px solid var(--ink); border-radius: var(--r-lg);
+  font-family: var(--font-display); font-weight: 800; font-size: 30px;
+  cursor: pointer; box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.zone--pass { background: var(--paper); color: var(--ink); }
+.zone--ok { background: var(--accent); color: var(--paper); }
+.zone:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+
+/* flash de feedback (verd encertada / vermell passa) */
+.flash-layer {
+  position: fixed; inset: 0; z-index: 60; pointer-events: none;
+  opacity: 0; transition: opacity .08s ease;
+}
+.flash-layer.show { opacity: .9; }
+.flash-layer.ok { background: var(--ok); }
+.flash-layer.no { background: var(--accent); }
+
+/* llista de resultats */
+.res-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-sm);
+  padding: 10px 14px; font-family: var(--font-display); font-weight: 700; font-size: 17px;
+}
+.res-row__mark {
+  flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--paper); font-size: 14px;
+}
+.res-row--ok { border-left: 8px solid var(--ok); }
+.res-row--ok .res-row__mark { background: var(--ok); }
+.res-row--no { border-left: 8px solid var(--accent); }
+.res-row--no .res-row__mark { background: var(--accent); }
