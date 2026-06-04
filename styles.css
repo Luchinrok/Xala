@@ -280,6 +280,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .play__word { font-family: var(--font-display); font-weight: 800; font-size: clamp(40px, 14vw, 88px); line-height: 1.02; }
 .play__foot { display: flex; flex-direction: column; gap: 10px; }
 .play__hint { font-size: 14px; font-weight: 700; opacity: .8; }
+.play__dbg { font-family: var(--font-body); font-size: 12px; opacity: .6; letter-spacing: .04em; } /* TEMPORAL: calibratge */
 
 .btn--link {
   background: none; border: none; color: var(--paper); opacity: .75;

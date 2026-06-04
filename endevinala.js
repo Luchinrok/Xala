@@ -3,7 +3,7 @@
 //
 // Flux: configuració -> preparació (+permís sensor) -> 3·2·1 ->
 //       joc (sensor o, de reserva, mode botons) -> resultats.
-// Inclinar AVALL = encertada · inclinar AMUNT = passa.
+// Inclinar AMUNT = encertada · inclinar AVALL = passa.
 // Reaprofita les paraules i icones de l'impostor.
 // ============================================================
 
@@ -12,14 +12,19 @@ import { CATEGORY_ICONS } from './category-icons.js';
 
 // --- Paràmetres del sensor (fàcils de canviar) ---
 // Amb el mòbil en horitzontal al front, l'eix dominant sol ser 'gamma'.
-// Si en un dispositiu surt invertit o per l'altre eix, canvia aquí.
+// AMUNT = encertada, AVALL = passa. La detecció fa servir `up = valor * upSign`:
+//   up >= threshold  -> AMUNT (encertada)
+//   up <= -threshold -> AVALL (passa)
+// Si en un mòbil real surt invertit, canvia upSign a +1 (o prova axis: 'beta').
+// L'overlay de depuració de beta/gamma a la pantalla de joc ajuda a calibrar-ho.
 const ORIENT = {
   axis: 'gamma',     // eix dominant ('gamma' o 'beta')
   threshold: 45,     // graus per registrar un gest
   neutral: 20,       // cal tornar dins ±neutral abans del gest següent
-  invert: false,     // posa true si avall/amunt surten al revés
+  upSign: -1,        // signe de l'eix quan s'inclina AMUNT (encertada)
 };
 const SENSOR_WAIT = 1500;  // ms d'espera d'una lectura abans de caure al mode botons
+const DEBUG_TILT = true;   // TEMPORAL: mostra beta/gamma en viu per calibrar
 
 function shuffle(a) {
   const arr = a.slice();
@@ -41,7 +46,7 @@ export default {
   instructions: [
     'Un jugador es posa el mòbil al front, sense mirar la paraula.',
     'La resta li fa mímica, sons o pistes perquè l’endevini.',
-    'Inclina el mòbil avall quan l’encertes i amunt per passar a la següent.',
+    'Inclina el mòbil amunt quan l’encertes i avall per passar a la següent.',
     'Compteu quantes n’encerteu abans que s’acabi el temps.',
   ],
 
@@ -135,7 +140,7 @@ export default {
         <div class="spacer"></div>
         <div class="panel center stack">
           <h2 style="font-size:28px">Posa't el mòbil al front en horitzontal</h2>
-          <p class="muted">Subjecta'l al front amb la pantalla cap als altres. Inclina avall per encertar i amunt per passar.</p>
+          <p class="muted">Subjecta'l al front amb la pantalla cap als altres. Inclina amunt per encertar i avall per passar.</p>
         </div>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="activate" style="margin-top:24px">Activa i comença</button>
@@ -247,7 +252,8 @@ export default {
           </div>
           <div class="play__word" id="word">${first}</div>
           <div class="play__foot">
-            <span class="play__hint">Amunt = passa · Avall = encertada</span>
+            <span class="play__hint">Amunt = encertada · Avall = passa</span>
+            ${DEBUG_TILT ? '<span class="play__dbg" id="dbg">β –  γ –</span>' : ''}
             <button class="btn--link" id="tobtns">El sensor no respon? Mode botons</button>
           </div>
         </div>
@@ -263,15 +269,20 @@ export default {
       let armed = true;
       let gotReading = false;
       orientHandler = (e) => {
+        // overlay de depuració (temporal): beta i gamma en viu
+        if (DEBUG_TILT) {
+          const dbg = root.querySelector('#dbg');
+          if (dbg) dbg.textContent = `β ${Math.round(e.beta || 0)}°  γ ${Math.round(e.gamma || 0)}°`;
+        }
         let v = e[ORIENT.axis];
         if (v == null) v = e.beta; // recurs si l'eix triat no dona dada
         if (v == null) return;
         gotReading = true;
-        if (ORIENT.invert) v = -v;
+        const up = v * ORIENT.upSign; // up>0 quan s'inclina amunt
         if (armed) {
-          if (v >= ORIENT.threshold) { armed = false; register(true); }   // avall = encertada
-          else if (v <= -ORIENT.threshold) { armed = false; register(false); } // amunt = passa
-        } else if (Math.abs(v) <= ORIENT.neutral) {
+          if (up >= ORIENT.threshold) { armed = false; register(true); }      // amunt = encertada
+          else if (up <= -ORIENT.threshold) { armed = false; register(false); } // avall = passa
+        } else if (Math.abs(up) <= ORIENT.neutral) {
           armed = true; // tornat a pla: a punt per al gest següent
         }
       };
@@ -295,17 +306,17 @@ export default {
       root.innerHTML = `
         <div class="flash-layer" id="flash"></div>
         <div class="play play--btns" id="play">
-          <button class="zone zone--pass" id="pass">▲ Passa</button>
+          <button class="zone zone--ok" id="ok">▲ Encertada</button>
           <div class="zone-mid">
             <span class="play__timer" id="timer">${left}</span>
             <span class="play__score" id="score">${state.score}</span>
             <div class="play__word play__word--mid" id="word">${cur}</div>
           </div>
-          <button class="zone zone--ok" id="ok">▼ Encertada</button>
+          <button class="zone zone--pass" id="pass">▼ Passa</button>
         </div>
       `;
-      root.querySelector('#pass').onclick = () => register(false);
       root.querySelector('#ok').onclick = () => register(true);
+      root.querySelector('#pass').onclick = () => register(false);
     }
 
     // ---------- 6) resultats ----------
