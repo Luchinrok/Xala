@@ -16,7 +16,6 @@ import { CATEGORY_ICONS } from './category-icons.js';
 //   up >= threshold  -> AMUNT (encertada)
 //   up <= -threshold -> AVALL (passa)
 // Si en un mòbil real surt invertit, canvia upSign a +1 (o prova axis: 'beta').
-// L'overlay de depuració de beta/gamma a la pantalla de joc ajuda a calibrar-ho.
 const ORIENT = {
   axis: 'gamma',     // eix dominant ('gamma' o 'beta')
   threshold: 45,     // graus per registrar un gest
@@ -24,7 +23,6 @@ const ORIENT = {
   upSign: -1,        // signe de l'eix quan s'inclina AMUNT (encertada)
 };
 const SENSOR_WAIT = 1500;  // ms d'espera d'una lectura abans de caure al mode botons
-const DEBUG_TILT = true;   // TEMPORAL: mostra beta/gamma en viu per calibrar
 
 function shuffle(a) {
   const arr = a.slice();
@@ -253,7 +251,6 @@ export default {
           <div class="play__word" id="word">${first}</div>
           <div class="play__foot">
             <span class="play__hint">Amunt = encertada · Avall = passa</span>
-            ${DEBUG_TILT ? '<span class="play__dbg" id="dbg">β –  γ –</span>' : ''}
             <button class="btn--link" id="tobtns">El sensor no respon? Mode botons</button>
           </div>
         </div>
@@ -269,11 +266,6 @@ export default {
       let armed = true;
       let gotReading = false;
       orientHandler = (e) => {
-        // overlay de depuració (temporal): beta i gamma en viu
-        if (DEBUG_TILT) {
-          const dbg = root.querySelector('#dbg');
-          if (dbg) dbg.textContent = `β ${Math.round(e.beta || 0)}°  γ ${Math.round(e.gamma || 0)}°`;
-        }
         let v = e[ORIENT.axis];
         if (v == null) v = e.beta; // recurs si l'eix triat no dona dada
         if (v == null) return;
