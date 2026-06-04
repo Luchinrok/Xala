@@ -47,6 +47,8 @@ export default {
       hint: false,
       word: null,
       wordHint: null,
+      bag: [],        // bossa de paraules barrejada, es consumeix sense repetir
+      bagKey: null,   // signatura de les categories de la bossa actual
       roles: [],
       revealIndex: 0,
       eliminated: new Set(),
@@ -177,14 +179,25 @@ export default {
       updateButtons();
     }
 
-    // ---------- prepara la ronda ----------
-    function beginRound() {
-      const pool = CATEGORIES
-        .filter(c => state.categoryIds.includes(c.id))
-        .flatMap(c => c.words);
-      const pick = pool[Math.floor(Math.random() * pool.length)];
+    // Tria la paraula consumint una bossa barrejada (sense repetir fins
+    // que s'esgota; aleshores es torna a barrejar). Es refà si canvien
+    // les categories triades.
+    function drawWord() {
+      const key = state.categoryIds.slice().sort().join(',');
+      if (state.bagKey !== key || state.bag.length === 0) {
+        state.bag = shuffle(
+          CATEGORIES.filter(c => state.categoryIds.includes(c.id)).flatMap(c => c.words)
+        );
+        state.bagKey = key;
+      }
+      const pick = state.bag.pop();
       state.word = pick.word;
       state.wordHint = pick.hint;
+    }
+
+    // ---------- prepara la ronda ----------
+    function beginRound() {
+      drawWord();
       const idx = shuffle([...Array(count()).keys()]).slice(0, state.impostors);
       state.roles = Array.from({ length: count() }, (_, i) => idx.includes(i));
       state.revealIndex = 0;
