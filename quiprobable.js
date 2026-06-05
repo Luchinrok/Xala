@@ -224,7 +224,21 @@ export default {
       drawChallenge();
       state.votes = new Array(count()).fill(null);
       state.voteIndex = 0;
-      screenPassVote();
+      screenChallenge();
+    }
+
+    // ---------- repte de la ronda (en gran) ----------
+    function screenChallenge() {
+      root.innerHTML = `
+        <button class="back" id="back">‹ Inici</button>
+        <p class="kicker center">Nou repte</p>
+        <div class="spacer"></div>
+        <h2 class="qp-question">Qui és més probable que ${state.challenge}?</h2>
+        <div class="spacer"></div>
+        <button class="btn btn--accent" id="govote" style="margin-top:18px">A votar</button>
+      `;
+      root.querySelector('#back').onclick = goHome;
+      root.querySelector('#govote').onclick = screenPassVote;
     }
 
     function roundCounts() {
