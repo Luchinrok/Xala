@@ -290,7 +290,7 @@ export default {
         <div class="spacer"></div>
         <div class="panel center stack">
           <h2 style="font-size:30px">Tothom ha votat</h2>
-          <p class="muted">Qui és més probable que ${state.challenge}?</p>
+          <p class="qp-recap">Qui és més probable que ${state.challenge}?</p>
         </div>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="reveal" style="margin-top:24px">Revelar resultats</button>
