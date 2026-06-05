@@ -7,8 +7,9 @@ import impostor from './impostor.js';
 import quiprobable from './quiprobable.js';
 import endevinala from './endevinala.js';
 import bomba from './bomba.js';
+import aescena from './aescena.js';
 
-const GAMES = [impostor, endevinala, bomba, quiprobable];
+const GAMES = [impostor, endevinala, bomba, quiprobable, aescena];
 
 const app = document.getElementById('app');
 
@@ -26,6 +27,7 @@ function glyph(id) {
     endevinala: '<rect x="6" y="9" width="28" height="22" rx="4" fill="none" stroke-width="3"/><path d="M14 36h12M20 31v5" stroke-width="3"/><path d="M13 20l5 4 9-9" fill="none" stroke-width="3"/>',
     bomba:      '<circle cx="18" cy="26" r="11" fill="none" stroke-width="3"/><path d="M26 16l5-5M31 11l1 4M31 11l-4-1" stroke-width="3"/>',
     quiprobable:'<circle cx="13" cy="13" r="6"/><circle cx="29" cy="15" r="5"/><path d="M3 36c0-6 4-9 10-9s10 3 10 9M21 36c0-5 3-8 8-8s8 3 8 8" fill="none" stroke-width="3"/>',
+    aescena:    '<path d="M8 8h24v13c0 8-5 13-12 13S8 29 8 21z" fill="none" stroke-width="3"/><path d="M15 17l3 2M25 17l-3 2" stroke-width="3"/><path d="M15 27c2 2 8 2 10 0" fill="none" stroke-width="3"/>',
   }[id] || '<circle cx="20" cy="20" r="12" fill="none" stroke-width="3"/>';
   return `<svg class="glyph" viewBox="0 0 40 40" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">${g}</svg>`;
 }
