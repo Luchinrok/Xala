@@ -34,4 +34,12 @@ export const CATEGORY_ICONS = {
   cos: svg(`<circle cx="32" cy="17" r="7"/><line x1="32" y1="24" x2="32" y2="41"/><line x1="19" y1="31" x2="45" y2="31"/><path d="M32 41 L24 54 M32 41 L40 54"/>`),
 
   marques: svg(`<path d="M30 11 H49 a4 4 0 0 1 4 4 V34 L31 56 a4 4 0 0 1-6 0 L9 40 a4 4 0 0 1 0-6 Z"/><circle cx="43" cy="21" r="3.5"/>`),
+
+  videojocs: svg(`<path d="M20 22 H44 a12 12 0 0 1 0 24 q-6 0 -8-4 H28 q-2 4-8 4 a12 12 0 0 1 0-24 Z"/><line x1="17" y1="34" x2="25" y2="34"/><line x1="21" y1="30" x2="21" y2="38"/><circle cx="42" cy="31" r="2.2" fill="currentColor" stroke="none"/><circle cx="47" cy="36" r="2.2" fill="currentColor" stroke="none"/>`),
+
+  accions: svg(`<circle cx="34" cy="13" r="5"/><path d="M34 19 L31 33 L24 47"/><path d="M31 33 L41 45"/><path d="M34 23 L21 28 M34 23 L47 27"/>`),
+
+  famosos: svg(`<circle cx="32" cy="22" r="11"/><path d="M14 52 Q14 38 32 38 Q50 38 50 52"/><path d="M32 6 L34 12 L40 12 L35 16 L37 22 L32 18 L27 22 L29 16 L24 12 L30 12 Z"/>`),
+
+  pelis: svg(`<rect x="10" y="16" width="44" height="32" rx="3"/><line x1="10" y1="24" x2="54" y2="24"/><line x1="10" y1="40" x2="54" y2="40"/><line x1="18" y1="16" x2="18" y2="24"/><line x1="28" y1="16" x2="28" y2="24"/><line x1="38" y1="16" x2="38" y2="24"/><line x1="48" y1="16" x2="48" y2="24"/><line x1="18" y1="40" x2="18" y2="48"/><line x1="28" y1="40" x2="28" y2="48"/><line x1="38" y1="40" x2="38" y2="48"/><line x1="48" y1="40" x2="48" y2="48"/>`),
 };
