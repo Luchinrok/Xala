@@ -328,3 +328,37 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .res-row--ok .res-row__mark { background: var(--ok); }
 .res-row--no { border-left: 8px solid var(--accent); }
 .res-row--no .res-row__mark { background: var(--accent); }
+
+/* ============================================================
+   Bomba de paraules (patata calenta)
+   ============================================================ */
+.bomb-challenge {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(30px, 9vw, 54px); line-height: 1.05;
+  text-align: center; margin: 14px 0 8px; color: var(--ink);
+}
+.bomb-stage { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 220px; }
+.bomb { width: clamp(170px, 60vw, 300px); height: auto; color: var(--ink); }
+.bomb--tick { animation: bombTick .12s ease; }
+@keyframes bombTick {
+  0% { transform: scale(1) rotate(0); }
+  45% { transform: scale(1.1) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.bomb-pass { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--accent); }
+
+.boom {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--accent); color: var(--paper); text-align: center;
+  border: 2px solid var(--ink); border-radius: var(--r-lg); box-shadow: var(--shadow);
+  min-height: 55vh; animation: boomShake .5s ease;
+}
+.boom__title { font-family: var(--font-display); font-weight: 800; font-size: clamp(64px, 22vw, 140px); line-height: 1; }
+.boom__sub { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin-top: 6px; }
+@keyframes boomShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-9px); }
+  40% { transform: translateX(9px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
