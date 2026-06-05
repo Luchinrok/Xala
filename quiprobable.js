@@ -233,7 +233,7 @@ export default {
         <button class="back" id="back">‹ Inici</button>
         <p class="kicker center">Nou repte</p>
         <div class="spacer"></div>
-        <h2 class="qp-question">Qui és més probable que ${state.challenge}?</h2>
+        <h2 class="qp-prompt">Qui és més probable que ${state.challenge}?</h2>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="govote" style="margin-top:18px">A votar</button>
       `;
@@ -269,7 +269,7 @@ export default {
         .join('');
       root.innerHTML = `
         <p class="kicker center">Vota en secret</p>
-        <h2 class="qp-question">Qui és més probable que ${state.challenge}?</h2>
+        <h2 class="qp-prompt">Qui és més probable que ${state.challenge}?</h2>
         <p class="muted center" style="margin-bottom:16px">Vota tu, <strong>${getName(state.voteIndex)}</strong></p>
         <div class="stack" style="--stack-gap:10px">${buttons}</div>
       `;
@@ -290,7 +290,7 @@ export default {
         <div class="spacer"></div>
         <div class="panel center stack">
           <h2 style="font-size:30px">Tothom ha votat</h2>
-          <p class="qp-recap">Qui és més probable que ${state.challenge}?</p>
+          <p class="qp-prompt">Qui és més probable que ${state.challenge}?</p>
         </div>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="reveal" style="margin-top:24px">Revelar resultats</button>
@@ -312,7 +312,7 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Inici</button>
         <p class="kicker center">Resultats</p>
-        <p class="muted center" style="margin-bottom:10px">Qui és més probable que ${state.challenge}?</p>
+        <p class="qp-prompt">Qui és més probable que ${state.challenge}?</p>
         <div class="reveal-card" id="card">
           <div class="who">${tie ? 'Empat! Els més probables...' : 'El més probable...'}</div>
           <div class="word">${names}!</div>
@@ -365,7 +365,7 @@ export default {
         <button class="back" id="back">‹ Classificació</button>
         <p class="kicker">Aquesta ronda</p>
         <h2 style="font-size:26px;margin:6px 0 6px">Qui ha votat ${getName(target)}?</h2>
-        <p class="muted" style="margin-bottom:16px">Qui és més probable que ${state.challenge}?</p>
+        <p class="qp-prompt">Qui és més probable que ${state.challenge}?</p>
         ${voters.length
           ? `<div class="stack" style="--stack-gap:10px">${voters.map(n => `<div class="res-row">${n}</div>`).join('')}</div>`
           : `<p class="muted">Ningú no l'ha votat aquesta ronda.</p>`}
