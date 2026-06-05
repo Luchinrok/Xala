@@ -362,3 +362,15 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   60% { transform: translateX(-6px); }
   80% { transform: translateX(6px); }
 }
+
+/* ============================================================
+   Qui és més probable
+   ============================================================ */
+.qp-question {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(26px, 7.5vw, 40px); line-height: 1.12;
+  text-align: center; margin: 6px 0 6px;
+}
+.rank-row { display: flex; align-items: center; justify-content: space-between; text-align: left; }
+.rank-row__name { font-family: var(--font-display); font-weight: 700; }
+.rank-row__pts { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--accent); }
