@@ -48,7 +48,8 @@ body {
   max-width: var(--maxw);
   margin: 0 auto;
   min-height: 100%;
-  padding: 22px 18px calc(28px + env(safe-area-inset-bottom));
+  /* deixa espai per a la barra d'estat / notch a dalt i la barra inferior */
+  padding: calc(env(safe-area-inset-top) + 16px) 18px calc(env(safe-area-inset-bottom) + 16px);
   display: flex;
   flex-direction: column;
 }
