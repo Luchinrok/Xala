@@ -287,10 +287,10 @@ export default {
     function screenAllVoted() {
       root.innerHTML = `
         <p class="kicker center">Fet!</p>
+        <h2 style="font-size:30px;text-align:center;margin:6px 0 18px">Tothom ha votat</h2>
         <div class="spacer"></div>
-        <div class="panel center stack">
-          <h2 style="font-size:30px">Tothom ha votat</h2>
-          <p class="qp-prompt">Qui és més probable que ${state.challenge}?</p>
+        <div class="panel center">
+          <p class="qp-prompt" style="margin:0">Qui és més probable que ${state.challenge}?</p>
         </div>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="reveal" style="margin-top:24px">Revelar resultats</button>
