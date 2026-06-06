@@ -1,28 +1,19 @@
 // ============================================================
-// A escena! — actuar i endevinar amb un gir
+// A escena! — actuar i endevinar amb un gir (mímica o so)
 //
-// A cada torn surt una paraula (animal, acció o objecte) i un MODE:
-// MÍMICA o SO. Qui actua l'ha de representar NOMÉS amb gestos o NOMÉS
-// amb sons, i la resta ho endevina.
-//
-// Flux: configuració -> passa el mòbil -> revelació secreta (mode +
-//       paraula) -> actuació (mode visible, paraula oculta) -> següent.
-// Reaprofita les paraules de l'impostor (CATEGORIES).
+// Per torns rotatius: a cada torn, a UN jugador li toca una paraula i
+// un MODE (MÍMICA o SO) i l'ha de representar; la resta ho endevina.
+// "Encertat!" suma un punt al jugador que actua. Al final, guanyador +
+// classificació. Reaprofita els noms (store.js), la selecció de
+// categories compartida (subconjunt) i les paraules de l'impostor.
 // ============================================================
 
 import { CATEGORIES } from './impostor-paraules.js';
+import { getPlayers, setPlayers } from './store.js';
+import { openCategoryScreen, categoriesLabel } from './category-select.js';
 
-// Tipus de paraula i de quines categories surten.
-const TYPES = [
-  { key: 'animals', label: 'Animal', name: 'Animals', cats: ['animals'] },
-  { key: 'accions', label: 'Acció', name: 'Accions', cats: ['accions'] },
-  { key: 'objectes', label: 'Objecte', name: 'Objectes', cats: ['casa', 'eines', 'tecnologia', 'roba', 'transport', 'menjar'] },
-];
-
-const wordsOf = (id) => {
-  const c = CATEGORIES.find(x => x.id === id);
-  return c ? c.words.map(w => w.word) : [];
-};
+// Subconjunt de categories bones per actuar.
+const ALLOWED = ['animals', 'accions', 'objectes', 'esports', 'professions', 'transport', 'musica'];
 
 function shuffle(a) {
   const arr = a.slice();
@@ -38,58 +29,46 @@ export default {
   title: 'A escena!',
   tagline: 'Fes mímica o so i que ho endevinin',
   accent: '#E4572E',
-  color: '#F4E8D2',
+  color: '#E4572E',
   ready: true,
 
   instructions: [
-    'A cada torn surt una paraula i un mode a l’atzar: MÍMICA o SO.',
-    'Passa el mòbil a qui actua; la paraula només la veu ell.',
-    'Representa-la NOMÉS amb gestos o NOMÉS amb sons, sense parlar.',
-    'La resta ho endevina: "Encertat!" suma un punt i "Passa" en treu una de nova.',
+    'Per torns, a un jugador li toca una paraula i un mode a l’atzar: MÍMICA o SO.',
+    'Passa-li el mòbil; només la veu ell, i la representa sense parlar.',
+    'La resta ho endevina: "Encertat!" suma un punt a qui actua.',
+    'Es va rotant fins que tothom ha fet les seves paraules; al final, classificació.',
   ],
 
   mount(root, { goHome }) {
+    // Carrega els noms recordats; mínim 2 jugadors.
+    const saved = getPlayers();
+    const initialNames = (Array.isArray(saved) && saved.length) ? saved.slice(0, 12) : ['', ''];
+    while (initialNames.length < 2) initialNames.push('');
+
     const state = {
-      enabled: { animals: true, accions: true, objectes: true },
+      names: initialNames,
+      perPlayer: 5,
+      categoryIds: ALLOWED.slice(),   // per defecte, totes les permeses
       bag: [],
       bagKey: null,
       word: null,
-      typeLabel: null,
+      catLabel: null,
       mode: null,
-      score: 0,
+      scores: [],
+      order: [],   // seqüència d'índexs de jugador (torns rotatius)
+      turn: 0,
     };
 
-    const enabledKeys = () => Object.keys(state.enabled).filter(k => state.enabled[k]);
+    const count = () => state.names.length;
+    const getName = (i) => (state.names[i] && state.names[i].trim()) || `Jugador ${i + 1}`;
+    const allFilled = () => state.names.every((n) => (n || '').trim() !== '');
+    const save = () => setPlayers(state.names);
 
-    // ---------- bossa de paraules (sense repetir) ----------
-    function buildBag() {
-      const seen = new Set();
-      const pool = [];
-      TYPES.forEach(t => {
-        if (!state.enabled[t.key]) return;
-        t.cats.forEach(cid => wordsOf(cid).forEach(w => {
-          const k = w.toLowerCase();
-          if (!seen.has(k)) { seen.add(k); pool.push({ word: w, type: t.label }); }
-        }));
-      });
-      return shuffle(pool);
-    }
-
-    function drawTurn() {
-      const key = enabledKeys().sort().join(',');
-      if (state.bagKey !== key || state.bag.length === 0) {
-        state.bag = buildBag();
-        state.bagKey = key;
+    function readNames() {
+      for (let i = 0; i < count(); i++) {
+        const el = root.querySelector('#name-' + i);
+        if (el) state.names[i] = el.value;
       }
-      const pick = state.bag.pop();
-      state.word = pick.word;
-      state.typeLabel = pick.type;
-      state.mode = Math.random() < 0.5 ? 'MÍMICA' : 'SO';
-    }
-
-    function startTurn() {
-      drawTurn();
-      screenPass();
     }
 
     // ---------- 1) configuració ----------
@@ -99,40 +78,143 @@ export default {
         <p class="kicker">A escena!</p>
         <h2 style="font-size:30px;margin:6px 0 22px">Prepara la partida</h2>
 
-        <div class="panel">
-          <p class="label">Què pot sortir?</p>
-          ${TYPES.map(t => `
-            <div class="switch-row" style="margin-top:18px">
-              <span class="switch-label">${t.name}</span>
-              <button class="switch" data-type="${t.key}" role="switch" aria-checked="${state.enabled[t.key]}" aria-label="${t.name}"></button>
-            </div>`).join('')}
-        </div>
-        <p class="muted" style="margin-top:12px">A cada torn, mímica o so a l'atzar.</p>
+        <p class="label" style="margin:0 0 12px">Jugadors</p>
+        <div class="stack" id="names" style="--stack-gap:10px"></div>
+        <button class="btn btn--outline" id="addp" style="margin-top:12px">+ Afegeix jugador</button>
 
-        <div class="spacer"></div>
-        <button class="btn btn--accent" id="go" style="margin-top:28px">Comença</button>
+        <p class="label" style="margin:24px 0 12px">Paraules per jugador</p>
+        <div class="btn-row" id="perp">
+          ${[3, 5, 7].map(n => `<button class="btn ${state.perPlayer === n ? 'btn--accent' : 'btn--outline'}" data-perp="${n}">${n}</button>`).join('')}
+        </div>
+
+        <p class="label" style="margin:24px 0 12px">Categories</p>
+        <button class="btn btn--outline" id="cats">${categoriesLabel(state.categoryIds, ALLOWED)}</button>
+
+        <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
+        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">Cal omplir el nom de tots els jugadors</p>
       `;
       root.querySelector('#back').onclick = goHome;
 
-      root.querySelectorAll('[data-type]').forEach(b => {
+      root.querySelectorAll('[data-perp]').forEach(b => {
         b.onclick = () => {
-          const key = b.dataset.type;
-          // mínim 1: no permetis desactivar l'últim actiu
-          if (state.enabled[key] && enabledKeys().length === 1) return;
-          state.enabled[key] = !state.enabled[key];
-          b.setAttribute('aria-checked', String(state.enabled[key]));
+          state.perPlayer = parseInt(b.dataset.perp, 10);
+          root.querySelectorAll('[data-perp]').forEach(x => {
+            x.className = 'btn ' + (parseInt(x.dataset.perp, 10) === state.perPlayer ? 'btn--accent' : 'btn--outline');
+          });
         };
       });
 
-      root.querySelector('#go').onclick = () => { state.score = 0; startTurn(); };
+      root.querySelector('#cats').onclick = () => {
+        readNames();
+        openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: 'A escena!', onBack: screenSetup, allowedIds: ALLOWED });
+      };
+
+      root.querySelector('#addp').onclick = () => {
+        readNames();
+        if (count() >= 12 || !allFilled()) return;
+        state.names.push('');
+        save();
+        renderNames();
+        const last = root.querySelector('#name-' + (count() - 1));
+        if (last) last.focus();
+      };
+
+      root.querySelector('#start').onclick = () => {
+        readNames();
+        if (!allFilled()) { updateButtons(); return; }
+        save();
+        beginGame();
+      };
+
+      renderNames();
     }
+
+    function updateButtons() {
+      const filled = allFilled();
+      const add = root.querySelector('#addp');
+      const start = root.querySelector('#start');
+      const warn = root.querySelector('#warn');
+      if (add) add.disabled = count() >= 12 || !filled;
+      if (start) start.disabled = !filled;
+      if (warn) warn.style.display = filled ? 'none' : 'block';
+    }
+
+    function renderNames() {
+      const box = root.querySelector('#names');
+      const canDelete = count() > 2; // mínim 2 jugadors
+      box.innerHTML = state.names.map((nm, i) => `
+        <div class="name-row">
+          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="Nom" value="${(nm || '').replace(/"/g, '&quot;')}">
+          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="Treu">×</button>` : ''}
+        </div>
+      `).join('');
+      box.querySelectorAll('[data-del]').forEach(b => {
+        b.onclick = () => {
+          readNames();
+          state.names.splice(parseInt(b.dataset.del, 10), 1);
+          save();
+          renderNames();
+        };
+      });
+      box.querySelectorAll('input.input').forEach((el, i) => {
+        el.oninput = () => {
+          state.names[i] = el.value;
+          save();
+          updateButtons();
+        };
+      });
+      updateButtons();
+    }
+
+    // ---------- bossa de paraules (sense repetir) ----------
+    function buildBag() {
+      const seen = new Set();
+      const pool = [];
+      CATEGORIES.filter(c => state.categoryIds.includes(c.id)).forEach(c => {
+        c.words.forEach(w => {
+          const k = w.word.toLowerCase();
+          if (!seen.has(k)) { seen.add(k); pool.push({ word: w.word, cat: c.name }); }
+        });
+      });
+      return shuffle(pool);
+    }
+    function drawTurn() {
+      const key = state.categoryIds.slice().sort().join(',');
+      if (state.bagKey !== key || state.bag.length === 0) { state.bag = buildBag(); state.bagKey = key; }
+      const pick = state.bag.pop();
+      state.word = pick.word;
+      state.catLabel = pick.cat;
+      state.mode = Math.random() < 0.5 ? 'MÍMICA' : 'SO';
+    }
+
+    // ---------- arrenca la partida ----------
+    function beginGame() {
+      state.scores = state.names.map(() => 0);
+      // torns rotatius: cada ronda passa per tots els jugadors
+      state.order = [];
+      for (let r = 0; r < state.perPlayer; r++) {
+        for (let p = 0; p < count(); p++) state.order.push(p);
+      }
+      state.turn = 0;
+      state.bag = [];
+      state.bagKey = null;
+      nextTurn();
+    }
+
+    function nextTurn() {
+      if (state.turn >= state.order.length) { screenFinal(); return; }
+      drawTurn();
+      screenPass();
+    }
+
+    const actor = () => state.order[state.turn];
 
     // ---------- 2) passa el mòbil ----------
     function screenPass() {
       root.innerHTML = `
         <button class="back" id="home">‹ Inici</button>
-        <p class="kicker">Torn nou</p>
-        <h2 style="font-size:26px;margin:6px 0 18px">Passa el mòbil<br>a qui actua</h2>
+        <p class="kicker">Torn ${state.turn + 1} de ${state.order.length}</p>
+        <h2 style="font-size:26px;margin:6px 0 18px">Passa el mòbil a<br>${getName(actor())}</h2>
         <div class="reveal-card tap-hint" id="card">
           <div class="word" style="font-size:28px">Toca per veure<br>la paraula</div>
         </div>
@@ -147,10 +229,10 @@ export default {
     function screenReveal() {
       root.innerHTML = `
         <button class="back" id="home">‹ Inici</button>
-        <p class="kicker center">Només qui actua</p>
+        <p class="kicker center">Només ${getName(actor())}</p>
         <div class="ae-mode-wrap"><span class="ae-mode">${state.mode}</span></div>
         <div class="reveal-card" id="card">
-          <div class="who">${state.typeLabel}</div>
+          <div class="who">${state.catLabel}</div>
           <div class="word">${state.word}</div>
         </div>
         <div class="spacer"></div>
@@ -165,19 +247,55 @@ export default {
       const hint = state.mode === 'MÍMICA' ? 'Només gestos, sense parlar!' : 'Només sons, sense paraules!';
       root.innerHTML = `
         <button class="back" id="home">‹ Inici</button>
-        <p class="kicker center">A actuar!</p>
+        <p class="kicker center">Actua ${getName(actor())}</p>
         <div class="ae-mode-big">${state.mode}</div>
         <p class="muted center">${hint}</p>
         <div class="spacer"></div>
-        <p class="ae-score center">Encerts: <strong id="score">${state.score}</strong></p>
         <div class="stack" style="margin-top:14px">
           <button class="btn btn--accent" id="ok">Encertat!</button>
           <button class="btn btn--outline" id="pass">Passa</button>
         </div>
       `;
       root.querySelector('#home').onclick = goHome;
-      root.querySelector('#ok').onclick = () => { state.score++; startTurn(); };
-      root.querySelector('#pass').onclick = () => { startTurn(); };
+      root.querySelector('#ok').onclick = () => { state.scores[actor()]++; state.turn++; nextTurn(); };
+      root.querySelector('#pass').onclick = () => { state.turn++; nextTurn(); };
+    }
+
+    // ---------- 5) final: guanyador + classificació ----------
+    function screenFinal() {
+      const max = Math.max(...state.scores);
+      const winners = state.names.map((nm, i) => i).filter(i => state.scores[i] === max);
+      const tie = winners.length > 1;
+      const winNames = winners.map(i => getName(i)).join(' i ');
+
+      const order = state.names
+        .map((nm, i) => i)
+        .sort((a, b) => state.scores[b] - state.scores[a] || a - b);
+      const rows = order.map(i => `
+        <div class="btn btn--outline rank-row" style="cursor:default">
+          <span class="rank-row__name">${getName(i)}</span>
+          <span class="rank-row__pts">${state.scores[i]}</span>
+        </div>`).join('');
+
+      root.innerHTML = `
+        <button class="back" id="back">‹ Inici</button>
+        <p class="kicker center">Final</p>
+        <div class="reveal-card" id="card">
+          <div class="who">${tie ? 'Empat! Guanyen...' : 'Guanya...'}</div>
+          <div class="word">${winNames}!</div>
+          <div class="who">${max} encert${max === 1 ? '' : 's'}</div>
+        </div>
+        <p class="label" style="margin:22px 0 12px">Classificació</p>
+        <div class="stack" style="--stack-gap:10px">${rows}</div>
+        <div class="spacer"></div>
+        <div class="stack" style="margin-top:20px">
+          <button class="btn btn--accent" id="again">Una altra partida</button>
+          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+        </div>
+      `;
+      root.querySelector('#back').onclick = goHome;
+      root.querySelector('#home').onclick = goHome;
+      root.querySelector('#again').onclick = beginGame;
     }
 
     screenSetup();
