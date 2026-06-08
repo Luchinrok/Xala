@@ -13,7 +13,7 @@ import { getPlayers, setPlayers } from './store.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
 
 // Subconjunt de categories bones per actuar.
-const ALLOWED = ['animals', 'accions', 'objectes', 'esports', 'professions', 'transport', 'musica'];
+const ALLOWED = ['menjar', 'animals', 'accions', 'objectes', 'esports', 'professions', 'transport', 'musica'];
 
 function shuffle(a) {
   const arr = a.slice();
@@ -48,7 +48,7 @@ export default {
     const state = {
       names: initialNames,
       perPlayer: 5,
-      categoryIds: ALLOWED.slice(),   // per defecte, totes les permeses
+      categoryIds: ['menjar'],   // per defecte, només la primera (Menjar i beure)
       bag: [],
       bagKey: null,
       word: null,
