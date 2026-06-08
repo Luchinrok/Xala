@@ -1,130 +1,145 @@
 // ============================================================
 // Passaparaula — el rosco de lletres
 //
-// Un concursant cada cop: es passa el mòbil i, contra rellotge, ha
-// d'encertar una paraula per a cada lletra de l'abecedari a partir
-// d'una pista. Pot encertar, passar (la lletra torna més tard) o
-// rendir-se. El joc s'auto-jutja: el concursant marca si ha encertat.
+// Per torns: cada jugador fa el seu rosco contra rellotge. Per cada
+// lletra surt una pista i el jugador ESCRIU la paraula; es comprova
+// contra una llista de respostes vàlides (insensible a accents i
+// majúscules). Pot encertar (verd), passar (groc, hi torna) o fallar
+// (vermell). Al final, classificació de tots els jugadors per encerts.
 //
-// Flux: configuració (temps per torn) -> rosco (cercle de lletres +
-//       pista + temporitzador) -> final (puntuació + rosco revelat).
-// Estil beix (--paper) amb accent vermell; reaprofita .btn i .back.
+// Flux: configuració (jugadors + temps) -> passa el mòbil -> rosco
+//       (cercle de lletres + pista + camp de text) -> següent jugador
+//       -> final (classificació + guanyador).
+// Reaprofita els noms (store.js) i l'estètica (.btn, .back, beix).
 // ============================================================
 
-// Lletres del rosco en català.
-const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'X', 'Z'];
+import { getPlayers, setPlayers } from './store.js';
 
 // Opcions de temps per torn (segons).
 const TIMES = [90, 120, 150];
 
 // ---------- roscos ----------
-// Cada rosco: una entrada per lletra { letter, mode, word, clue }.
-// mode = "comença" (la paraula comença per la lletra) o "conté".
-// La pista (clue) mai conté la paraula.
+// Cada rosco: una entrada per a cada lletra de A a Z.
+//   { letter, mode, answers, clue }
+//   mode = "comença" (la paraula comença per la lletra) o "conté".
+//   answers = respostes vàlides; answers[0] és la principal (la que es
+//     revela en fallar). La pista (clue) mai conté la paraula principal.
 const ROSCOS = [
   // Rosco 1
   [
-    { letter: 'A', mode: 'comença', word: 'arbre',    clue: 'Planta de tronc llenyós amb branques i fulles.' },
-    { letter: 'B', mode: 'comença', word: 'barca',    clue: 'Embarcació petita per anar per l’aigua.' },
-    { letter: 'C', mode: 'comença', word: 'cavall',   clue: 'Animal de quatre potes que es pot muntar i galopa.' },
-    { letter: 'D', mode: 'comença', word: 'dofí',     clue: 'Mamífer marí molt intel·ligent que viu al mar.' },
-    { letter: 'E', mode: 'comença', word: 'estrella', clue: 'Punt lluminós que es veu al cel de nit.' },
-    { letter: 'F', mode: 'comença', word: 'formatge', clue: 'Aliment fet amb llet, sovint de color groc.' },
-    { letter: 'G', mode: 'comença', word: 'girafa',   clue: 'Animal africà amb el coll molt llarg.' },
-    { letter: 'H', mode: 'comença', word: 'hivern',   clue: 'Estació de l’any més freda.' },
-    { letter: 'I', mode: 'comença', word: 'illa',     clue: 'Tros de terra envoltat d’aigua per tots costats.' },
-    { letter: 'J', mode: 'comença', word: 'joguina',  clue: 'Objecte amb què s’entretenen els nens.' },
-    { letter: 'L', mode: 'comença', word: 'lluna',    clue: 'Satèl·lit que il·lumina la nit.' },
-    { letter: 'M', mode: 'comença', word: 'muntanya', clue: 'Gran elevació del terreny.' },
-    { letter: 'N', mode: 'comença', word: 'núvol',    clue: 'Massa blanca al cel que pot portar pluja.' },
-    { letter: 'O', mode: 'comença', word: 'ocell',    clue: 'Animal amb plomes i ales que vola.' },
-    { letter: 'P', mode: 'comença', word: 'poma',     clue: 'Fruita rodona, sovint vermella o verda.' },
-    { letter: 'Q', mode: 'comença', word: 'quadre',   clue: 'Pintura emmarcada que es penja a la paret.' },
-    { letter: 'R', mode: 'comença', word: 'riu',      clue: 'Corrent d’aigua que baixa cap al mar.' },
-    { letter: 'S', mode: 'comença', word: 'sol',      clue: 'Estrella que ens dona llum i calor de dia.' },
-    { letter: 'T', mode: 'comença', word: 'taula',    clue: 'Moble pla amb potes per menjar o treballar.' },
-    { letter: 'U', mode: 'comença', word: 'ull',      clue: 'Òrgan del cos que serveix per veure.' },
-    { letter: 'V', mode: 'comença', word: 'vaca',     clue: 'Animal de granja que dona llet.' },
-    { letter: 'X', mode: 'comença', word: 'xocolata', clue: 'Dolç de color marró fet amb cacau.' },
-    { letter: 'Z', mode: 'comença', word: 'zebra',    clue: 'Animal africà amb ratlles blanques i negres.' },
+    { letter: 'A', mode: 'comença', answers: ['arbre', 'arbres'], clue: 'Planta de tronc llenyós amb branques i fulles.' },
+    { letter: 'B', mode: 'comença', answers: ['barca', 'barques', 'bot', 'vaixell'], clue: 'Nau petita per anar per sobre l’aigua.' },
+    { letter: 'C', mode: 'comença', answers: ['cavall', 'cavalls', 'poni'], clue: 'Animal de quatre potes que es pot muntar i galopa.' },
+    { letter: 'D', mode: 'comença', answers: ['dofí', 'dofins'], clue: 'Mamífer marí molt intel·ligent que viu al mar.' },
+    { letter: 'E', mode: 'comença', answers: ['estrella', 'estrelles', 'estel'], clue: 'Punt lluminós que es veu al cel de nit.' },
+    { letter: 'F', mode: 'comença', answers: ['formatge', 'formatges'], clue: 'Aliment fet amb llet, sovint de color groc.' },
+    { letter: 'G', mode: 'comença', answers: ['girafa', 'girafes'], clue: 'Animal africà amb el coll molt llarg.' },
+    { letter: 'H', mode: 'comença', answers: ['hivern', 'ivern'], clue: 'Estació de l’any més freda.' },
+    { letter: 'I', mode: 'comença', answers: ['illa', 'illes'], clue: 'Tros de terra envoltat d’aigua per tots costats.' },
+    { letter: 'J', mode: 'comença', answers: ['joguina', 'joguines', 'joguet', 'joguets'], clue: 'Objecte amb què s’entretenen els nens.' },
+    { letter: 'K', mode: 'conté',   answers: ['kiwi', 'kiwis'], clue: 'Fruita verda per dins i peluda per fora.' },
+    { letter: 'L', mode: 'comença', answers: ['lluna', 'llunes'], clue: 'Satèl·lit que il·lumina la nit.' },
+    { letter: 'M', mode: 'comença', answers: ['muntanya', 'muntanyes', 'mont'], clue: 'Gran elevació del terreny.' },
+    { letter: 'N', mode: 'comença', answers: ['núvol', 'núvols'], clue: 'Massa blanca al cel que pot portar pluja.' },
+    { letter: 'O', mode: 'comença', answers: ['ocell', 'ocells', 'au', 'aus', 'pardal'], clue: 'Animal amb plomes i ales que vola.' },
+    { letter: 'P', mode: 'comença', answers: ['poma', 'pomes'], clue: 'Fruita rodona, sovint vermella o verda.' },
+    { letter: 'Q', mode: 'comença', answers: ['quadre', 'quadres', 'pintura', 'pintures'], clue: 'Obra pintada i emmarcada que es penja a la paret.' },
+    { letter: 'R', mode: 'comença', answers: ['riu', 'rius'], clue: 'Corrent d’aigua que baixa cap al mar.' },
+    { letter: 'S', mode: 'comença', answers: ['sol', 'solet'], clue: 'Estrella que ens dona llum i calor de dia.' },
+    { letter: 'T', mode: 'comença', answers: ['taula', 'taules'], clue: 'Moble pla amb potes per menjar o treballar.' },
+    { letter: 'U', mode: 'comença', answers: ['ull', 'ulls'], clue: 'Òrgan del cos que serveix per veure.' },
+    { letter: 'V', mode: 'comença', answers: ['vaca', 'vaques', 'vedella'], clue: 'Animal de granja que dona llet.' },
+    { letter: 'W', mode: 'conté',   answers: ['wifi', 'wi-fi'], clue: 'Connexió a internet sense cables.' },
+    { letter: 'X', mode: 'comença', answers: ['xocolata', 'xocolates', 'xocolatina'], clue: 'Dolç de color marró fet amb cacau.' },
+    { letter: 'Y', mode: 'conté',   answers: ['spray', 'espray', 'esprai'], clue: 'Pot que dispara líquid en forma de núvol fi.' },
+    { letter: 'Z', mode: 'comença', answers: ['zebra', 'zebres'], clue: 'Animal africà amb ratlles blanques i negres.' },
   ],
   // Rosco 2
   [
-    { letter: 'A', mode: 'comença', word: 'avió',      clue: 'Aparell que vola i transporta passatgers pel cel.' },
-    { letter: 'B', mode: 'comença', word: 'bicicleta', clue: 'Vehicle de dues rodes que es mou pedalant.' },
-    { letter: 'C', mode: 'comença', word: 'cargol',    clue: 'Animal petit i lent que porta la closca a sobre.' },
-    { letter: 'D', mode: 'comença', word: 'dia',       clue: 'Període de llum entre dues nits.' },
-    { letter: 'E', mode: 'comença', word: 'elefant',   clue: 'Animal gros amb trompa i orelles grans.' },
-    { letter: 'F', mode: 'comença', word: 'flor',      clue: 'Part bonica i acolorida d’una planta.' },
-    { letter: 'G', mode: 'comença', word: 'gat',       clue: 'Animal domèstic que fa miau.' },
-    { letter: 'H', mode: 'comença', word: 'hospital',  clue: 'Lloc on guareixen els malalts.' },
-    { letter: 'I', mode: 'comença', word: 'iogurt',    clue: 'Aliment cremós fet amb llet fermentada.' },
-    { letter: 'J', mode: 'comença', word: 'jardí',     clue: 'Espai amb plantes i flors al voltant d’una casa.' },
-    { letter: 'L', mode: 'comença', word: 'llibre',    clue: 'Conjunt de fulls amb text per llegir.' },
-    { letter: 'M', mode: 'comença', word: 'mar',       clue: 'Gran extensió d’aigua salada.' },
-    { letter: 'N', mode: 'comença', word: 'nas',       clue: 'Part de la cara que serveix per olorar.' },
-    { letter: 'O', mode: 'comença', word: 'os',        clue: 'Animal gros i pelut que hiberna a l’hivern.' },
-    { letter: 'P', mode: 'comença', word: 'pilota',    clue: 'Objecte rodó amb què es juga a futbol.' },
-    { letter: 'Q', mode: 'comença', word: 'queixal',   clue: 'Dent grossa del fons de la boca per mastegar.' },
-    { letter: 'R', mode: 'comença', word: 'rellotge',  clue: 'Aparell que marca les hores.' },
-    { letter: 'S', mode: 'comença', word: 'sabata',    clue: 'Peça de calçat que es posa al peu.' },
-    { letter: 'T', mode: 'comença', word: 'tortuga',   clue: 'Rèptil molt lent que porta closca a sobre.' },
-    { letter: 'U', mode: 'comença', word: 'ungla',     clue: 'Part dura al final de cada dit.' },
-    { letter: 'V', mode: 'comença', word: 'vent',      clue: 'Aire en moviment.' },
-    { letter: 'X', mode: 'comença', word: 'xai',       clue: 'Cria de l’ovella.' },
-    { letter: 'Z', mode: 'comença', word: 'zoo',       clue: 'Lloc on es poden veure animals salvatges.' },
+    { letter: 'A', mode: 'comença', answers: ['avió', 'avions', 'aeroplà'], clue: 'Aparell que vola i transporta passatgers pel cel.' },
+    { letter: 'B', mode: 'comença', answers: ['bicicleta', 'bicicletes', 'bici', 'bicis'], clue: 'Vehicle de dues rodes que es mou pedalant.' },
+    { letter: 'C', mode: 'comença', answers: ['cargol', 'cargols', 'caragol', 'caragols'], clue: 'Animal petit i lent que porta la closca a sobre.' },
+    { letter: 'D', mode: 'comença', answers: ['dia', 'dies', 'jornada'], clue: 'Període de llum entre dues nits.' },
+    { letter: 'E', mode: 'comença', answers: ['elefant', 'elefants'], clue: 'Animal gros amb trompa i orelles grans.' },
+    { letter: 'F', mode: 'comença', answers: ['flor', 'flors'], clue: 'Part bonica i acolorida d’una planta.' },
+    { letter: 'G', mode: 'comença', answers: ['gat', 'gats', 'gatet', 'moix'], clue: 'Animal domèstic que fa miau.' },
+    { letter: 'H', mode: 'comença', answers: ['hospital', 'hospitals', 'clínica'], clue: 'Lloc on guareixen els malalts.' },
+    { letter: 'I', mode: 'comença', answers: ['iogurt', 'iogurts', 'jogurt'], clue: 'Aliment cremós fet amb llet fermentada.' },
+    { letter: 'J', mode: 'comença', answers: ['jardí', 'jardins', 'hort'], clue: 'Espai amb plantes i flors al voltant d’una casa.' },
+    { letter: 'K', mode: 'conté',   answers: ['koala', 'koales'], clue: 'Animal australià que viu enfilat als eucaliptus.' },
+    { letter: 'L', mode: 'comença', answers: ['llibre', 'llibres'], clue: 'Conjunt de fulls amb text per llegir.' },
+    { letter: 'M', mode: 'comença', answers: ['mar', 'mars', 'oceà'], clue: 'Gran extensió d’aigua salada.' },
+    { letter: 'N', mode: 'comença', answers: ['nas', 'nassos'], clue: 'Part de la cara que serveix per olorar.' },
+    { letter: 'O', mode: 'comença', answers: ['os', 'ossos'], clue: 'Animal gros i pelut que hiberna a l’hivern.' },
+    { letter: 'P', mode: 'comença', answers: ['pilota', 'pilotes', 'baló', 'bola'], clue: 'Objecte rodó amb què es juga a futbol.' },
+    { letter: 'Q', mode: 'comença', answers: ['queixal', 'queixals', 'molar'], clue: 'Dent grossa del fons de la boca per mastegar.' },
+    { letter: 'R', mode: 'comença', answers: ['rellotge', 'rellotges'], clue: 'Aparell que marca les hores.' },
+    { letter: 'S', mode: 'comença', answers: ['sabata', 'sabates', 'calçat', 'bamba', 'bambes'], clue: 'Peça que es posa al peu per caminar.' },
+    { letter: 'T', mode: 'comença', answers: ['tortuga', 'tortugues'], clue: 'Rèptil molt lent que porta closca a sobre.' },
+    { letter: 'U', mode: 'comença', answers: ['ungla', 'ungles'], clue: 'Part dura que tenim al final de cada dit.' },
+    { letter: 'V', mode: 'comença', answers: ['vent', 'vents', 'ventada', 'aire'], clue: 'Corrent d’aire en moviment.' },
+    { letter: 'W', mode: 'conté',   answers: ['web', 'webs', 'pàgina web', 'lloc web'], clue: 'Lloc d’internet que es visita amb el navegador.' },
+    { letter: 'X', mode: 'comença', answers: ['xai', 'xais', 'be', 'anyell', 'corder'], clue: 'Cria de l’ovella.' },
+    { letter: 'Y', mode: 'conté',   answers: ['hobby', 'hobbies', 'passatemps'], clue: 'Activitat que es fa per gust en el temps lliure.' },
+    { letter: 'Z', mode: 'comença', answers: ['zoo', 'zoos', 'zoològic'], clue: 'Lloc on es poden veure animals salvatges.' },
   ],
   // Rosco 3
   [
-    { letter: 'A', mode: 'comença', word: 'aigua',   clue: 'Líquid transparent que bevem cada dia.' },
-    { letter: 'B', mode: 'comença', word: 'bosc',    clue: 'Lloc de natura ple d’arbres.' },
-    { letter: 'C', mode: 'comença', word: 'cuina',   clue: 'Habitació de la casa on es preparen els àpats.' },
-    { letter: 'D', mode: 'comença', word: 'dent',    clue: 'Peça blanca de la boca per mastegar.' },
-    { letter: 'E', mode: 'comença', word: 'escola',  clue: 'Lloc on els nens van a aprendre.' },
-    { letter: 'F', mode: 'comença', word: 'foc',     clue: 'Flama que crema i fa calor.' },
-    { letter: 'G', mode: 'comença', word: 'gel',     clue: 'Aigua congelada i sòlida.' },
-    { letter: 'H', mode: 'comença', word: 'herba',   clue: 'Planta verda i baixa que cobreix el terra.' },
-    { letter: 'I', mode: 'comença', word: 'insecte', clue: 'Animal petit de sis potes, com la formiga.' },
-    { letter: 'J', mode: 'comença', word: 'jersei',  clue: 'Peça de roba de llana per a l’hivern.' },
-    { letter: 'L', mode: 'comença', word: 'llapis',  clue: 'Estri de fusta amb mina per escriure.' },
-    { letter: 'M', mode: 'comença', word: 'meló',    clue: 'Fruita gran i dolça típica de l’estiu.' },
-    { letter: 'N', mode: 'comença', word: 'nen',     clue: 'Persona de molt poca edat.' },
-    { letter: 'O', mode: 'comença', word: 'ou',      clue: 'Aliment oval que ponen les gallines.' },
-    { letter: 'P', mode: 'comença', word: 'peix',    clue: 'Animal que viu dins l’aigua i té aletes.' },
-    { letter: 'Q', mode: 'comença', word: 'quilo',   clue: 'Unitat que serveix per pesar.' },
-    { letter: 'R', mode: 'comença', word: 'rosa',    clue: 'Flor amb espines i pètals molt valorada.' },
-    { letter: 'S', mode: 'comença', word: 'serp',    clue: 'Rèptil llarg sense potes que s’arrossega.' },
-    { letter: 'T', mode: 'comença', word: 'tren',    clue: 'Vehicle llarg que va sobre vies de ferro.' },
-    { letter: 'U', mode: 'comença', word: 'urpa',    clue: 'Ungla forta i corba d’animals com el gat.' },
-    { letter: 'V', mode: 'comença', word: 'vidre',   clue: 'Material transparent i fràgil de les finestres.' },
-    { letter: 'X', mode: 'comença', word: 'xarop',   clue: 'Medicament líquid i dolç per a la tos.' },
-    { letter: 'Z', mode: 'comença', word: 'zona',    clue: 'Part o àrea d’un lloc.' },
+    { letter: 'A', mode: 'comença', answers: ['aigua', 'aigües'], clue: 'Líquid transparent que bevem cada dia.' },
+    { letter: 'B', mode: 'comença', answers: ['bosc', 'boscos', 'selva'], clue: 'Lloc de natura ple d’arbres.' },
+    { letter: 'C', mode: 'comença', answers: ['cuina', 'cuines'], clue: 'Habitació de la casa on es preparen els àpats.' },
+    { letter: 'D', mode: 'comença', answers: ['dent', 'dents', 'queixal'], clue: 'Peça blanca de la boca per mastegar.' },
+    { letter: 'E', mode: 'comença', answers: ['escola', 'escoles', 'col·legi', 'cole'], clue: 'Lloc on els nens van a aprendre.' },
+    { letter: 'F', mode: 'comença', answers: ['foc', 'focs', 'flama', 'flames', 'foguera'], clue: 'Allò que crema, fa llum i dona calor.' },
+    { letter: 'G', mode: 'comença', answers: ['gel', 'glaç', 'glaçó', 'glaçons'], clue: 'Aigua que el fred ha tornat sòlida.' },
+    { letter: 'H', mode: 'comença', answers: ['herba', 'herbes', 'gespa'], clue: 'Planta verda i baixa que cobreix el terra.' },
+    { letter: 'I', mode: 'comença', answers: ['insecte', 'insectes', 'bestiola', 'cuc'], clue: 'Animal petit de sis potes, com la formiga.' },
+    { letter: 'J', mode: 'comença', answers: ['jersei', 'jerseis', 'suèter', 'pul·lover'], clue: 'Peça de roba de llana per a l’hivern.' },
+    { letter: 'K', mode: 'conté',   answers: ['bikini', 'bikinis'], clue: 'Banyador de dues peces.' },
+    { letter: 'L', mode: 'comença', answers: ['llapis', 'llapissos'], clue: 'Estri de fusta amb mina per escriure.' },
+    { letter: 'M', mode: 'comença', answers: ['meló', 'melons'], clue: 'Fruita gran i dolça típica de l’estiu.' },
+    { letter: 'N', mode: 'comença', answers: ['nen', 'nens', 'nan', 'nano', 'infant', 'criatura'], clue: 'Persona de molt poca edat.' },
+    { letter: 'O', mode: 'comença', answers: ['ou', 'ous'], clue: 'Aliment oval que ponen les gallines.' },
+    { letter: 'P', mode: 'comença', answers: ['peix', 'peixos'], clue: 'Animal que viu dins l’aigua i té aletes.' },
+    { letter: 'Q', mode: 'comença', answers: ['quilo', 'quilos', 'kilo', 'quilogram', 'kg'], clue: 'Unitat que serveix per pesar.' },
+    { letter: 'R', mode: 'comença', answers: ['rosa', 'roses', 'flor'], clue: 'Planta amb espines i pètals molt valorada.' },
+    { letter: 'S', mode: 'comença', answers: ['serp', 'serps', 'escurçó', 'serpent'], clue: 'Rèptil llarg sense potes que s’arrossega.' },
+    { letter: 'T', mode: 'comença', answers: ['tren', 'trens'], clue: 'Vehicle llarg que va sobre vies de ferro.' },
+    { letter: 'U', mode: 'comença', answers: ['urpa', 'urpes', 'grapa', 'arpa'], clue: 'Ungla forta i corba d’animals com el gat.' },
+    { letter: 'V', mode: 'comença', answers: ['vidre', 'vidres', 'cristall'], clue: 'Material transparent i fràgil de les finestres.' },
+    { letter: 'W', mode: 'conté',   answers: ['windsurf', 'surf de vela'], clue: 'Esport de lliscar sobre l’aigua amb una vela i una taula.' },
+    { letter: 'X', mode: 'comença', answers: ['xarop', 'xarops'], clue: 'Medicament líquid i dolç per a la tos.' },
+    { letter: 'Y', mode: 'conté',   answers: ['rugby', 'rugbi'], clue: 'Esport amb una pilota ovalada on es marca assaig.' },
+    { letter: 'Z', mode: 'comença', answers: ['zona', 'zones', 'àrea', 'sector'], clue: 'Part o tros delimitat d’un lloc.' },
   ],
   // Rosco 4
   [
-    { letter: 'A', mode: 'comença', word: 'ametlla',   clue: 'Fruit sec de closca dura.' },
-    { letter: 'B', mode: 'comença', word: 'bolet',     clue: 'Aliment que creix al bosc; alguns són verinosos.' },
-    { letter: 'C', mode: 'comença', word: 'castell',   clue: 'Construcció antiga amb torres i muralles.' },
-    { letter: 'D', mode: 'comença', word: 'dau',       clue: 'Cub amb punts que es llança en jocs de taula.' },
-    { letter: 'E', mode: 'comença', word: 'espelma',   clue: 'Cilindre de cera amb un ble que fa llum.' },
-    { letter: 'F', mode: 'comença', word: 'finestra',  clue: 'Obertura a la paret per on entra la llum.' },
-    { letter: 'G', mode: 'comença', word: 'gallina',   clue: 'Au de granja que pon ous.' },
-    { letter: 'H', mode: 'comença', word: 'home',      clue: 'Persona adulta de sexe masculí.' },
-    { letter: 'I', mode: 'comença', word: 'imant',     clue: 'Objecte que atreu el ferro.' },
-    { letter: 'J', mode: 'comença', word: 'jugador',   clue: 'Persona que participa en un joc o esport.' },
-    { letter: 'L', mode: 'comença', word: 'llet',      clue: 'Líquid blanc que beuen els nadons.' },
-    { letter: 'M', mode: 'comença', word: 'mà',        clue: 'Part del cos al final del braç amb cinc dits.' },
-    { letter: 'N', mode: 'comença', word: 'neu',       clue: 'Floc blanc i fred que cau a l’hivern.' },
-    { letter: 'O', mode: 'comença', word: 'oli',       clue: 'Líquid groc que s’usa per cuinar.' },
-    { letter: 'P', mode: 'comença', word: 'pa',        clue: 'Aliment fet amb farina i cuit al forn.' },
-    { letter: 'Q', mode: 'comença', word: 'quadern',   clue: 'Llibreta amb fulls per escriure-hi.' },
-    { letter: 'R', mode: 'comença', word: 'raïm',      clue: 'Fruita en grans amb què es fa el vi.' },
-    { letter: 'S', mode: 'comença', word: 'sabó',      clue: 'Producte per rentar-se que fa escuma.' },
-    { letter: 'T', mode: 'comença', word: 'telèfon',   clue: 'Aparell per parlar amb algú que és lluny.' },
-    { letter: 'U', mode: 'comença', word: 'univers',   clue: 'Tot l’espai amb les estrelles i els planetes.' },
-    { letter: 'V', mode: 'comença', word: 'vela',      clue: 'Tela que empeny el vent en un vaixell.' },
-    { letter: 'X', mode: 'comença', word: 'ximpanzé',  clue: 'Mico molt intel·ligent semblant a l’home.' },
-    { letter: 'Z', mode: 'comença', word: 'zero',      clue: 'Número que representa cap quantitat.' },
+    { letter: 'A', mode: 'comença', answers: ['ametlla', 'ametlles'], clue: 'Fruit sec de closca dura.' },
+    { letter: 'B', mode: 'comença', answers: ['bolet', 'bolets', 'rovelló', 'xampinyó'], clue: 'Aliment que creix al bosc; alguns són verinosos.' },
+    { letter: 'C', mode: 'comença', answers: ['castell', 'castells', 'fortalesa', 'fortí'], clue: 'Construcció antiga amb torres i muralles.' },
+    { letter: 'D', mode: 'comença', answers: ['dau', 'daus'], clue: 'Cub amb punts que es llança en jocs de taula.' },
+    { letter: 'E', mode: 'comença', answers: ['espelma', 'espelmes', 'candela', 'ciri', 'ciris'], clue: 'Cilindre de cera amb un ble que fa llum.' },
+    { letter: 'F', mode: 'comença', answers: ['finestra', 'finestres', 'finestral'], clue: 'Obertura a la paret per on entra la llum.' },
+    { letter: 'G', mode: 'comença', answers: ['gallina', 'gallines', 'pollastre'], clue: 'Au de granja que pon ous.' },
+    { letter: 'H', mode: 'comença', answers: ['home', 'homes', 'senyor', 'noi'], clue: 'Persona adulta de sexe masculí.' },
+    { letter: 'I', mode: 'comença', answers: ['imant', 'imants'], clue: 'Objecte que atreu el ferro.' },
+    { letter: 'J', mode: 'comença', answers: ['jugador', 'jugadors', 'jugadora', 'jugadores'], clue: 'Persona que participa en un joc o esport.' },
+    { letter: 'K', mode: 'conté',   answers: ['kàrate', 'karate'], clue: 'Art marcial japonès de cops i defenses amb les mans.' },
+    { letter: 'L', mode: 'comença', answers: ['llet', 'llets'], clue: 'Líquid blanc que beuen els nadons.' },
+    { letter: 'M', mode: 'comença', answers: ['mà', 'mans'], clue: 'Part del cos al final del braç amb cinc dits.' },
+    { letter: 'N', mode: 'comença', answers: ['neu', 'neus', 'nevada'], clue: 'Floc blanc i fred que cau a l’hivern.' },
+    { letter: 'O', mode: 'comença', answers: ['oli', 'olis'], clue: 'Líquid groc que s’usa per cuinar i amanir.' },
+    { letter: 'P', mode: 'comença', answers: ['pa', 'pans', 'barra'], clue: 'Aliment fet amb farina i cuit al forn.' },
+    { letter: 'Q', mode: 'comença', answers: ['quadern', 'quaderns', 'llibreta', 'llibretes'], clue: 'Conjunt de fulls cosits per escriure-hi.' },
+    { letter: 'R', mode: 'comença', answers: ['raïm', 'raïms'], clue: 'Fruita en grans amb què es fa el vi.' },
+    { letter: 'S', mode: 'comença', answers: ['sabó', 'sabons'], clue: 'Producte per rentar-se que fa escuma.' },
+    { letter: 'T', mode: 'comença', answers: ['telèfon', 'telèfons', 'mòbil', 'mòbils'], clue: 'Aparell per parlar amb algú que és lluny.' },
+    { letter: 'U', mode: 'comença', answers: ['univers', 'universos', 'cosmos'], clue: 'Tot l’espai amb les estrelles i els planetes.' },
+    { letter: 'V', mode: 'comença', answers: ['vela', 'veles'], clue: 'Tela que empeny el vent en un vaixell.' },
+    { letter: 'W', mode: 'conté',   answers: ['waterpolo', 'water-polo', 'water polo'], clue: 'Esport d’equip que es juga dins una piscina amb una pilota.' },
+    { letter: 'X', mode: 'comença', answers: ['ximpanzé', 'ximpanzés', 'mico', 'mona', 'simi'], clue: 'Primat molt intel·ligent semblant a l’home.' },
+    { letter: 'Y', mode: 'conté',   answers: ['ferry', 'ferris', 'transbordador'], clue: 'Vaixell gran que transporta cotxes i passatgers.' },
+    { letter: 'Z', mode: 'comença', answers: ['zero', 'zeros', 'cap'], clue: 'Número que representa cap quantitat.' },
   ],
 ];
 
@@ -139,6 +154,16 @@ function shuffle(a) {
 
 function formatTime(s) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// Normalitza per comparar: minúscules, sense accents/diacrítics, sense
+// espais ni signes (·, guions, apòstrofs...). Així "Wi-Fi" == "wifi".
+function norm(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]/g, '');
 }
 
 // Colors de cada estat de lletra.
@@ -158,17 +183,28 @@ export default {
   ready: true,
 
   instructions: [
-    'Un concursant cada cop: passa-li el mòbil i posa en marxa el rellotge.',
-    'Per cada lletra surt una pista; digues la paraula que comença per aquella lletra.',
-    'Marca "Encertada", "Passa" (hi tornaràs) o "No ho sé" si no la saps.',
-    'El torn s’acaba quan s’esgota el temps o quan completes el rosco.',
+    'Per torns: cada jugador fa el seu rosco. Passa-li el mòbil quan li toqui.',
+    'Per cada lletra surt una pista; escriu la paraula i prem "Comprova".',
+    'Si no la saps, prem "Passa" i la lletra tornarà a sortir més tard.',
+    'El torn s’acaba quan s’esgota el temps o completes el rosco; al final, classificació.',
   ],
 
   mount(root, { goHome }) {
+    // Carrega els noms recordats; mínim 2 jugadors.
+    const saved = getPlayers();
+    const initialNames = (Array.isArray(saved) && saved.length) ? saved.slice(0, 12) : ['', ''];
+    while (initialNames.length < 2) initialNames.push('');
+
     const state = {
+      names: initialNames,
       timeSec: 120,
       deck: shuffle(ROSCOS.map((_, i) => i)),
       deckIndex: 0,
+      // per partida
+      scores: [],
+      order: [],
+      turn: 0,
+      // per torn
       rosco: [],
       status: [],
       cur: 0,
@@ -179,6 +215,11 @@ export default {
     let timerId = null;
     let revealTimeout = null;
     let revealing = false;
+
+    const count = () => state.names.length;
+    const getName = (i) => (state.names[i] && state.names[i].trim()) || `Jugador ${i + 1}`;
+    const allFilled = () => state.names.every((n) => (n || '').trim() !== '');
+    const save = () => setPlayers(state.names);
 
     function stopTimer() {
       if (timerId) { clearInterval(timerId); timerId = null; }
@@ -193,28 +234,12 @@ export default {
       goHome();
     }
 
-    // ---------- tria de rosco (sense repetir) ----------
-    function drawRosco() {
-      if (state.deckIndex >= state.deck.length) {
-        state.deck = shuffle(ROSCOS.map((_, i) => i));
-        state.deckIndex = 0;
+    function readNames() {
+      for (let i = 0; i < count(); i++) {
+        const el = root.querySelector('#name-' + i);
+        if (el) state.names[i] = el.value;
       }
-      state.rosco = ROSCOS[state.deck[state.deckIndex++]];
-      state.status = state.rosco.map(() => 'pending');
-      state.cur = 0;
     }
-
-    // següent lletra no resolta (pendent o passada) a partir de "from"
-    function nextIndex(from) {
-      const n = state.rosco.length;
-      for (let step = 1; step <= n; step++) {
-        const i = (from + step) % n;
-        if (state.status[i] === 'pending' || state.status[i] === 'pass') return i;
-      }
-      return -1;
-    }
-    const allResolved = () =>
-      state.status.every(s => s === 'ok' || s === 'fail');
 
     // ---------- 1) configuració ----------
     function screenSetup() {
@@ -223,16 +248,19 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Inici</button>
         <p class="kicker">Passaparaula</p>
-        <h2 style="font-size:30px;margin:6px 0 14px">El rosco de lletres</h2>
-        <p class="muted" style="margin:0 0 22px">Un concursant cada cop. Surt una pista per cada lletra de l’abecedari i, contra rellotge, has de dir la paraula. Pots passar i tornar-hi més tard.</p>
+        <h2 style="font-size:30px;margin:6px 0 22px">Prepara la partida</h2>
 
-        <p class="label" style="margin:0 0 12px">Temps per torn</p>
+        <p class="label" style="margin:0 0 12px">Jugadors</p>
+        <div class="stack" id="names" style="--stack-gap:10px"></div>
+        <button class="btn btn--outline" id="addp" style="margin-top:12px">+ Afegeix jugador</button>
+
+        <p class="label" style="margin:24px 0 12px">Temps per torn</p>
         <div class="btn-row" id="times">
           ${TIMES.map(t => `<button class="btn ${state.timeSec === t ? 'btn--accent' : 'btn--outline'}" data-time="${t}">${t}s</button>`).join('')}
         </div>
 
-        <div class="spacer"></div>
-        <button class="btn btn--accent" id="go" style="margin-top:28px">Comença</button>
+        <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
+        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">Cal omplir el nom de tots els jugadors</p>
       `;
       root.querySelector('#back').onclick = leaveGame;
 
@@ -245,10 +273,109 @@ export default {
         };
       });
 
-      root.querySelector('#go').onclick = () => { drawRosco(); startRound(); };
+      root.querySelector('#addp').onclick = () => {
+        readNames();
+        if (count() >= 12 || !allFilled()) return;
+        state.names.push('');
+        save();
+        renderNames();
+        const last = root.querySelector('#name-' + (count() - 1));
+        if (last) last.focus();
+      };
+
+      root.querySelector('#start').onclick = () => {
+        readNames();
+        if (!allFilled()) { updateButtons(); return; }
+        save();
+        beginGame();
+      };
+
+      renderNames();
     }
 
-    // ---------- 2) rosco ----------
+    function updateButtons() {
+      const filled = allFilled();
+      const add = root.querySelector('#addp');
+      const start = root.querySelector('#start');
+      const warn = root.querySelector('#warn');
+      if (add) add.disabled = count() >= 12 || !filled;
+      if (start) start.disabled = !filled;
+      if (warn) warn.style.display = filled ? 'none' : 'block';
+    }
+
+    function renderNames() {
+      const box = root.querySelector('#names');
+      const canDelete = count() > 2; // mínim 2 jugadors
+      box.innerHTML = state.names.map((nm, i) => `
+        <div class="name-row">
+          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="Nom" value="${(nm || '').replace(/"/g, '&quot;')}">
+          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="Treu">×</button>` : ''}
+        </div>
+      `).join('');
+      box.querySelectorAll('[data-del]').forEach(b => {
+        b.onclick = () => {
+          readNames();
+          state.names.splice(parseInt(b.dataset.del, 10), 1);
+          save();
+          renderNames();
+        };
+      });
+      box.querySelectorAll('input.input').forEach((el, i) => {
+        el.oninput = () => {
+          state.names[i] = el.value;
+          save();
+          updateButtons();
+        };
+      });
+      updateButtons();
+    }
+
+    // ---------- partida (torns) ----------
+    function beginGame() {
+      state.scores = state.names.map(() => 0);
+      state.order = state.names.map((_, i) => i); // una ronda: cadascú un rosco
+      state.turn = 0;
+      nextTurn();
+    }
+
+    const player = () => state.order[state.turn];
+
+    function nextTurn() {
+      if (state.turn >= state.order.length) { screenFinal(); return; }
+      drawRosco();
+      screenPass();
+    }
+
+    // ---------- tria de rosco (sense repetir) ----------
+    function drawRosco() {
+      if (state.deckIndex >= state.deck.length) {
+        state.deck = shuffle(ROSCOS.map((_, i) => i));
+        state.deckIndex = 0;
+      }
+      state.rosco = ROSCOS[state.deck[state.deckIndex++]];
+      state.status = state.rosco.map(() => 'pending');
+      state.cur = 0;
+    }
+
+    // ---------- 2) passa el mòbil ----------
+    function screenPass() {
+      stopTimer();
+      clearReveal();
+      root.innerHTML = `
+        <button class="back" id="home">‹ Inici</button>
+        <p class="kicker">Torn ${state.turn + 1} de ${state.order.length}</p>
+        <h2 style="font-size:26px;margin:6px 0 18px">Passa el mòbil a<br>${getName(player())}</h2>
+        <div class="reveal-card tap-hint" id="card">
+          <div class="word" style="font-size:28px">Toca per<br>començar el rosco</div>
+        </div>
+        <div class="spacer"></div>
+        <p class="muted center">Tu sol contra el rellotge!</p>
+      `;
+      root.querySelector('#home').onclick = leaveGame;
+      root.querySelector('#card').onclick = startRound;
+    }
+
+    // ---------- 3) rosco ----------
     function startRound() {
       state.finished = false;
       clearReveal();
@@ -256,11 +383,22 @@ export default {
       startTimer();
     }
 
-    // construeix el cercle de lletres (sin/cos) amb els colors actuals
+    // següent lletra no resolta (pendent o passada) a partir de "from"
+    function nextIndex(from) {
+      const n = state.rosco.length;
+      for (let step = 1; step <= n; step++) {
+        const i = (from + step) % n;
+        if (state.status[i] === 'pending' || state.status[i] === 'pass') return i;
+      }
+      return -1;
+    }
+    const allResolved = () => state.status.every(s => s === 'ok' || s === 'fail');
+
+    // cercle de lletres (sin/cos) amb els colors actuals
     function circleHTML(highlight) {
       const n = state.rosco.length;
       const R = 42; // radi en % del contenidor
-      const dots = state.rosco.map((e, i) => {
+      return state.rosco.map((e, i) => {
         const ang = (-90 + i * 360 / n) * Math.PI / 180;
         const x = 50 + R * Math.cos(ang);
         const y = 50 + R * Math.sin(ang);
@@ -268,76 +406,87 @@ export default {
         const isCur = highlight && i === state.cur;
         return `<div style="position:absolute;left:${x.toFixed(2)}%;top:${y.toFixed(2)}%;
           transform:translate(-50%,-50%)${isCur ? ' scale(1.22)' : ''};
-          width:30px;height:30px;border-radius:50%;
+          width:28px;height:28px;border-radius:50%;
           display:flex;align-items:center;justify-content:center;
-          font-family:var(--font-display);font-weight:800;font-size:15px;
+          font-family:var(--font-display);font-weight:800;font-size:14px;
           background:${c.bg};border:2px solid ${c.bd};color:${c.fg};
           box-shadow:${isCur ? '0 0 0 3px var(--accent)' : 'none'};
           z-index:${isCur ? 2 : 1};">${e.letter}</div>`;
       }).join('');
-      return dots;
     }
 
     function centerHTML(revealWord) {
       const e = state.rosco[state.cur];
-      const label = e.mode === 'comença'
-        ? `Comença per ${e.letter}`
-        : `Conté la ${e.letter}`;
+      const label = e.mode === 'comença' ? `Comença per ${e.letter}` : `Conté la ${e.letter}`;
       if (revealWord) {
         return `
-          <div style="font-family:var(--font-display);font-weight:800;font-size:34px;color:var(--accent);line-height:1">${formatTime(Math.max(0, state.remaining))}</div>
-          <p class="muted" style="margin-top:14px;font-size:13px">La paraula era</p>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--accent);line-height:1">${formatTime(Math.max(0, state.remaining))}</div>
+          <p class="muted" style="margin-top:12px;font-size:13px">La paraula era</p>
           <div style="font-family:var(--font-display);font-weight:800;font-size:24px;color:var(--ink);line-height:1.05">${revealWord}</div>`;
       }
       return `
-        <div id="pp-timer" style="font-family:var(--font-display);font-weight:800;font-size:34px;color:var(--accent);line-height:1">${formatTime(Math.max(0, state.remaining))}</div>
-        <p class="kicker" style="margin-top:14px">${label}</p>
-        <p style="margin-top:6px;font-size:16px;font-weight:500;color:var(--ink);line-height:1.3">${e.clue}</p>`;
+        <div id="pp-timer" style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--accent);line-height:1">${formatTime(Math.max(0, state.remaining))}</div>
+        <p class="kicker" style="margin-top:12px">${label}</p>
+        <p style="margin-top:6px;font-size:15px;font-weight:500;color:var(--ink);line-height:1.3">${e.clue}</p>`;
     }
 
     function renderRound(revealWord) {
       const resolved = state.status.filter(s => s === 'ok' || s === 'fail').length;
       root.innerHTML = `
         <button class="back" id="home">‹ Inici</button>
-        <p class="kicker center">Encertades: ${state.status.filter(s => s === 'ok').length} · Resoltes: ${resolved}/${state.rosco.length}</p>
-        <div style="position:relative;width:100%;max-width:360px;margin:10px auto 0;aspect-ratio:1/1">
+        <p class="kicker center">${getName(player())} · Resoltes: ${resolved}/${state.rosco.length}</p>
+        <div style="position:relative;width:100%;max-width:330px;margin:8px auto 0;aspect-ratio:1/1">
           ${circleHTML(true)}
-          <div style="position:absolute;inset:20%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+          <div style="position:absolute;inset:19%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
             ${centerHTML(revealWord)}
           </div>
         </div>
         <div class="spacer"></div>
-        <div class="btn-row" style="margin-top:16px">
-          <button class="btn btn--accent" id="ok">Encertada</button>
-          <button class="btn btn--outline" id="pass">Passa</button>
+        <input class="input" id="pp-input" type="text" maxlength="24" autocomplete="off"
+          autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Escriu la paraula"
+          style="margin-top:14px;text-align:center;font-family:var(--font-display);font-weight:700;font-size:18px"${revealWord ? ' disabled' : ''}>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn btn--accent" id="check"${revealWord ? ' disabled' : ''}>Comprova</button>
+          <button class="btn btn--outline" id="pass"${revealWord ? ' disabled' : ''}>Passa</button>
         </div>
-        <button class="btn btn--outline" id="dunno" style="margin-top:12px">No ho sé</button>
       `;
       root.querySelector('#home').onclick = leaveGame;
-      root.querySelector('#ok').onclick = () => act('ok');
-      root.querySelector('#pass').onclick = () => act('pass');
-      root.querySelector('#dunno').onclick = () => act('dunno');
+      const input = root.querySelector('#pp-input');
+      root.querySelector('#check').onclick = checkAnswer;
+      root.querySelector('#pass').onclick = passLetter;
+      if (input && !revealWord) {
+        input.onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); checkAnswer(); } };
+        input.focus();
+      }
     }
 
-    function act(kind) {
+    function checkAnswer() {
       if (revealing || state.finished) return;
+      const input = root.querySelector('#pp-input');
+      const val = input ? input.value : '';
+      if (norm(val) === '') { if (input) input.focus(); return; } // ignora buit
       const i = state.cur;
-      if (kind === 'ok') {
+      const e = state.rosco[i];
+      const hit = e.answers.some(a => norm(a) === norm(val));
+      if (hit) {
         state.status[i] = 'ok';
         goNext();
-      } else if (kind === 'pass') {
-        state.status[i] = 'pass';
-        goNext();
-      } else { // dunno: marca fallada i mostra breument la paraula
+      } else {
         state.status[i] = 'fail';
         revealing = true;
-        renderRound(state.rosco[i].word);
+        renderRound(e.answers[0]); // mostra breument la paraula principal
         revealTimeout = setTimeout(() => {
           revealTimeout = null;
           revealing = false;
           goNext();
         }, 1500);
       }
+    }
+
+    function passLetter() {
+      if (revealing || state.finished) return;
+      state.status[state.cur] = 'pass';
+      goNext();
     }
 
     function goNext() {
@@ -365,42 +514,48 @@ export default {
       state.finished = true;
       stopTimer();
       clearReveal();
-      screenFinal();
+      state.scores[player()] = state.status.filter(s => s === 'ok').length;
+      state.turn++;
+      nextTurn();
     }
 
-    // ---------- 3) final ----------
+    // ---------- 4) final: classificació ----------
     function screenFinal() {
-      const score = state.status.filter(s => s === 'ok').length;
-      const reveal = state.rosco.map((e, i) => {
-        const c = STATE_COLORS[state.status[i]];
-        return `
-          <div style="display:flex;align-items:center;gap:10px;background:var(--paper);border:2px solid var(--ink);border-radius:var(--r-sm);padding:8px 12px">
-            <span style="flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:14px;background:${c.bg};border:2px solid ${c.bd};color:${c.fg}">${e.letter}</span>
-            <span style="font-family:var(--font-display);font-weight:700;font-size:16px">${e.word}</span>
-          </div>`;
-      }).join('');
+      stopTimer();
+      clearReveal();
+      const max = Math.max(...state.scores);
+      const winners = state.names.map((_, i) => i).filter(i => state.scores[i] === max);
+      const tie = winners.length > 1;
+      const winNames = winners.map(i => getName(i)).join(' i ');
+
+      const order = state.names
+        .map((_, i) => i)
+        .sort((a, b) => state.scores[b] - state.scores[a] || a - b);
+      const rows = order.map(i => `
+        <div class="btn btn--outline rank-row" style="cursor:default">
+          <span class="rank-row__name">${getName(i)}</span>
+          <span class="rank-row__pts">${state.scores[i]}</span>
+        </div>`).join('');
 
       root.innerHTML = `
         <button class="back" id="back">‹ Inici</button>
-        <p class="kicker center">Fi del torn</p>
-        <div class="reveal-card" id="card" style="cursor:default;min-height:0;padding:24px;flex:0 0 auto">
-          <div class="who">Has encertat</div>
-          <div class="word">${score} de ${state.rosco.length}</div>
+        <p class="kicker center">Final</p>
+        <div class="reveal-card" id="card" style="cursor:default;min-height:0;flex:0 0 auto;padding:24px">
+          <div class="who">${tie ? 'Empat! Guanyen...' : 'Guanya...'}</div>
+          <div class="word">${winNames}!</div>
+          <div class="who">${max} encert${max === 1 ? '' : 's'}</div>
         </div>
-        <div style="position:relative;width:100%;max-width:300px;margin:18px auto 0;aspect-ratio:1/1">
-          ${circleHTML(false)}
-        </div>
-        <p class="label" style="margin:22px 0 12px">Les paraules</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${reveal}</div>
+        <p class="label" style="margin:22px 0 12px">Classificació</p>
+        <div class="stack" style="--stack-gap:10px">${rows}</div>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:20px">
-          <button class="btn btn--accent" id="again">Una altra</button>
+          <button class="btn btn--accent" id="again">Una altra partida</button>
           <button class="btn btn--outline" id="home">Tornar a l'inici</button>
         </div>
       `;
       root.querySelector('#back').onclick = leaveGame;
       root.querySelector('#home').onclick = leaveGame;
-      root.querySelector('#again').onclick = () => { drawRosco(); startRound(); };
+      root.querySelector('#again').onclick = beginGame;
     }
 
     screenSetup();

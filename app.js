@@ -38,15 +38,14 @@ function goHome() {
   setAccent(null);
   clear();
   const wrap = document.createElement('div');
-  wrap.className = 'screen';
+  wrap.className = 'screen home';
   wrap.innerHTML = `
-    <header style="margin-top:8px">
+    <header class="home__head">
       <div class="brand">Xala<span>!</span></div>
       <p class="tagline">Passa el mòbil i que comenci la festa.</p>
     </header>
     <div class="grid" id="grid"></div>
-    <button class="btn btn--outline" id="help" style="margin-top:18px">Com es juga?</button>
-    <div class="spacer"></div>
+    <button class="btn btn--outline home__help" id="help">Com es juga?</button>
   `;
   app.appendChild(wrap);
 
