@@ -148,13 +148,14 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   transition: transform .08s ease, box-shadow .08s ease;
   min-height: 0;
   overflow: hidden;
-  display: flex; flex-direction: column; justify-content: space-between;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: clamp(4px, 1vh, 10px);
 }
 .card:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
 .card.locked { cursor: default; }
 .card.locked:active { transform: none; box-shadow: var(--shadow); }
 .card .glyph { width: clamp(30px, 5vh, 40px); height: clamp(30px, 5vh, 40px); }
-.card h3 { font-size: clamp(17px, 2.6vh, 22px); margin-top: clamp(6px, 1.4vh, 14px); }
+.card h3 { font-size: clamp(20px, 3.6vh, 28px); margin-top: 0; }
 .card p { font-size: clamp(11px, 1.7vh, 13px); font-weight: 500; color: var(--ink); opacity: .8; margin-top: 4px; line-height: 1.25; }
 
 /* targetes amb fons fosc: text, icona i tagline en beix per llegir-les */

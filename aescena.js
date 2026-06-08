@@ -55,6 +55,8 @@ export default {
       catLabel: null,
       mode: null,
       scores: [],
+      correct: [],  // paraules encertades per jugador
+      passed: [],   // paraules passades per jugador
       order: [],   // seqüència d'índexs de jugador (torns rotatius)
       turn: 0,
     };
@@ -190,6 +192,8 @@ export default {
     // ---------- arrenca la partida ----------
     function beginGame() {
       state.scores = state.names.map(() => 0);
+      state.correct = state.names.map(() => []);
+      state.passed = state.names.map(() => []);
       // torns rotatius: cada ronda passa per tots els jugadors
       state.order = [];
       for (let r = 0; r < state.perPlayer; r++) {
@@ -257,8 +261,8 @@ export default {
         </div>
       `;
       root.querySelector('#home').onclick = goHome;
-      root.querySelector('#ok').onclick = () => { state.scores[actor()]++; state.turn++; nextTurn(); };
-      root.querySelector('#pass').onclick = () => { state.turn++; nextTurn(); };
+      root.querySelector('#ok').onclick = () => { state.correct[actor()].push(state.word); state.scores[actor()]++; state.turn++; nextTurn(); };
+      root.querySelector('#pass').onclick = () => { state.passed[actor()].push(state.word); state.turn++; nextTurn(); };
     }
 
     // ---------- 5) final: guanyador + classificació ----------
@@ -272,10 +276,10 @@ export default {
         .map((nm, i) => i)
         .sort((a, b) => state.scores[b] - state.scores[a] || a - b);
       const rows = order.map(i => `
-        <div class="btn btn--outline rank-row" style="cursor:default">
+        <button class="btn btn--outline rank-row" data-player="${i}">
           <span class="rank-row__name">${getName(i)}</span>
-          <span class="rank-row__pts">${state.scores[i]}</span>
-        </div>`).join('');
+          <span class="rank-row__pts">${state.scores[i]} ›</span>
+        </button>`).join('');
 
       root.innerHTML = `
         <button class="back" id="back">‹ Inici</button>
@@ -285,7 +289,7 @@ export default {
           <div class="word">${winNames}!</div>
           <div class="who">${max} encert${max === 1 ? '' : 's'}</div>
         </div>
-        <p class="label" style="margin:22px 0 12px">Classificació</p>
+        <p class="label" style="margin:22px 0 12px">Classificació · toca un jugador</p>
         <div class="stack" style="--stack-gap:10px">${rows}</div>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:20px">
@@ -296,6 +300,27 @@ export default {
       root.querySelector('#back').onclick = goHome;
       root.querySelector('#home').onclick = goHome;
       root.querySelector('#again').onclick = beginGame;
+      root.querySelectorAll('[data-player]').forEach(b => {
+        b.onclick = () => screenPlayerDetail(parseInt(b.dataset.player, 10));
+      });
+    }
+
+    // ---------- detall d'un jugador (encertades / passades) ----------
+    function screenPlayerDetail(i) {
+      const wordList = (arr) => arr.length
+        ? `<div class="stack" style="--stack-gap:8px">${arr.map(w => `<div class="btn btn--outline" style="cursor:default;text-align:left">${w}</div>`).join('')}</div>`
+        : `<p class="muted">Cap.</p>`;
+      root.innerHTML = `
+        <button class="back" id="back">‹ Classificació</button>
+        <p class="kicker">${getName(i)}</p>
+        <h2 style="font-size:28px;margin:6px 0 18px">${state.scores[i]} encert${state.scores[i] === 1 ? '' : 's'}</h2>
+        <p class="label" style="margin:0 0 10px">Encertades</p>
+        ${wordList(state.correct[i] || [])}
+        <p class="label" style="margin:22px 0 10px">Passades</p>
+        ${wordList(state.passed[i] || [])}
+        <div class="spacer"></div>
+      `;
+      root.querySelector('#back').onclick = screenFinal;
     }
 
     screenSetup();

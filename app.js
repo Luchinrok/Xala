@@ -14,6 +14,27 @@ const GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
 
 const app = document.getElementById('app');
 
+// En qualsevol canvi de pantalla, torna a dalt de tot perquè no quedi
+// amagat el botó "Enrere" si véns d'una pantalla amb scroll avall.
+// Detecta quan s'insereix una nova ".screen" o quan se'n reemplaça el
+// contingut; ignora els canvis de text dels temporitzadors.
+function scrollTop() {
+  try { window.scrollTo(0, 0); } catch (e) {}
+  if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+}
+(function watchScreenChanges() {
+  const isScreen = (n) => n && n.nodeType === 1 && n.classList && n.classList.contains('screen');
+  const obs = new MutationObserver((muts) => {
+    for (const m of muts) {
+      if (m.type !== 'childList') continue;
+      const inserted = Array.prototype.some.call(m.addedNodes, isScreen);
+      const replacedScreen = isScreen(m.target) && m.addedNodes.length > 0;
+      if (inserted || replacedScreen) { scrollTop(); return; }
+    }
+  });
+  obs.observe(app, { childList: true, subtree: true });
+})();
+
 function setAccent(color) {
   document.documentElement.style.setProperty('--accent', color || 'var(--coral)');
   const meta = document.querySelector('meta[name="theme-color"]');
