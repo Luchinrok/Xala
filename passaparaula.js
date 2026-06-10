@@ -645,7 +645,7 @@ export default {
     function startPlay() {
       state.turnOver = false;
       clearReveal();
-      renderPlay(null, null);
+      renderPlay(null);
       startTimer();
     }
 
@@ -669,49 +669,65 @@ export default {
       }).join('');
     }
 
-    function centerHTML(revealWord, title) {
+    function centerHTML() {
       const e = state.current;
       const label = e.mode === 'comença' ? `Comença per ${e.letter}` : `Conté la ${e.letter}`;
       const timer = `<div id="pp-timer" style="font-family:var(--font-display);font-weight:800;font-size:34px;color:var(--accent);line-height:1">${Math.max(0, state.remaining)}</div>`;
-      if (revealWord) {
-        return `
-          ${timer}
-          <p class="muted" style="margin-top:12px;font-size:13px">${title || 'La paraula era'}</p>
-          <div style="font-family:var(--font-display);font-weight:800;font-size:24px;color:var(--ink);line-height:1.05">${revealWord}</div>`;
-      }
       return `
         ${timer}
         <p class="kicker" style="margin-top:12px">${label}</p>
         <p style="margin-top:6px;font-size:15px;font-weight:500;color:var(--ink);line-height:1.3">${e.clue}</p>`;
     }
 
-    function renderPlay(revealWord, title) {
-      const disabled = revealWord ? ' disabled' : '';
+    // El missatge de resultat del torn, gran, a la zona de resposta.
+    function resultHTML(r) {
+      return `
+        <div class="pp-result pp-result--${r.kind}">
+          <div class="pp-result__title">${r.title}</div>
+          ${r.label ? `<div class="pp-result__label">${r.label}</div>` : ''}
+          ${r.word ? `<div class="pp-result__word">${r.word}</div>` : ''}
+        </div>`;
+    }
+
+    function answerHTML() {
+      return `
+        <input class="input" id="pp-input" type="text" maxlength="24" autocomplete="off"
+          autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Escriu la paraula"
+          style="margin-top:14px;text-align:center;font-family:var(--font-display);font-weight:700;font-size:18px">
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn btn--accent" id="check">Comprova</button>
+          <button class="btn btn--outline" id="pass">Passa</button>
+        </div>`;
+    }
+
+    // result: null mentre es juga, o { kind, title, label?, word? } per al resultat del torn.
+    function renderPlay(result) {
+      const isReveal = !!result;
+      const myScore = state.scores[state.curPlayer];
       root.innerHTML = `
         <button class="back" id="home">‹ Inici</button>
-        <p class="kicker center">${getName(state.curPlayer)} · Encerts ${okCount()}/26</p>
+        <div class="pp-head">
+          <span class="kicker">${getName(state.curPlayer)} · ${myScore} encert${myScore === 1 ? '' : 's'}</span>
+          <span class="kicker">${okCount()}/26</span>
+        </div>
         <div style="position:relative;width:100%;max-width:330px;margin:8px auto 0;aspect-ratio:1/1">
           ${circleHTML(true)}
           <div style="position:absolute;inset:19%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
-            ${centerHTML(revealWord, title)}
+            ${centerHTML()}
           </div>
         </div>
         <div class="spacer"></div>
-        <input class="input" id="pp-input" type="text" maxlength="24" autocomplete="off"
-          autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Escriu la paraula"
-          style="margin-top:14px;text-align:center;font-family:var(--font-display);font-weight:700;font-size:18px"${disabled}>
-        <div class="btn-row" style="margin-top:12px">
-          <button class="btn btn--accent" id="check"${disabled}>Comprova</button>
-          <button class="btn btn--outline" id="pass"${disabled}>Passa</button>
-        </div>
+        ${isReveal ? resultHTML(result) : answerHTML()}
       `;
       root.querySelector('#home').onclick = leaveGame;
-      const input = root.querySelector('#pp-input');
-      root.querySelector('#check').onclick = checkAnswer;
-      root.querySelector('#pass').onclick = passLetter;
-      if (input && !revealWord) {
-        input.onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); checkAnswer(); } };
-        input.focus();
+      if (!isReveal) {
+        const input = root.querySelector('#pp-input');
+        root.querySelector('#check').onclick = checkAnswer;
+        root.querySelector('#pass').onclick = passLetter;
+        if (input) {
+          input.onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); checkAnswer(); } };
+          input.focus();
+        }
       }
     }
 
@@ -729,11 +745,11 @@ export default {
         state.status[i] = 'ok';
         state.scores[state.curPlayer]++;
         state.correctWords[state.curPlayer].push(e.answers[0]);
-        proceed();
+        revealThenProceed({ kind: 'ok', title: 'Correcte!', word: e.answers[0] });
       } else {
         state.status[i] = 'fail';
         state.alive[state.curPlayer] = false;
-        revealThenProceed(e.answers[0], 'Has fallat! Eliminat');
+        revealThenProceed({ kind: 'fail', title: 'Has fallat! Eliminat', label: 'La paraula era', word: e.answers[0] });
       }
     }
 
@@ -746,9 +762,9 @@ export default {
       proceed();
     }
 
-    function revealThenProceed(word, title) {
+    function revealThenProceed(result) {
       revealing = true;
-      renderPlay(word, title);
+      renderPlay(result);
       revealTimeout = setTimeout(() => {
         revealTimeout = null;
         revealing = false;
@@ -773,7 +789,7 @@ export default {
       state.turnOver = true;
       state.status[state.curLetter] = 'fail';
       state.alive[state.curPlayer] = false;
-      revealThenProceed(state.current.answers[0], 'Temps! Eliminat');
+      revealThenProceed({ kind: 'fail', title: 'Temps! Eliminat', label: 'La paraula era', word: state.current.answers[0] });
     }
 
     // ---------- 4) final ----------

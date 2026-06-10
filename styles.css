@@ -418,3 +418,24 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 }
 .ae-score { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--ink); }
 .ae-score strong { color: var(--accent); font-size: 26px; }
+
+/* ============================================================
+   Passaparaula (el rosco)
+   ============================================================ */
+/* capçalera del torn: jugador i els seus encerts a l'esquerra,
+   total del rosco (X/26) a la dreta */
+.pp-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.pp-head .kicker { margin: 0; }
+
+/* missatge de resultat del torn: gran, a la zona de resposta */
+.pp-result {
+  margin-top: 14px; text-align: center;
+  border: 2px solid var(--ink); border-radius: var(--r-lg);
+  box-shadow: var(--shadow); padding: 22px 18px;
+  animation: rise .2s ease both;
+}
+.pp-result--ok { background: var(--ok); color: #FFFFFF; }
+.pp-result--fail { background: var(--accent); color: #FFFFFF; }
+.pp-result__title { font-family: var(--font-display); font-weight: 800; font-size: clamp(30px, 9vw, 44px); line-height: 1.05; }
+.pp-result__label { font-weight: 700; font-size: 14px; opacity: .85; margin-top: 10px; }
+.pp-result__word { font-family: var(--font-display); font-weight: 800; font-size: clamp(30px, 9vw, 46px); line-height: 1.05; margin-top: 2px; }

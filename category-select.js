@@ -39,7 +39,7 @@ export function openCategoryScreen(root, { categoryIds, kicker = '', onBack, all
 
   function render() {
     root.innerHTML = `
-      <button class="back" id="cs-back">‹ Configuració</button>
+      <button class="back" id="cs-back">‹ Enrere</button>
       ${kicker ? `<p class="kicker">${kicker}</p>` : ''}
       <h2 style="font-size:30px;margin:6px 0 8px">Categories</h2>
       <p class="muted" style="margin-bottom:14px">Tria'n les que vulguis (mínim 1).</p>
