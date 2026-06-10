@@ -11,18 +11,10 @@
 import { CATEGORIES } from './impostor-paraules.js';
 import { getPlayers, setPlayers } from './store.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
+import { drawFromBag } from './word-bag.js';
 
 // Subconjunt de categories bones per actuar.
 const ALLOWED = ['menjar', 'animals', 'accions', 'objectes', 'esports', 'professions', 'transport', 'musica'];
-
-function shuffle(a) {
-  const arr = a.slice();
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
 
 export default {
   id: 'aescena',
@@ -49,8 +41,6 @@ export default {
       names: initialNames,
       perPlayer: 5,
       categoryIds: ['menjar'],   // per defecte, només la primera (Menjar i beure)
-      bag: [],
-      bagKey: null,
       word: null,
       catLabel: null,
       mode: null,
@@ -168,8 +158,11 @@ export default {
       updateButtons();
     }
 
-    // ---------- bossa de paraules (sense repetir) ----------
-    function buildBag() {
+    // ---------- bossa de paraules (barrejada, persistent, sense repetir) ----------
+    // word-bag.js manté la bossa durant tota la sessió: no repeteix cap
+    // paraula fins esgotar la bossa de les categories triades, ni tan sols
+    // entre partides; quan s'esgota, es torna a barrejar.
+    function buildPool() {
       const seen = new Set();
       const pool = [];
       CATEGORIES.filter(c => state.categoryIds.includes(c.id)).forEach(c => {
@@ -178,12 +171,11 @@ export default {
           if (!seen.has(k)) { seen.add(k); pool.push({ word: w.word, cat: c.name }); }
         });
       });
-      return shuffle(pool);
+      return pool;
     }
     function drawTurn() {
-      const key = state.categoryIds.slice().sort().join(',');
-      if (state.bagKey !== key || state.bag.length === 0) { state.bag = buildBag(); state.bagKey = key; }
-      const pick = state.bag.pop();
+      const key = 'aescena:' + state.categoryIds.slice().sort().join(',');
+      const pick = drawFromBag(key, buildPool);
       state.word = pick.word;
       state.catLabel = pick.cat;
       state.mode = Math.random() < 0.5 ? 'MÍMICA' : 'SO';
@@ -200,8 +192,6 @@ export default {
         for (let p = 0; p < count(); p++) state.order.push(p);
       }
       state.turn = 0;
-      state.bag = [];
-      state.bagKey = null;
       nextTurn();
     }
 

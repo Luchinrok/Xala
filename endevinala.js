@@ -9,6 +9,7 @@
 
 import { CATEGORIES } from './impostor-paraules.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
+import { drawFromBag } from './word-bag.js';
 
 // --- Paràmetres del sensor (fàcils de canviar) ---
 // Amb el mòbil en horitzontal al front, l'eix dominant sol ser 'gamma'.
@@ -23,15 +24,6 @@ const ORIENT = {
   upSign: -1,        // signe de l'eix quan s'inclina AMUNT (encertada)
 };
 const SENSOR_WAIT = 1500;  // ms d'espera d'una lectura abans de caure al mode botons
-
-function shuffle(a) {
-  const arr = a.slice();
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
 
 export default {
   id: 'endevinala',
@@ -53,12 +45,28 @@ export default {
       categoryIds: [CATEGORIES[0].id],
       duration: 60,
       mode: 'sensor',
-      deck: [],
-      deckIndex: 0,
+      current: null,   // paraula que es mostra ara
       score: 0,
       results: [],
       over: false,
     };
+
+    // Bossa barrejada i persistent (word-bag.js): no repeteix cap paraula
+    // fins esgotar la bossa de les categories triades; es manté durant tota
+    // la sessió i, quan s'esgota a mig joc, es torna a barrejar.
+    const bagKey = () => 'endevinala:' + state.categoryIds.slice().sort().join(',');
+    function buildPool() {
+      const seen = new Set();
+      const out = [];
+      CATEGORIES.filter(c => state.categoryIds.includes(c.id)).forEach(c => {
+        c.words.forEach(w => {
+          const k = w.word.toLowerCase();
+          if (!seen.has(k)) { seen.add(k); out.push(w.word); }
+        });
+      });
+      return out;
+    }
+    const nextWord = () => drawFromBag(bagKey(), buildPool);
 
     // recursos vius durant una ronda
     let orientHandler = null;
@@ -174,11 +182,7 @@ export default {
     function startPlay(mode) {
       cleanup();
       state.mode = mode;
-      const pool = CATEGORIES
-        .filter(c => state.categoryIds.includes(c.id))
-        .flatMap(c => c.words.map(w => w.word));
-      state.deck = shuffle(pool);
-      state.deckIndex = 0;
+      state.current = nextWord();
       state.score = 0;
       state.results = [];
       state.over = false;
@@ -200,20 +204,19 @@ export default {
       }, 1000);
     }
 
-    // marca una paraula i avança
+    // marca una paraula i avança (treu la següent de la bossa persistent)
     function register(ok) {
       if (state.over) return;
-      if (state.deckIndex >= state.deck.length) return;
-      const word = state.deck[state.deckIndex];
+      if (!state.current) return;
+      const word = state.current;
       state.results.push({ word, ok });
       if (ok) state.score++;
       const sEl = root.querySelector('#score');
       if (sEl) sEl.textContent = state.score;
       flash(ok);
-      state.deckIndex++;
-      if (state.deckIndex >= state.deck.length) { finish(); return; }
+      state.current = nextWord();
       const wEl = root.querySelector('#word');
-      if (wEl) wEl.textContent = state.deck[state.deckIndex];
+      if (wEl) wEl.textContent = state.current;
     }
 
     function flash(ok) {
@@ -225,7 +228,7 @@ export default {
 
     // ---------- 4) joc amb sensor ----------
     function screenPlaySensor() {
-      const first = state.deck[state.deckIndex] || '';
+      const first = state.current || '';
       root.innerHTML = `
         <div class="flash-layer" id="flash"></div>
         <div class="play" id="play">
@@ -278,7 +281,7 @@ export default {
 
     // ---------- 5) mode botons (reserva) ----------
     function screenPlayButtons() {
-      const cur = state.deck[state.deckIndex] || '';
+      const cur = state.current || '';
       const left = root.querySelector('#timer') ? root.querySelector('#timer').textContent : state.duration;
       root.innerHTML = `
         <div class="flash-layer" id="flash"></div>

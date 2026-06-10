@@ -9,6 +9,7 @@
 import { CATEGORIES } from './impostor-paraules.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
 import { getPlayers, setPlayers } from './store.js';
+import { drawFromBag } from './word-bag.js';
 
 function shuffle(a) {
   const arr = a.slice();
@@ -17,6 +18,20 @@ function shuffle(a) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+// Construeix la llista completa de paraules de les categories triades,
+// sense duplicats (per si una mateixa paraula surt a més d'una categoria).
+function buildPool(categoryIds) {
+  const seen = new Set();
+  const out = [];
+  CATEGORIES.filter(c => categoryIds.includes(c.id)).forEach(c => {
+    c.words.forEach(w => {
+      const k = w.word.toLowerCase();
+      if (!seen.has(k)) { seen.add(k); out.push(w); }
+    });
+  });
+  return out;
 }
 
 export default {
@@ -47,8 +62,6 @@ export default {
       hint: false,
       word: null,
       wordHint: null,
-      bag: [],        // bossa de paraules barrejada, es consumeix sense repetir
-      bagKey: null,   // signatura de les categories de la bossa actual
       roles: [],
       revealIndex: 0,
       eliminated: new Set(),
@@ -179,18 +192,12 @@ export default {
       updateButtons();
     }
 
-    // Tria la paraula consumint una bossa barrejada (sense repetir fins
-    // que s'esgota; aleshores es torna a barrejar). Es refà si canvien
-    // les categories triades.
+    // Tria la paraula d'una bossa barrejada i persistent (word-bag.js):
+    // no repeteix cap paraula fins esgotar la bossa de les categories
+    // triades, i la bossa es manté durant tota la sessió.
     function drawWord() {
-      const key = state.categoryIds.slice().sort().join(',');
-      if (state.bagKey !== key || state.bag.length === 0) {
-        state.bag = shuffle(
-          CATEGORIES.filter(c => state.categoryIds.includes(c.id)).flatMap(c => c.words)
-        );
-        state.bagKey = key;
-      }
-      const pick = state.bag.pop();
+      const key = 'impostor:' + state.categoryIds.slice().sort().join(',');
+      const pick = drawFromBag(key, () => buildPool(state.categoryIds));
       state.word = pick.word;
       state.wordHint = pick.hint;
     }
