@@ -9,6 +9,7 @@
 // ============================================================
 
 import { getPlayers, setPlayers } from './store.js';
+import { t, tc, joinAnd } from './i18n.js';
 
 // Reptes (la part que va després de "Qui és més probable que ").
 // Es trien sense repetir fins esgotar-los i aleshores es rebaregen.
@@ -130,7 +131,7 @@ export default {
     };
 
     const count = () => state.names.length;
-    const getName = (i) => (state.names[i] && state.names[i].trim()) || `Jugador ${i + 1}`;
+    const getName = (i) => (state.names[i] && state.names[i].trim()) || t('common.playerN', { n: i + 1 });
     const allFilled = () => state.names.every((n) => (n || '').trim() !== '');
     const save = () => setPlayers(state.names);
 
@@ -144,16 +145,16 @@ export default {
     // ---------- 1) configuració ----------
     function screenSetup() {
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker">Qui és més probable</p>
-        <h2 style="font-size:30px;margin:6px 0 22px">Qui juga?</h2>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker">${t('quiprobable.kicker')}</p>
+        <h2 style="font-size:30px;margin:6px 0 22px">${t('quiprobable.setupTitle')}</h2>
 
-        <p class="label" style="margin:0 0 12px">Jugadors</p>
+        <p class="label" style="margin:0 0 12px">${t('common.players')}</p>
         <div class="stack" id="names" style="--stack-gap:10px"></div>
-        <button class="btn btn--outline" id="addp" style="margin-top:12px">+ Afegeix jugador</button>
+        <button class="btn btn--outline" id="addp" style="margin-top:12px">${t('common.addPlayer')}</button>
 
-        <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
-        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">Cal omplir el nom de tots els jugadors</p>
+        <button class="btn btn--accent" id="start" style="margin-top:28px">${t('common.start')}</button>
+        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">${t('common.fillAllNames')}</p>
       `;
       root.querySelector('#back').onclick = goHome;
 
@@ -193,8 +194,8 @@ export default {
       const canDelete = count() > 3;
       box.innerHTML = state.names.map((nm, i) => `
         <div class="name-row">
-          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="Nom" value="${(nm || '').replace(/"/g, '&quot;')}">
-          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="Treu">×</button>` : ''}
+          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
+          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="${t('common.removeAria')}">×</button>` : ''}
         </div>
       `).join('');
       box.querySelectorAll('[data-del]').forEach(b => {
@@ -230,12 +231,12 @@ export default {
     // ---------- repte de la ronda (en gran) ----------
     function screenChallenge() {
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker center">Nou repte</p>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker center">${t('quiprobable.newChallenge')}</p>
         <div class="spacer"></div>
-        <h2 class="qp-prompt">Qui és més probable que ${state.challenge}?</h2>
+        <h2 class="qp-prompt">${t('quiprobable.prompt', { x: state.challenge })}</h2>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="govote" style="margin-top:18px">A votar</button>
+        <button class="btn btn--accent" id="govote" style="margin-top:18px">${t('quiprobable.toVote')}</button>
       `;
       root.querySelector('#back').onclick = goHome;
       root.querySelector('#govote').onclick = screenPassVote;
@@ -251,13 +252,13 @@ export default {
     function screenPassVote() {
       const name = getName(state.voteIndex);
       root.innerHTML = `
-        <p class="kicker">Votació secreta</p>
-        <h2 style="font-size:26px;margin:6px 0 18px">Passa el mòbil a<br>${name}</h2>
+        <p class="kicker">${t('quiprobable.secretVote')}</p>
+        <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${name}</h2>
         <div class="reveal-card tap-hint" id="card">
-          <div class="word" style="font-size:28px">Toca per votar</div>
+          <div class="word" style="font-size:28px">${t('quiprobable.tapToVote')}</div>
         </div>
         <div class="spacer"></div>
-        <p class="muted center">Que ningú miri el teu vot!</p>
+        <p class="muted center">${t('quiprobable.noPeek')}</p>
       `;
       root.querySelector('#card').onclick = screenVote;
     }
@@ -268,9 +269,9 @@ export default {
         .map((nm, i) => `<button class="btn btn--outline" data-vote="${i}">${getName(i)}</button>`)
         .join('');
       root.innerHTML = `
-        <p class="kicker center">Vota en secret</p>
-        <h2 class="qp-prompt">Qui és més probable que ${state.challenge}?</h2>
-        <p class="muted center" style="margin-bottom:16px">Vota tu, <strong>${getName(state.voteIndex)}</strong></p>
+        <p class="kicker center">${t('quiprobable.voteSecret')}</p>
+        <h2 class="qp-prompt">${t('quiprobable.prompt', { x: state.challenge })}</h2>
+        <p class="muted center" style="margin-bottom:16px">${t('quiprobable.voteYou', { name: `<strong>${getName(state.voteIndex)}</strong>` })}</p>
         <div class="stack" style="--stack-gap:10px">${buttons}</div>
       `;
       root.querySelectorAll('[data-vote]').forEach(b => {
@@ -286,14 +287,14 @@ export default {
     // ---------- 3) tothom ha votat ----------
     function screenAllVoted() {
       root.innerHTML = `
-        <p class="kicker center">Fet!</p>
-        <h2 style="font-size:30px;text-align:center;margin:6px 0 18px">Tothom ha votat</h2>
+        <p class="kicker center">${t('quiprobable.done')}</p>
+        <h2 style="font-size:30px;text-align:center;margin:6px 0 18px">${t('quiprobable.everyoneVoted')}</h2>
         <div class="spacer"></div>
         <div class="panel center">
-          <p class="qp-prompt" style="margin:0">Qui és més probable que ${state.challenge}?</p>
+          <p class="qp-prompt" style="margin:0">${t('quiprobable.prompt', { x: state.challenge })}</p>
         </div>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="reveal" style="margin-top:24px">Revelar resultats</button>
+        <button class="btn btn--accent" id="reveal" style="margin-top:24px">${t('quiprobable.reveal')}</button>
       `;
       root.querySelector('#reveal').onclick = () => {
         // suma els vots rebuts a la puntuació acumulada (un cop per ronda)
@@ -308,18 +309,18 @@ export default {
       const max = Math.max(...counts);
       const winners = state.names.map((nm, i) => i).filter(i => counts[i] === max);
       const tie = winners.length > 1;
-      const names = winners.map(i => getName(i)).join(' i ');
+      const names = joinAnd(winners.map(i => getName(i)));
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker center">Resultats</p>
-        <p class="qp-prompt">Qui és més probable que ${state.challenge}?</p>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker center">${t('common.results')}</p>
+        <p class="qp-prompt">${t('quiprobable.prompt', { x: state.challenge })}</p>
         <div class="reveal-card" id="card">
-          <div class="who">${tie ? 'Empat! Els més probables...' : 'El més probable...'}</div>
+          <div class="who">${tie ? t('quiprobable.tieMost') : t('quiprobable.most')}</div>
           <div class="word">${names}!</div>
-          <div class="who">${max} vot${max === 1 ? '' : 's'}</div>
+          <div class="who">${tc(max, 'votes')}</div>
         </div>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="rank" style="margin-top:18px">Classificació</button>
+        <button class="btn btn--accent" id="rank" style="margin-top:18px">${t('common.ranking')}</button>
       `;
       root.querySelector('#back').onclick = goHome;
       root.querySelector('#rank').onclick = screenRanking;
@@ -336,15 +337,15 @@ export default {
           <span class="rank-row__pts">${state.scores[i]}</span>
         </button>`).join('');
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker">Classificació</p>
-        <h2 style="font-size:28px;margin:6px 0 6px">Punts acumulats</h2>
-        <p class="muted" style="margin-bottom:16px">Toca un jugador per veure qui l'ha votat aquesta ronda.</p>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker">${t('common.ranking')}</p>
+        <h2 style="font-size:28px;margin:6px 0 6px">${t('quiprobable.accPoints')}</h2>
+        <p class="muted" style="margin-bottom:16px">${t('quiprobable.rankingSub')}</p>
         <div class="stack" style="--stack-gap:10px">${rows}</div>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:20px">
-          <button class="btn btn--accent" id="next">Següent pregunta</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--accent" id="next">${t('quiprobable.nextQuestion')}</button>
+          <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
       root.querySelector('#back').onclick = goHome;
@@ -362,13 +363,13 @@ export default {
         .filter(v => v >= 0)
         .map(v => getName(v));
       root.innerHTML = `
-        <button class="back" id="back">‹ Classificació</button>
-        <p class="kicker">Aquesta ronda</p>
-        <h2 style="font-size:26px;margin:6px 0 6px">Qui ha votat ${getName(target)}?</h2>
-        <p class="qp-prompt">Qui és més probable que ${state.challenge}?</p>
+        <button class="back" id="back">${t('nav.ranking')}</button>
+        <p class="kicker">${t('quiprobable.thisRound')}</p>
+        <h2 style="font-size:26px;margin:6px 0 6px">${t('quiprobable.whoVoted', { name: getName(target) })}</h2>
+        <p class="qp-prompt">${t('quiprobable.prompt', { x: state.challenge })}</p>
         ${voters.length
           ? `<div class="stack" style="--stack-gap:10px">${voters.map(n => `<div class="res-row">${n}</div>`).join('')}</div>`
-          : `<p class="muted">Ningú no l'ha votat aquesta ronda.</p>`}
+          : `<p class="muted">${t('quiprobable.nobodyVoted')}</p>`}
       `;
       root.querySelector('#back').onclick = screenRanking;
     }

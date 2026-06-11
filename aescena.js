@@ -12,6 +12,7 @@ import { CATEGORIES } from './impostor-paraules.js';
 import { getPlayers, setPlayers } from './store.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
 import { drawFromBag } from './word-bag.js';
+import { t, tc, joinAnd } from './i18n.js';
 
 // Subconjunt de categories bones per actuar.
 const ALLOWED = ['menjar', 'animals', 'accions', 'objectes', 'esports', 'professions', 'transport', 'musica'];
@@ -52,7 +53,7 @@ export default {
     };
 
     const count = () => state.names.length;
-    const getName = (i) => (state.names[i] && state.names[i].trim()) || `Jugador ${i + 1}`;
+    const getName = (i) => (state.names[i] && state.names[i].trim()) || t('common.playerN', { n: i + 1 });
     const allFilled = () => state.names.every((n) => (n || '').trim() !== '');
     const save = () => setPlayers(state.names);
 
@@ -66,24 +67,24 @@ export default {
     // ---------- 1) configuració ----------
     function screenSetup() {
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker">A escena!</p>
-        <h2 style="font-size:30px;margin:6px 0 22px">Prepara la partida</h2>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker">${t('game.aescena.title')}</p>
+        <h2 style="font-size:30px;margin:6px 0 22px">${t('aescena.setupTitle')}</h2>
 
-        <p class="label" style="margin:0 0 12px">Jugadors</p>
+        <p class="label" style="margin:0 0 12px">${t('common.players')}</p>
         <div class="stack" id="names" style="--stack-gap:10px"></div>
-        <button class="btn btn--outline" id="addp" style="margin-top:12px">+ Afegeix jugador</button>
+        <button class="btn btn--outline" id="addp" style="margin-top:12px">${t('common.addPlayer')}</button>
 
-        <p class="label" style="margin:24px 0 12px">Paraules per jugador</p>
+        <p class="label" style="margin:24px 0 12px">${t('aescena.wordsPerPlayer')}</p>
         <div class="btn-row" id="perp">
           ${[3, 5, 7].map(n => `<button class="btn ${state.perPlayer === n ? 'btn--accent' : 'btn--outline'}" data-perp="${n}">${n}</button>`).join('')}
         </div>
 
-        <p class="label" style="margin:24px 0 12px">Categories</p>
+        <p class="label" style="margin:24px 0 12px">${t('common.categories')}</p>
         <button class="btn btn--outline" id="cats">${categoriesLabel(state.categoryIds, ALLOWED)}</button>
 
-        <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
-        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">Cal omplir el nom de tots els jugadors</p>
+        <button class="btn btn--accent" id="start" style="margin-top:28px">${t('common.start')}</button>
+        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">${t('common.fillAllNames')}</p>
       `;
       root.querySelector('#back').onclick = goHome;
 
@@ -98,7 +99,7 @@ export default {
 
       root.querySelector('#cats').onclick = () => {
         readNames();
-        openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: 'A escena!', onBack: screenSetup, allowedIds: ALLOWED });
+        openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: t('game.aescena.title'), onBack: screenSetup, allowedIds: ALLOWED });
       };
 
       root.querySelector('#addp').onclick = () => {
@@ -136,8 +137,8 @@ export default {
       const canDelete = count() > 2; // mínim 2 jugadors
       box.innerHTML = state.names.map((nm, i) => `
         <div class="name-row">
-          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="Nom" value="${(nm || '').replace(/"/g, '&quot;')}">
-          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="Treu">×</button>` : ''}
+          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
+          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="${t('common.removeAria')}">×</button>` : ''}
         </div>
       `).join('');
       box.querySelectorAll('[data-del]').forEach(b => {
@@ -178,8 +179,12 @@ export default {
       const pick = drawFromBag(key, buildPool);
       state.word = pick.word;
       state.catLabel = pick.cat;
-      state.mode = Math.random() < 0.5 ? 'MÍMICA' : 'SO';
+      // identificador intern del mode; el text que es mostra ve de i18n
+      state.mode = Math.random() < 0.5 ? 'mime' : 'sound';
     }
+
+    // text traduït del mode actual (MÍMICA / SO i equivalents)
+    const modeLabel = () => t(state.mode === 'mime' ? 'aescena.mime' : 'aescena.sound');
 
     // ---------- arrenca la partida ----------
     function beginGame() {
@@ -206,14 +211,14 @@ export default {
     // ---------- 2) passa el mòbil ----------
     function screenPass() {
       root.innerHTML = `
-        <button class="back" id="home">‹ Inici</button>
-        <p class="kicker">Torn ${state.turn + 1} de ${state.order.length}</p>
-        <h2 style="font-size:26px;margin:6px 0 18px">Passa el mòbil a<br>${getName(actor())}</h2>
+        <button class="back" id="home">${t('nav.home')}</button>
+        <p class="kicker">${t('aescena.turnXofY', { x: state.turn + 1, y: state.order.length })}</p>
+        <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${getName(actor())}</h2>
         <div class="reveal-card tap-hint" id="card">
-          <div class="word" style="font-size:28px">Toca per veure<br>la paraula</div>
+          <div class="word" style="font-size:28px">${t('aescena.tapSeeWord')}</div>
         </div>
         <div class="spacer"></div>
-        <p class="muted center">Que la resta no la vegi!</p>
+        <p class="muted center">${t('aescena.dontLetSee')}</p>
       `;
       root.querySelector('#home').onclick = goHome;
       root.querySelector('#card').onclick = screenReveal;
@@ -222,15 +227,15 @@ export default {
     // ---------- 3) revelació secreta (només qui actua) ----------
     function screenReveal() {
       root.innerHTML = `
-        <button class="back" id="home">‹ Inici</button>
-        <p class="kicker center">Només ${getName(actor())}</p>
-        <div class="ae-mode-wrap"><span class="ae-mode">${state.mode}</span></div>
+        <button class="back" id="home">${t('nav.home')}</button>
+        <p class="kicker center">${t('aescena.onlyName', { name: getName(actor()) })}</p>
+        <div class="ae-mode-wrap"><span class="ae-mode">${modeLabel()}</span></div>
         <div class="reveal-card" id="card">
           <div class="who">${state.catLabel}</div>
           <div class="word">${state.word}</div>
         </div>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="go" style="margin-top:18px">Som-hi!</button>
+        <button class="btn btn--accent" id="go" style="margin-top:18px">${t('common.letsBang')}</button>
       `;
       root.querySelector('#home').onclick = goHome;
       root.querySelector('#go').onclick = screenAct;
@@ -238,16 +243,16 @@ export default {
 
     // ---------- 4) actuació (ho mira tothom) ----------
     function screenAct() {
-      const hint = state.mode === 'MÍMICA' ? 'Només gestos, sense parlar!' : 'Només sons, sense paraules!';
+      const hint = state.mode === 'mime' ? t('aescena.mimeHint') : t('aescena.soundHint');
       root.innerHTML = `
-        <button class="back" id="home">‹ Inici</button>
-        <p class="kicker center">Actua ${getName(actor())}</p>
-        <div class="ae-mode-big">${state.mode}</div>
+        <button class="back" id="home">${t('nav.home')}</button>
+        <p class="kicker center">${t('aescena.actName', { name: getName(actor()) })}</p>
+        <div class="ae-mode-big">${modeLabel()}</div>
         <p class="muted center">${hint}</p>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:14px">
-          <button class="btn btn--accent" id="ok">Encertat!</button>
-          <button class="btn btn--outline" id="pass">Passa</button>
+          <button class="btn btn--accent" id="ok">${t('aescena.correct')}</button>
+          <button class="btn btn--outline" id="pass">${t('common.pass')}</button>
         </div>
       `;
       root.querySelector('#home').onclick = goHome;
@@ -260,7 +265,7 @@ export default {
       const max = Math.max(...state.scores);
       const winners = state.names.map((nm, i) => i).filter(i => state.scores[i] === max);
       const tie = winners.length > 1;
-      const winNames = winners.map(i => getName(i)).join(' i ');
+      const winNames = joinAnd(winners.map(i => getName(i)));
 
       const order = state.names
         .map((nm, i) => i)
@@ -272,19 +277,19 @@ export default {
         </button>`).join('');
 
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker center">Final</p>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker center">${t('common.final')}</p>
         <div class="reveal-card" id="card">
-          <div class="who">${tie ? 'Empat! Guanyen...' : 'Guanya...'}</div>
+          <div class="who">${tie ? t('common.tieWinPlural') : t('common.winSingular')}</div>
           <div class="word">${winNames}!</div>
-          <div class="who">${max} encert${max === 1 ? '' : 's'}</div>
+          <div class="who">${tc(max, 'hits')}</div>
         </div>
-        <p class="label" style="margin:22px 0 12px">Classificació · toca un jugador</p>
+        <p class="label" style="margin:22px 0 12px">${t('common.rankingTouch')}</p>
         <div class="stack" style="--stack-gap:10px">${rows}</div>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:20px">
-          <button class="btn btn--accent" id="again">Una altra partida</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--accent" id="again">${t('common.anotherGame')}</button>
+          <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
       root.querySelector('#back').onclick = goHome;
@@ -299,14 +304,14 @@ export default {
     function screenPlayerDetail(i) {
       const wordList = (arr) => arr.length
         ? `<div class="stack" style="--stack-gap:8px">${arr.map(w => `<div class="btn btn--outline" style="cursor:default;text-align:left">${w}</div>`).join('')}</div>`
-        : `<p class="muted">Cap.</p>`;
+        : `<p class="muted">${t('common.none')}</p>`;
       root.innerHTML = `
-        <button class="back" id="back">‹ Classificació</button>
+        <button class="back" id="back">${t('nav.ranking')}</button>
         <p class="kicker">${getName(i)}</p>
-        <h2 style="font-size:28px;margin:6px 0 18px">${state.scores[i]} encert${state.scores[i] === 1 ? '' : 's'}</h2>
-        <p class="label" style="margin:0 0 10px">Encertades</p>
+        <h2 style="font-size:28px;margin:6px 0 18px">${tc(state.scores[i], 'hits')}</h2>
+        <p class="label" style="margin:0 0 10px">${t('common.correctWords')}</p>
         ${wordList(state.correct[i] || [])}
-        <p class="label" style="margin:22px 0 10px">Passades</p>
+        <p class="label" style="margin:22px 0 10px">${t('common.passedWords')}</p>
         ${wordList(state.passed[i] || [])}
         <div class="spacer"></div>
       `;

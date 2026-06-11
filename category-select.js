@@ -13,6 +13,7 @@
 
 import { CATEGORIES } from './impostor-paraules.js';
 import { CATEGORY_ICONS } from './category-icons.js';
+import { t } from './i18n.js';
 
 // Llista de categories disponibles segons el subconjunt permès.
 function listFor(allowedIds) {
@@ -24,7 +25,7 @@ function listFor(allowedIds) {
 // Etiqueta del botó "Categories".
 export function categoriesLabel(ids, allowedIds) {
   const total = listFor(allowedIds).length;
-  return `Categories (${ids.length >= total ? 'Totes' : ids.length})`;
+  return ids.length >= total ? t('cat.labelAll') : t('cat.label', { n: ids.length });
 }
 
 // Pantalla de selecció. opts: { categoryIds, kicker, onBack, allowedIds }
@@ -39,11 +40,11 @@ export function openCategoryScreen(root, { categoryIds, kicker = '', onBack, all
 
   function render() {
     root.innerHTML = `
-      <button class="back" id="cs-back">‹ Enrere</button>
+      <button class="back" id="cs-back">${t('nav.back')}</button>
       ${kicker ? `<p class="kicker">${kicker}</p>` : ''}
-      <h2 style="font-size:30px;margin:6px 0 8px">Categories</h2>
-      <p class="muted" style="margin-bottom:14px">Tria'n les que vulguis (mínim 1).</p>
-      <button class="btn btn--outline" id="cs-all" style="margin-bottom:16px">Totes</button>
+      <h2 style="font-size:30px;margin:6px 0 8px">${t('cat.title')}</h2>
+      <p class="muted" style="margin-bottom:14px">${t('cat.choose')}</p>
+      <button class="btn btn--outline" id="cs-all" style="margin-bottom:16px">${t('cat.all')}</button>
       <div class="cat-grid" id="cs-grid">
         ${list.map(c => `
           <button class="cat-tile ${categoryIds.includes(c.id) ? 'on' : ''}" data-cat="${c.id}">

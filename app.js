@@ -9,6 +9,13 @@ import endevinala from './endevinala.js';
 import bomba from './bomba.js';
 import aescena from './aescena.js';
 import passaparaula from './passaparaula.js';
+import { t, getLang, setLang, LANGUAGES } from './i18n.js';
+
+// Títol i tagline d'un joc segons l'idioma actual (la INTERFÍCIE es
+// tradueix; el contingut del joc continua en català dins de cada fitxer).
+const gameTitle = (g) => t('game.' + g.id + '.title');
+const gameTagline = (g) => t('game.' + g.id + '.tagline');
+const gameInstructions = (g) => [1, 2, 3, 4].map(n => t('instr.' + g.id + '.' + n));
 
 const GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
 
@@ -61,12 +68,13 @@ function goHome() {
   const wrap = document.createElement('div');
   wrap.className = 'screen home';
   wrap.innerHTML = `
+    <button class="home__lang" id="lang" aria-label="${t('home.language')}">${globeGlyph()}<span>${t('home.language')}</span></button>
     <header class="home__head">
       <div class="brand">Xala<span>!</span></div>
-      <p class="tagline">Passa el mòbil i que comenci la festa.</p>
+      <p class="tagline">${t('home.tagline')}</p>
     </header>
     <div class="grid" id="grid"></div>
-    <button class="btn btn--outline home__help" id="help">Com es juga?</button>
+    <button class="btn btn--outline home__help" id="help">${t('home.help')}</button>
   `;
   app.appendChild(wrap);
 
@@ -78,15 +86,45 @@ function goHome() {
     card.className = 'card' + (game.ready ? '' : ' locked') + (dark ? ' card--dark' : '');
     card.style.setProperty('--c', cardColor);
     card.innerHTML = `
-      ${game.ready ? '' : '<span class="badge">Aviat</span>'}
+      ${game.ready ? '' : `<span class="badge">${t('soon')}</span>`}
       <span>${glyph(game.id)}</span>
-      <div><h3>${game.title}</h3><p>${game.tagline}</p></div>
+      <div><h3>${gameTitle(game)}</h3><p>${gameTagline(game)}</p></div>
     `;
     if (game.ready) card.addEventListener('click', () => openGame(game));
     grid.appendChild(card);
   });
 
   wrap.querySelector('#help').addEventListener('click', helpList);
+  wrap.querySelector('#lang').addEventListener('click', languageScreen);
+}
+
+// Icona de globus per al botó d'idioma.
+function globeGlyph() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg>`;
+}
+
+// ---------- selector d'idioma ----------
+function languageScreen() {
+  setAccent('#E4572E');
+  clear();
+  const wrap = document.createElement('div');
+  wrap.className = 'screen';
+  const cur = getLang();
+  const items = LANGUAGES.map(l => `
+    <button class="btn ${l.code === cur ? 'btn--accent' : 'btn--outline'}" data-lang="${l.code}"
+      style="text-align:left">${l.name}</button>
+  `).join('');
+  wrap.innerHTML = `
+    <button class="back" id="back">${t('nav.home')}</button>
+    <p class="kicker">${t('lang.kicker')}</p>
+    <h2 style="font-size:30px;margin:6px 0 22px">${t('lang.title')}</h2>
+    <div class="stack" id="list" style="--stack-gap:10px">${items}</div>
+  `;
+  app.appendChild(wrap);
+  wrap.querySelector('#back').onclick = goHome;
+  wrap.querySelectorAll('[data-lang]').forEach(b => {
+    b.onclick = () => { setLang(b.dataset.lang); goHome(); };
+  });
 }
 
 function openGame(game) {
@@ -105,9 +143,9 @@ function helpList() {
   const wrap = document.createElement('div');
   wrap.className = 'screen';
   wrap.innerHTML = `
-    <button class="back" id="back">‹ Inici</button>
-    <p class="kicker">Instruccions</p>
-    <h2 style="font-size:30px;margin:6px 0 22px">Com es juga?</h2>
+    <button class="back" id="back">${t('nav.home')}</button>
+    <p class="kicker">${t('help.kicker')}</p>
+    <h2 style="font-size:30px;margin:6px 0 22px">${t('help.title')}</h2>
     <div class="stack" id="list" style="--stack-gap:12px"></div>
   `;
   app.appendChild(wrap);
@@ -118,7 +156,7 @@ function helpList() {
     const b = document.createElement('button');
     b.className = 'btn btn--outline';
     b.style.textAlign = 'left';
-    b.innerHTML = `<span style="color:var(--accent)">${glyph(game.id)}</span> &nbsp; ${game.title}`;
+    b.innerHTML = `<span style="color:var(--accent)">${glyph(game.id)}</span> &nbsp; ${gameTitle(game)}`;
     b.style.display = 'flex';
     b.style.alignItems = 'center';
     b.onclick = () => helpDetail(game);
@@ -131,12 +169,11 @@ function helpDetail(game) {
   clear();
   const wrap = document.createElement('div');
   wrap.className = 'screen';
-  const steps = (game.instructions || ['Aviat hi haurà instruccions.'])
-    .map(s => `<li>${s}</li>`).join('');
+  const steps = gameInstructions(game).map(s => `<li>${s}</li>`).join('');
   wrap.innerHTML = `
-    <button class="back" id="back">‹ Instruccions</button>
-    <p class="kicker">${game.title}</p>
-    <h2 style="font-size:28px;margin:6px 0 18px">${game.tagline}</h2>
+    <button class="back" id="back">${t('nav.instructions')}</button>
+    <p class="kicker">${gameTitle(game)}</p>
+    <h2 style="font-size:28px;margin:6px 0 18px">${gameTagline(game)}</h2>
     <ol class="howto">${steps}</ol>
   `;
   app.appendChild(wrap);

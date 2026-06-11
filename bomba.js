@@ -69,6 +69,8 @@ const CHALLENGES = [
   'Una cosa que es talla', 'Una cosa que es penja a la paret',
 ];
 
+import { t } from './i18n.js';
+
 function shuffle(a) {
   const arr = a.slice();
   for (let i = arr.length - 1; i > 0; i--) {
@@ -190,23 +192,23 @@ export default {
     function screenSetup() {
       stopTimers();
       const opts = [
-        { id: 'curt', label: 'Curt' },
-        { id: 'mitja', label: 'Mitjà' },
-        { id: 'llarg', label: 'Llarg' },
+        { id: 'curt', label: t('bomba.short') },
+        { id: 'mitja', label: t('bomba.medium') },
+        { id: 'llarg', label: t('bomba.long') },
       ];
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker">Bomba de paraules</p>
-        <h2 style="font-size:30px;margin:6px 0 22px">Prepara la bomba</h2>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker">${t('game.bomba.title')}</p>
+        <h2 style="font-size:30px;margin:6px 0 22px">${t('bomba.setupTitle')}</h2>
 
-        <p class="label" style="margin:0 0 12px">Durada de la metxa</p>
+        <p class="label" style="margin:0 0 12px">${t('bomba.fuse')}</p>
         <div class="btn-row" id="durs">
           ${opts.map(o => `<button class="btn ${state.range === o.id ? 'btn--accent' : 'btn--outline'}" data-range="${o.id}">${o.label}</button>`).join('')}
         </div>
-        <p class="muted" style="margin-top:10px">El temps és a l'atzar i amagat: ningú no sap quan petarà.</p>
+        <p class="muted" style="margin-top:10px">${t('bomba.hiddenTime')}</p>
 
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="go" style="margin-top:28px">Comença</button>
+        <button class="btn btn--accent" id="go" style="margin-top:28px">${t('common.start')}</button>
       `;
       root.querySelector('#back').onclick = leaveGame;
       root.querySelectorAll('[data-range]').forEach(b => {
@@ -224,8 +226,8 @@ export default {
     function screenRound() {
       stopTimers();
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker center">Repte</p>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker center">${t('bomba.challenge')}</p>
         <div class="bomb-challenge" id="challenge">${state.challenge}</div>
         <div class="bomb-stage">${BOMB_SVG}</div>
         <div id="ctl"></div>
@@ -235,11 +237,11 @@ export default {
 
       const ctl = root.querySelector('#ctl');
       ctl.innerHTML = `
-        <button class="btn btn--accent" id="start">Encén la metxa</button>
-        <p class="muted center" style="margin-top:10px">Llegiu el repte i prepareu-vos. Pot petar en qualsevol moment!</p>`;
+        <button class="btn btn--accent" id="start">${t('bomba.lightFuse')}</button>
+        <p class="muted center" style="margin-top:10px">${t('bomba.readChallenge')}</p>`;
       root.querySelector('#start').onclick = () => {
         initAudio(); // cal el gest de l'usuari
-        ctl.innerHTML = `<p class="bomb-pass center">Digues una cosa i passa el mòbil!</p>`;
+        ctl.innerHTML = `<p class="bomb-pass center">${t('bomba.sayPass')}</p>`;
         startBomb();
       };
     }
@@ -281,14 +283,14 @@ export default {
 
     function screenBoom() {
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
+        <button class="back" id="back">${t('nav.home')}</button>
         <div class="boom" id="boom">
-          <div class="boom__title">BOOM!</div>
-          <div class="boom__sub">Qui la tingui, perd!</div>
+          <div class="boom__title">${t('bomba.boom')}</div>
+          <div class="boom__sub">${t('bomba.whoLoses')}</div>
         </div>
         <div class="stack" style="margin-top:18px">
-          <button class="btn btn--accent" id="again">Un altre repte</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--accent" id="again">${t('bomba.anotherChallenge')}</button>
+          <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
       root.querySelector('#back').onclick = leaveGame;

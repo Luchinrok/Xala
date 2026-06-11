@@ -10,6 +10,7 @@ import { CATEGORIES } from './impostor-paraules.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
 import { getPlayers, setPlayers } from './store.js';
 import { drawFromBag } from './word-bag.js';
+import { t, tc, joinAnd } from './i18n.js';
 
 function shuffle(a) {
   const arr = a.slice();
@@ -69,7 +70,7 @@ export default {
     };
 
     const count = () => state.names.length;
-    const getName = (i) => (state.names[i] && state.names[i].trim()) || `Jugador ${i + 1}`;
+    const getName = (i) => (state.names[i] && state.names[i].trim()) || t('common.playerN', { n: i + 1 });
     const maxImpostors = () => Math.max(1, count() - 2);
     const allFilled = () => state.names.every((n) => (n || '').trim() !== '');
     const save = () => setPlayers(state.names);
@@ -90,32 +91,32 @@ export default {
     // ---------- configuració ----------
     function screenSetup() {
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker">L'impostor</p>
-        <h2 style="font-size:30px;margin:6px 0 22px">Prepareu la ronda</h2>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker">${t('game.impostor.title')}</p>
+        <h2 style="font-size:30px;margin:6px 0 22px">${t('impostor.setupTitle')}</h2>
 
         <div class="panel">
-          <p class="label">Impostors</p>
+          <p class="label">${t('impostor.count')}</p>
           <div class="stepper" style="margin-top:10px">
             <button id="imp-dec">–</button>
             <span class="val" id="vimp">${state.impostors}</span>
             <button id="imp-inc">+</button>
           </div>
           <div class="switch-row" style="margin-top:22px">
-            <span class="switch-label">Pista per a l'impostor</span>
-            <button class="switch" id="hint" role="switch" aria-checked="${state.hint}" aria-label="Pista per a l'impostor"></button>
+            <span class="switch-label">${t('impostor.hintSwitch')}</span>
+            <button class="switch" id="hint" role="switch" aria-checked="${state.hint}" aria-label="${t('impostor.hintSwitch')}"></button>
           </div>
         </div>
 
-        <p class="label" style="margin:24px 0 12px">Categories</p>
+        <p class="label" style="margin:24px 0 12px">${t('common.categories')}</p>
         <button class="btn btn--outline" id="cats">${categoriesLabel(state.categoryIds)}</button>
 
-        <p class="label" style="margin:24px 0 12px">Jugadors</p>
+        <p class="label" style="margin:24px 0 12px">${t('common.players')}</p>
         <div class="stack" id="names" style="--stack-gap:10px"></div>
-        <button class="btn btn--outline" id="addp" style="margin-top:12px">+ Afegeix jugador</button>
+        <button class="btn btn--outline" id="addp" style="margin-top:12px">${t('common.addPlayer')}</button>
 
-        <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
-        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">Cal omplir el nom de tots els jugadors</p>
+        <button class="btn btn--accent" id="start" style="margin-top:28px">${t('common.start')}</button>
+        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">${t('common.fillAllNames')}</p>
       `;
 
       root.querySelector('#back').onclick = goHome;
@@ -130,7 +131,7 @@ export default {
 
       root.querySelector('#cats').onclick = () => {
         readNames();
-        openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: "L'impostor", onBack: screenSetup });
+        openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: t('game.impostor.title'), onBack: screenSetup });
       };
 
       root.querySelector('#addp').onclick = () => {
@@ -169,8 +170,8 @@ export default {
       const canDelete = count() > 3;
       box.innerHTML = state.names.map((nm, i) => `
         <div class="name-row">
-          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="Nom" value="${(nm || '').replace(/"/g, '&quot;')}">
-          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="Treu">×</button>` : ''}
+          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
+          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="${t('common.removeAria')}">×</button>` : ''}
         </div>
       `).join('');
       box.querySelectorAll('[data-del]').forEach(b => {
@@ -216,10 +217,10 @@ export default {
     function screenPass() {
       const name = getName(state.revealIndex);
       root.innerHTML = `
-        <p class="kicker">Repartiment</p>
-        <h2 style="font-size:26px;margin:6px 0 18px">Passa el mòbil a<br>${name}</h2>
+        <p class="kicker">${t('impostor.passKicker')}</p>
+        <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${name}</h2>
         <div class="reveal-card tap-hint" id="card">
-          <div class="word" style="font-size:28px">Toca per veure<br>el teu paper</div>
+          <div class="word" style="font-size:28px">${t('impostor.tapSeeRole')}</div>
         </div>
         <div class="spacer"></div>
         <div id="nextWrap" style="margin-top:18px"></div>
@@ -234,15 +235,15 @@ export default {
         const isImp = state.roles[state.revealIndex];
         card.classList.remove('tap-hint');
         const impHint = state.hint
-          ? `<div class="who">Pista: ${state.wordHint}</div>`
+          ? `<div class="who">${t('impostor.hintPrefix', { hint: state.wordHint })}</div>`
           : '';
         card.innerHTML = isImp
-          ? `<div class="word">Ets l'impostor</div><div class="who">Dissimula i fes veure que saps la paraula!</div>${impHint}`
-          : `<div class="word">${state.word}</div><div class="who">Memoritza-la i no la diguis</div>`;
+          ? `<div class="word">${t('impostor.youAre')}</div><div class="who">${t('impostor.impostorSub')}</div>${impHint}`
+          : `<div class="word">${state.word}</div><div class="who">${t('impostor.memorize')}</div>`;
       };
       const cover = () => {
         card.classList.add('tap-hint');
-        card.innerHTML = `<div class="word" style="font-size:28px">Torna a tocar<br>per veure-ho</div>`;
+        card.innerHTML = `<div class="word" style="font-size:28px">${t('impostor.tapAgain')}</div>`;
       };
 
       card.onclick = () => {
@@ -251,7 +252,7 @@ export default {
           showRole();
           if (!hasRevealed) {
             hasRevealed = true;
-            nextWrap.innerHTML = `<button class="btn btn--accent" id="next">${isLast ? 'A debatre!' : 'Següent jugador'}</button>`;
+            nextWrap.innerHTML = `<button class="btn btn--accent" id="next">${isLast ? t('impostor.toDebate') : t('impostor.nextPlayer')}</button>`;
             root.querySelector('#next').onclick = () => {
               state.revealIndex++;
               if (state.revealIndex >= count()) screenDebate();
@@ -271,14 +272,14 @@ export default {
       const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
       root.innerHTML = `
-        <p class="kicker">Debat</p>
-        <h2 style="font-size:26px;margin:6px 0 8px">Per torns, una pista</h2>
+        <p class="kicker">${t('impostor.debateKicker')}</p>
+        <h2 style="font-size:26px;margin:6px 0 8px">${t('impostor.debateTitle')}</h2>
         <div class="spacer"></div>
         <div class="big-timer" id="timer">${fmt(remaining)}</div>
         <div class="spacer"></div>
         <div class="btn-row" style="margin-top:18px">
-          <button class="btn btn--outline" id="pause">Pausa</button>
-          <button class="btn btn--accent" id="vote">A votar!</button>
+          <button class="btn btn--outline" id="pause">${t('common.pause')}</button>
+          <button class="btn btn--accent" id="vote">${t('impostor.toVote')}</button>
         </div>
       `;
 
@@ -287,12 +288,12 @@ export default {
         if (!running) return;
         remaining--;
         tEl.textContent = fmt(Math.max(0, remaining));
-        if (remaining <= 0) { clearInterval(interval); running = false; tEl.textContent = 'Temps!'; }
+        if (remaining <= 0) { clearInterval(interval); running = false; tEl.textContent = t('impostor.timeUp'); }
       }, 1000);
 
       root.querySelector('#pause').onclick = (e) => {
         running = !running;
-        e.target.textContent = running ? 'Pausa' : 'Continua';
+        e.target.textContent = running ? t('common.pause') : t('common.resume');
       };
       root.querySelector('#vote').onclick = () => { clearInterval(interval); screenVote(); };
     }
@@ -302,10 +303,10 @@ export default {
       const alive = [...Array(count()).keys()].filter(i => !state.eliminated.has(i));
       const buttons = alive.map(i => `<button class="btn btn--outline" data-vote="${i}">${getName(i)}</button>`).join('');
       root.innerHTML = `
-        <button class="back" id="back">‹ Tornar al debat</button>
-        <p class="kicker">Votació</p>
-        <h2 style="font-size:28px;margin:6px 0 6px">Qui és l'impostor?</h2>
-        <p class="muted" style="margin-bottom:18px">Decidiu en grup i toqueu el sospitós.</p>
+        <button class="back" id="back">${t('nav.debate')}</button>
+        <p class="kicker">${t('impostor.voteKicker')}</p>
+        <h2 style="font-size:28px;margin:6px 0 6px">${t('impostor.voteTitle')}</h2>
+        <p class="muted" style="margin-bottom:18px">${t('impostor.voteSub')}</p>
         <div class="stack" style="--stack-gap:10px">${buttons}</div>
       `;
       root.querySelector('#back').onclick = screenDebate;
@@ -330,15 +331,15 @@ export default {
     // ---------- continua (queden jugadors) ----------
     function screenContinue(accused, caught, impostorsLeft) {
       root.innerHTML = `
-        <p class="kicker">Expulsat</p>
+        <p class="kicker">${t('impostor.expelled')}</p>
         <div class="panel center stack" style="margin-top:18px">
           <h2 style="font-size:32px;color:var(--accent)">${getName(accused)}</h2>
           <p class="muted">${caught
-            ? `Era un impostor! ${impostorsLeft > 1 ? 'Però encara en queden ' + impostorsLeft : 'Encara en queda 1'}.`
-            : 'No era l\'impostor. La resta continua jugant.'}</p>
+            ? (impostorsLeft > 1 ? t('impostor.caughtMore', { n: impostorsLeft }) : t('impostor.caughtOne'))
+            : t('impostor.notImpostor')}</p>
         </div>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="cont" style="margin-top:24px">Continua</button>
+        <button class="btn btn--accent" id="cont" style="margin-top:24px">${t('common.continue')}</button>
       `;
       root.querySelector('#cont').onclick = screenDebate;
     }
@@ -348,19 +349,19 @@ export default {
       const impostorNames = state.roles.map((v, i) => (v ? getName(i) : null)).filter(Boolean);
       const plural = impostorNames.length > 1;
       root.innerHTML = `
-        <p class="kicker">Final</p>
+        <p class="kicker">${t('common.final')}</p>
         <div class="panel center stack" style="margin-top:18px">
-          <h2 style="font-size:34px;color:var(--accent)">${outcome === 'win' ? 'Heu guanyat!' : "L'impostor us ha guanyat"}</h2>
+          <h2 style="font-size:34px;color:var(--accent)">${outcome === 'win' ? t('impostor.youWin') : t('impostor.impostorWins')}</h2>
           <hr style="border:none;border-top:2px solid var(--line);width:100%">
-          <p class="muted">${plural ? 'Els impostors eren' : "L'impostor era"}</p>
-          <h2 style="font-size:30px">${impostorNames.join(' i ')}</h2>
-          <p class="muted">La paraula secreta era</p>
+          <p class="muted">${plural ? t('impostor.impostorsWere') : t('impostor.impostorWas')}</p>
+          <h2 style="font-size:30px">${joinAnd(impostorNames)}</h2>
+          <p class="muted">${t('impostor.secretWordWas')}</p>
           <h2 style="font-size:30px">${state.word}</h2>
         </div>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:24px">
-          <button class="btn btn--accent" id="again">Una altra ronda</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--accent" id="again">${t('common.anotherRound')}</button>
+          <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
       root.querySelector('#again').onclick = beginRound;

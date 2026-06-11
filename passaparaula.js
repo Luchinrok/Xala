@@ -17,6 +17,7 @@
 // ============================================================
 
 import { getPlayers, setPlayers } from './store.js';
+import { t, tc, joinAnd } from './i18n.js';
 
 // Temps PER TORN (segons).
 const TIMES = [15, 20, 30];
@@ -462,7 +463,7 @@ export default {
     let revealing = false;
 
     const count = () => state.names.length;
-    const getName = (i) => (state.names[i] && state.names[i].trim()) || `Jugador ${i + 1}`;
+    const getName = (i) => (state.names[i] && state.names[i].trim()) || t('common.playerN', { n: i + 1 });
     const allFilled = () => state.names.every((n) => (n || '').trim() !== '');
     const save = () => setPlayers(state.names);
     const okCount = () => state.status.filter(s => s === 'ok').length;
@@ -484,21 +485,21 @@ export default {
       stopTimer();
       clearReveal();
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker">Passaparaula</p>
-        <h2 style="font-size:30px;margin:6px 0 22px">Prepara la partida</h2>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker">${t('game.passaparaula.title')}</p>
+        <h2 style="font-size:30px;margin:6px 0 22px">${t('pp.setupTitle')}</h2>
 
-        <p class="label" style="margin:0 0 12px">Jugadors</p>
+        <p class="label" style="margin:0 0 12px">${t('common.players')}</p>
         <div class="stack" id="names" style="--stack-gap:10px"></div>
-        <button class="btn btn--outline" id="addp" style="margin-top:12px">+ Afegeix jugador</button>
+        <button class="btn btn--outline" id="addp" style="margin-top:12px">${t('common.addPlayer')}</button>
 
-        <p class="label" style="margin:24px 0 12px">Temps per torn</p>
+        <p class="label" style="margin:24px 0 12px">${t('pp.timePerTurn')}</p>
         <div class="btn-row" id="times">
-          ${TIMES.map(t => `<button class="btn ${state.timeSec === t ? 'btn--accent' : 'btn--outline'}" data-time="${t}">${t}s</button>`).join('')}
+          ${TIMES.map(s => `<button class="btn ${state.timeSec === s ? 'btn--accent' : 'btn--outline'}" data-time="${s}">${t('pp.timeSec', { n: s })}</button>`).join('')}
         </div>
 
-        <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
-        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">Cal omplir el nom de tots els jugadors</p>
+        <button class="btn btn--accent" id="start" style="margin-top:28px">${t('common.start')}</button>
+        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">${t('common.fillAllNames')}</p>
       `;
       root.querySelector('#back').onclick = leaveGame;
 
@@ -546,8 +547,8 @@ export default {
       const canDelete = count() > 2; // mínim 2 jugadors
       box.innerHTML = state.names.map((nm, i) => `
         <div class="name-row">
-          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="Nom" value="${(nm || '').replace(/"/g, '&quot;')}">
-          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="Treu">×</button>` : ''}
+          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
+          ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="${t('common.removeAria')}">×</button>` : ''}
         </div>
       `).join('');
       box.querySelectorAll('[data-del]').forEach(b => {
@@ -628,14 +629,14 @@ export default {
       stopTimer();
       clearReveal();
       root.innerHTML = `
-        <button class="back" id="home">‹ Inici</button>
-        <p class="kicker center">Encerts ${okCount()}/26 · Vius: ${aliveCount()}</p>
-        <h2 style="font-size:26px;margin:6px 0 18px">Passa el mòbil a<br>${getName(state.curPlayer)}</h2>
+        <button class="back" id="home">${t('nav.home')}</button>
+        <p class="kicker center">${t('pp.hitsAlive', { ok: okCount(), alive: aliveCount() })}</p>
+        <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${getName(state.curPlayer)}</h2>
         <div class="reveal-card tap-hint" id="card">
-          <div class="word" style="font-size:26px">Toca quan<br>estiguis a punt</div>
+          <div class="word" style="font-size:26px">${t('pp.tapReady')}</div>
         </div>
         <div class="spacer"></div>
-        <p class="muted center">Tindràs ${state.timeSec}s quan comencis.</p>
+        <p class="muted center">${t('pp.youllHave', { n: state.timeSec })}</p>
       `;
       root.querySelector('#home').onclick = leaveGame;
       root.querySelector('#card').onclick = startPlay;
@@ -671,7 +672,7 @@ export default {
 
     function centerHTML() {
       const e = state.current;
-      const label = e.mode === 'comença' ? `Comença per ${e.letter}` : `Conté la ${e.letter}`;
+      const label = e.mode === 'comença' ? t('pp.startsWith', { L: e.letter }) : t('pp.contains', { L: e.letter });
       const timer = `<div id="pp-timer" style="font-family:var(--font-display);font-weight:800;font-size:34px;color:var(--accent);line-height:1">${Math.max(0, state.remaining)}</div>`;
       return `
         ${timer}
@@ -692,11 +693,11 @@ export default {
     function answerHTML() {
       return `
         <input class="input" id="pp-input" type="text" maxlength="24" autocomplete="off"
-          autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Escriu la paraula"
+          autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${t('pp.writeWord')}"
           style="margin-top:14px;text-align:center;font-family:var(--font-display);font-weight:700;font-size:18px">
         <div class="btn-row" style="margin-top:12px">
-          <button class="btn btn--accent" id="check">Comprova</button>
-          <button class="btn btn--outline" id="pass">Passa</button>
+          <button class="btn btn--accent" id="check">${t('pp.check')}</button>
+          <button class="btn btn--outline" id="pass">${t('common.pass')}</button>
         </div>`;
     }
 
@@ -705,9 +706,9 @@ export default {
       const isReveal = !!result;
       const myScore = state.scores[state.curPlayer];
       root.innerHTML = `
-        <button class="back" id="home">‹ Inici</button>
+        <button class="back" id="home">${t('nav.home')}</button>
         <div class="pp-head">
-          <span class="kicker">${getName(state.curPlayer)} · ${myScore} encert${myScore === 1 ? '' : 's'}</span>
+          <span class="kicker">${getName(state.curPlayer)} · ${tc(myScore, 'hits')}</span>
           <span class="kicker">${okCount()}/26</span>
         </div>
         <div style="position:relative;width:100%;max-width:330px;margin:8px auto 0;aspect-ratio:1/1">
@@ -745,11 +746,11 @@ export default {
         state.status[i] = 'ok';
         state.scores[state.curPlayer]++;
         state.correctWords[state.curPlayer].push(e.answers[0]);
-        revealThenProceed({ kind: 'ok', title: 'Correcte!', word: e.answers[0] });
+        revealThenProceed({ kind: 'ok', title: t('pp.correct'), word: e.answers[0] });
       } else {
         state.status[i] = 'fail';
         state.alive[state.curPlayer] = false;
-        revealThenProceed({ kind: 'fail', title: 'Has fallat! Eliminat', label: 'La paraula era', word: e.answers[0] });
+        revealThenProceed({ kind: 'fail', title: t('pp.failEliminated'), label: t('pp.wordWas'), word: e.answers[0] });
       }
     }
 
@@ -789,7 +790,7 @@ export default {
       state.turnOver = true;
       state.status[state.curLetter] = 'fail';
       state.alive[state.curPlayer] = false;
-      revealThenProceed({ kind: 'fail', title: 'Temps! Eliminat', label: 'La paraula era', word: state.current.answers[0] });
+      revealThenProceed({ kind: 'fail', title: t('pp.timeEliminated'), label: t('pp.wordWas'), word: state.current.answers[0] });
     }
 
     // ---------- 4) final ----------
@@ -806,30 +807,30 @@ export default {
         winners = idxs.filter(i => state.scores[i] === max);
       }
       const tie = winners.length > 1;
-      const winNames = winners.map(i => getName(i)).join(' i ');
+      const winNames = joinAnd(winners.map(i => getName(i)));
       const winPts = state.scores[winners[0]];
 
       const order = idxs.sort((a, b) => state.scores[b] - state.scores[a] || a - b);
       const rows = order.map(i => `
         <button class="btn btn--outline rank-row" data-player="${i}">
-          <span class="rank-row__name">${getName(i)}${state.alive[i] ? '' : ' <span style="color:var(--ink-soft);font-weight:500">· eliminat</span>'}</span>
+          <span class="rank-row__name">${getName(i)}${state.alive[i] ? '' : ` <span style="color:var(--ink-soft);font-weight:500">· ${t('pp.eliminatedTag')}</span>`}</span>
           <span class="rank-row__pts">${state.scores[i]} ›</span>
         </button>`).join('');
 
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker center">Final</p>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker center">${t('common.final')}</p>
         <div class="reveal-card" id="card" style="cursor:default">
-          <div class="who">${tie ? 'Empat! Guanyen...' : 'Guanya...'}</div>
+          <div class="who">${tie ? t('common.tieWinPlural') : t('common.winSingular')}</div>
           <div class="word">${winNames}!</div>
-          <div class="who">${winPts} encert${winPts === 1 ? '' : 's'}</div>
+          <div class="who">${tc(winPts, 'hits')}</div>
         </div>
-        <p class="label" style="margin:22px 0 12px">Classificació · toca un jugador</p>
+        <p class="label" style="margin:22px 0 12px">${t('common.rankingTouch')}</p>
         <div class="stack" style="--stack-gap:10px">${rows}</div>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:20px">
-          <button class="btn btn--accent" id="again">Una altra partida</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--accent" id="again">${t('common.anotherGame')}</button>
+          <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
       root.querySelector('#back').onclick = leaveGame;
@@ -844,14 +845,14 @@ export default {
     function screenPlayerDetail(i) {
       const wordList = (arr) => arr.length
         ? `<div class="stack" style="--stack-gap:8px">${arr.map(w => `<div class="btn btn--outline" style="cursor:default;text-align:left">${w}</div>`).join('')}</div>`
-        : `<p class="muted">Cap.</p>`;
+        : `<p class="muted">${t('common.none')}</p>`;
       root.innerHTML = `
-        <button class="back" id="back">‹ Classificació</button>
-        <p class="kicker">${getName(i)}${state.alive[i] ? '' : ' · eliminat'}</p>
-        <h2 style="font-size:28px;margin:6px 0 18px">${state.scores[i]} encert${state.scores[i] === 1 ? '' : 's'}</h2>
-        <p class="label" style="margin:0 0 10px">Encertades</p>
+        <button class="back" id="back">${t('nav.ranking')}</button>
+        <p class="kicker">${getName(i)}${state.alive[i] ? '' : ' · ' + t('pp.eliminatedTag')}</p>
+        <h2 style="font-size:28px;margin:6px 0 18px">${tc(state.scores[i], 'hits')}</h2>
+        <p class="label" style="margin:0 0 10px">${t('common.correctWords')}</p>
         ${wordList(state.correctWords[i] || [])}
-        <p class="label" style="margin:22px 0 10px">Passades</p>
+        <p class="label" style="margin:22px 0 10px">${t('common.passedWords')}</p>
         ${wordList(state.passedWords[i] || [])}
         <div class="spacer"></div>
       `;

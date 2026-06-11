@@ -10,6 +10,7 @@
 import { CATEGORIES } from './impostor-paraules.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
 import { drawFromBag } from './word-bag.js';
+import { t } from './i18n.js';
 
 // --- Paràmetres del sensor (fàcils de canviar) ---
 // Amb el mòbil en horitzontal al front, l'eix dominant sol ser 'gamma'.
@@ -85,28 +86,28 @@ export default {
     function screenSetup() {
       cleanup();
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker">Endevina-la</p>
-        <h2 style="font-size:30px;margin:6px 0 22px">Prepara la ronda</h2>
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker">${t('game.endevinala.title')}</p>
+        <h2 style="font-size:30px;margin:6px 0 22px">${t('endevinala.setupTitle')}</h2>
 
-        <p class="label" style="margin:0 0 12px">Categories</p>
+        <p class="label" style="margin:0 0 12px">${t('common.categories')}</p>
         <button class="btn btn--outline" id="cats">${categoriesLabel(state.categoryIds)}</button>
 
-        <p class="label" style="margin:24px 0 12px">Durada</p>
+        <p class="label" style="margin:24px 0 12px">${t('endevinala.duration')}</p>
         <div class="btn-row" id="durs">
           ${[30, 60, 90].map(d => `
-            <button class="btn ${state.duration === d ? 'btn--accent' : 'btn--outline'}" data-dur="${d}">${d} s</button>
+            <button class="btn ${state.duration === d ? 'btn--accent' : 'btn--outline'}" data-dur="${d}">${t('endevinala.durSec', { n: d })}</button>
           `).join('')}
         </div>
 
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="go" style="margin-top:28px">Som-hi</button>
+        <button class="btn btn--accent" id="go" style="margin-top:28px">${t('common.lets')}</button>
       `;
 
       root.querySelector('#back').onclick = leaveHome;
 
       root.querySelector('#cats').onclick = () => {
-        openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: 'Endevina-la', onBack: screenSetup });
+        openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: t('game.endevinala.title'), onBack: screenSetup });
       };
 
       root.querySelectorAll('[data-dur]').forEach(b => {
@@ -126,15 +127,15 @@ export default {
     function screenReady() {
       cleanup();
       root.innerHTML = `
-        <button class="back" id="back">‹ Configuració</button>
-        <p class="kicker">Endevina-la</p>
+        <button class="back" id="back">${t('nav.setup')}</button>
+        <p class="kicker">${t('game.endevinala.title')}</p>
         <div class="spacer"></div>
         <div class="panel center stack">
-          <h2 style="font-size:28px">Posa't el mòbil al front en horitzontal</h2>
-          <p class="muted">Subjecta'l al front amb la pantalla cap als altres. Inclina amunt per encertar i avall per passar.</p>
+          <h2 style="font-size:28px">${t('endevinala.readyTitle')}</h2>
+          <p class="muted">${t('endevinala.readySub')}</p>
         </div>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="activate" style="margin-top:24px">Activa i comença</button>
+        <button class="btn btn--accent" id="activate" style="margin-top:24px">${t('endevinala.activate')}</button>
       `;
       root.querySelector('#back').onclick = screenSetup;
       root.querySelector('#activate').onclick = activate;
@@ -164,7 +165,7 @@ export default {
       cleanup();
       let n = 3;
       root.innerHTML = `
-        <p class="kicker center">A punt...</p>
+        <p class="kicker center">${t('endevinala.countReady')}</p>
         <div class="spacer"></div>
         <div class="big-timer" id="count">${n}</div>
         <div class="spacer"></div>
@@ -238,8 +239,8 @@ export default {
           </div>
           <div class="play__word" id="word">${first}</div>
           <div class="play__foot">
-            <span class="play__hint">Amunt = encertada · Avall = passa</span>
-            <button class="btn--link" id="tobtns">El sensor no respon? Mode botons</button>
+            <span class="play__hint">${t('endevinala.upDown')}</span>
+            <button class="btn--link" id="tobtns">${t('endevinala.toButtons')}</button>
           </div>
         </div>
       `;
@@ -286,13 +287,13 @@ export default {
       root.innerHTML = `
         <div class="flash-layer" id="flash"></div>
         <div class="play play--btns" id="play">
-          <button class="zone zone--ok" id="ok">▲ Encertada</button>
+          <button class="zone zone--ok" id="ok">${t('endevinala.zoneOk')}</button>
           <div class="zone-mid">
             <span class="play__timer" id="timer">${left}</span>
             <span class="play__score" id="score">${state.score}</span>
             <div class="play__word play__word--mid" id="word">${cur}</div>
           </div>
-          <button class="zone zone--pass" id="pass">▼ Passa</button>
+          <button class="zone zone--pass" id="pass">${t('endevinala.zonePass')}</button>
         </div>
       `;
       root.querySelector('#ok').onclick = () => register(true);
@@ -309,14 +310,14 @@ export default {
            <span class="res-row__mark">${r.ok ? '✓' : '✗'}</span>${r.word}
          </div>`).join('');
       root.innerHTML = `
-        <button class="back" id="back">‹ Inici</button>
-        <p class="kicker">Resultats</p>
-        <h2 style="font-size:34px;margin:6px 0 4px"><span style="color:var(--accent)">${state.score}</span> encertades</h2>
-        <p class="muted" style="margin-bottom:18px">${state.results.length} paraules en joc</p>
-        ${rows ? `<div class="stack" style="--stack-gap:8px">${rows}</div>` : '<p class="muted">Cap paraula. Torna-ho a provar!</p>'}
+        <button class="back" id="back">${t('nav.home')}</button>
+        <p class="kicker">${t('common.results')}</p>
+        <h2 style="font-size:34px;margin:6px 0 4px"><span style="color:var(--accent)">${state.score}</span> ${t('endevinala.hitsSuffix')}</h2>
+        <p class="muted" style="margin-bottom:18px">${t('endevinala.wordsInPlay', { n: state.results.length })}</p>
+        ${rows ? `<div class="stack" style="--stack-gap:8px">${rows}</div>` : `<p class="muted">${t('endevinala.noWords')}</p>`}
         <div class="stack" style="margin-top:24px">
-          <button class="btn btn--accent" id="again">Una altra</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--accent" id="again">${t('endevinala.another')}</button>
+          <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
       root.querySelector('#back').onclick = leaveHome;

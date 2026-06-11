@@ -118,7 +118,24 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* a la portada, fixem l'alçada al viewport perquè la graella s'ajusti
    i no calgui desplaçar (la resta de pantalles continuen creixent) */
 #app:has(.home) { height: 100dvh; }
-.home { height: 100%; }
+.home { height: 100%; position: relative; }
+
+/* botó d'idioma, a dalt a la dreta, amb l'estil del botó "Enrere" */
+.home__lang {
+  position: absolute; top: 0; right: 0; z-index: 5;
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+  padding: 8px 12px;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.home__lang:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+.home__lang svg { width: 18px; height: 18px; }
+
 .home__head { margin-top: 2px; flex: 0 0 auto; }
 .home__head .brand { font-size: clamp(40px, 12vw, 64px); }
 .home__head .tagline { margin-top: 8px; font-size: 15px; }
