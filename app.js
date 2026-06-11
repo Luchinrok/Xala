@@ -9,15 +9,22 @@ import endevinala from './endevinala.js';
 import bomba from './bomba.js';
 import aescena from './aescena.js';
 import passaparaula from './passaparaula.js';
-import { t, getLang, setLang, LANGUAGES } from './i18n.js';
+import escacs from './escacs.js';
+import memory from './memory.js';
+import sudoku from './sudoku.js';
+import joc2048 from './joc2048.js';
+import sopa from './sopa.js';
+import penjat from './penjat.js';
+import { t } from './i18n.js';
 
-// Títol i tagline d'un joc segons l'idioma actual (la INTERFÍCIE es
-// tradueix; el contingut del joc continua en català dins de cada fitxer).
-const gameTitle = (g) => t('game.' + g.id + '.title');
-const gameTagline = (g) => t('game.' + g.id + '.tagline');
-const gameInstructions = (g) => [1, 2, 3, 4].map(n => t('instr.' + g.id + '.' + n));
+// Títol, tagline i instruccions surten dels camps del mòdul de cada joc.
+const gameTitle = (g) => g.title;
+const gameTagline = (g) => g.tagline;
+const gameInstructions = (g) => g.instructions || [];
 
-const GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
+// Dos catàlegs: jocs de festa (multijugador) i jocs d'un sol jugador.
+const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
+const SOLO_GAMES = [escacs, memory, sudoku, joc2048, sopa, penjat];
 
 const app = document.getElementById('app');
 
@@ -58,17 +65,55 @@ function glyph(id) {
     quiprobable:'<circle cx="13" cy="13" r="6"/><circle cx="29" cy="15" r="5"/><path d="M3 36c0-6 4-9 10-9s10 3 10 9M21 36c0-5 3-8 8-8s8 3 8 8" fill="none" stroke-width="3"/>',
     aescena:    '<path d="M8 8h24v13c0 8-5 13-12 13S8 29 8 21z" fill="none" stroke-width="3"/><path d="M15 17l3 2M25 17l-3 2" stroke-width="3"/><path d="M15 27c2 2 8 2 10 0" fill="none" stroke-width="3"/>',
     passaparaula:'<circle cx="20" cy="20" r="13" fill="none" stroke-width="3"/><circle cx="20" cy="7" r="2.4"/><circle cx="33" cy="20" r="2.4"/><circle cx="20" cy="33" r="2.4"/><circle cx="7" cy="20" r="2.4"/>',
+    // modes de la pantalla inicial
+    multi:      '<circle cx="13" cy="13" r="6"/><circle cx="29" cy="15" r="5"/><path d="M3 36c0-6 4-9 10-9s10 3 10 9M21 36c0-5 3-8 8-8s8 3 8 8" fill="none" stroke-width="3"/>',
+    solo:       '<circle cx="20" cy="13" r="7"/><path d="M7 37c0-9 6-14 13-14s13 5 13 14" fill="none" stroke-width="3"/>',
+    // jocs d'un sol jugador
+    escacs:     '<circle cx="20" cy="11" r="5" fill="none" stroke-width="3"/><path d="M16 19c-1 4-3 6-5 13h18c-2-7-4-9-5-13z" fill="none" stroke-width="3"/><path d="M9 36h22" stroke-width="3"/>',
+    memory:     '<rect x="6" y="10" width="13" height="20" rx="2" fill="none" stroke-width="3"/><rect x="22" y="10" width="13" height="20" rx="2" fill="none" stroke-width="3"/><path d="M26 16a3 3 0 0 1 5 2c0 2-3 2-3 4" fill="none" stroke-width="2.4"/><circle cx="28" cy="26" r="1" fill="currentColor" stroke="none"/>',
+    sudoku:     '<rect x="7" y="7" width="26" height="26" rx="2" fill="none" stroke-width="3"/><path d="M15.7 7v26M24.3 7v26M7 15.7h26M7 24.3h26" stroke-width="2"/>',
+    '2048':     '<rect x="8" y="8" width="24" height="24" rx="5" fill="none" stroke-width="3"/><path d="M20 14v12M15 19l5-5 5 5" fill="none" stroke-width="2.6"/>',
+    sopa:       '<rect x="5" y="5" width="22" height="22" rx="2" fill="none" stroke-width="3"/><path d="M12 5v22M19 5v22M5 12h22M5 19h22" stroke-width="1.6"/><circle cx="27" cy="27" r="6" fill="none" stroke-width="3"/><path d="M31.5 31.5l4 4" stroke-width="3"/>',
+    penjat:     '<path d="M8 35h16" stroke-width="3"/><path d="M13 35V7h13" fill="none" stroke-width="3"/><path d="M26 7v5" stroke-width="3"/><circle cx="26" cy="16" r="3.5" fill="none" stroke-width="3"/><path d="M26 19v7M26 22l-4 3M26 22l4 3M26 26l-3 5M26 26l3 5" fill="none" stroke-width="2.4"/>',
   }[id] || '<circle cx="20" cy="20" r="12" fill="none" stroke-width="3"/>';
   return `<svg class="glyph" viewBox="0 0 40 40" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">${g}</svg>`;
 }
 
-function goHome() {
+// ---------- pantalla inicial: tria de mode ----------
+function goLanding() {
   setAccent(null);
   clear();
   const wrap = document.createElement('div');
   wrap.className = 'screen home';
   wrap.innerHTML = `
-    <button class="home__lang" id="lang" aria-label="${t('home.language')}">${globeGlyph()}<span>${t('home.language')}</span></button>
+    <header class="home__head">
+      <div class="brand">Xala<span>!</span></div>
+      <p class="tagline">Tria com vols jugar.</p>
+    </header>
+    <div class="modes">
+      <button class="mode-card" id="mode-mp" style="--c:#E4572E">
+        <span>${glyph('multi')}</span>
+        <div><h3>Multijugador</h3><p>Els 6 jocs de festa: passa el mòbil i a riure.</p></div>
+      </button>
+      <button class="mode-card mode-card--dark" id="mode-sp" style="--c:var(--ink)">
+        <span>${glyph('solo')}</span>
+        <div><h3>Un sol jugador</h3><p>6 jocs per a tu sol, quan vulguis.</p></div>
+      </button>
+    </div>
+  `;
+  app.appendChild(wrap);
+  wrap.querySelector('#mode-mp').addEventListener('click', goMultiplayer);
+  wrap.querySelector('#mode-sp').addEventListener('click', goSingle);
+}
+
+// ---------- graella de jocs de festa (multijugador) ----------
+function goMultiplayer() {
+  setAccent(null);
+  clear();
+  const wrap = document.createElement('div');
+  wrap.className = 'screen home';
+  wrap.innerHTML = `
+    <button class="back" id="back">‹ Enrere</button>
     <header class="home__head">
       <div class="brand">Xala<span>!</span></div>
       <p class="tagline">${t('home.tagline')}</p>
@@ -77,9 +122,33 @@ function goHome() {
     <button class="btn btn--outline home__help" id="help">${t('home.help')}</button>
   `;
   app.appendChild(wrap);
+  renderGameGrid(wrap.querySelector('#grid'), PARTY_GAMES, goMultiplayer);
+  wrap.querySelector('#back').addEventListener('click', goLanding);
+  wrap.querySelector('#help').addEventListener('click', helpList);
+}
 
-  const grid = wrap.querySelector('#grid');
-  GAMES.forEach(game => {
+// ---------- graella de jocs d'un sol jugador ----------
+function goSingle() {
+  setAccent(null);
+  clear();
+  const wrap = document.createElement('div');
+  wrap.className = 'screen home';
+  wrap.innerHTML = `
+    <button class="back" id="back">‹ Enrere</button>
+    <header class="home__head">
+      <div class="brand">Xala<span>!</span></div>
+      <p class="tagline">Jocs per a tu sol.</p>
+    </header>
+    <div class="grid" id="grid"></div>
+  `;
+  app.appendChild(wrap);
+  renderGameGrid(wrap.querySelector('#grid'), SOLO_GAMES, goSingle);
+  wrap.querySelector('#back').addEventListener('click', goLanding);
+}
+
+// ---------- render compartit d'una graella de jocs ----------
+function renderGameGrid(grid, games, back) {
+  games.forEach(game => {
     const card = document.createElement('button');
     const cardColor = game.color || game.accent;
     const dark = cardColor === 'var(--ink)';
@@ -90,50 +159,18 @@ function goHome() {
       <span>${glyph(game.id)}</span>
       <div><h3>${gameTitle(game)}</h3><p>${gameTagline(game)}</p></div>
     `;
-    if (game.ready) card.addEventListener('click', () => openGame(game));
+    if (game.ready) card.addEventListener('click', () => openGame(game, back));
     grid.appendChild(card);
   });
-
-  wrap.querySelector('#help').addEventListener('click', helpList);
-  wrap.querySelector('#lang').addEventListener('click', languageScreen);
 }
 
-// Icona de globus per al botó d'idioma.
-function globeGlyph() {
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18"/></svg>`;
-}
-
-// ---------- selector d'idioma ----------
-function languageScreen() {
-  setAccent('#E4572E');
-  clear();
-  const wrap = document.createElement('div');
-  wrap.className = 'screen';
-  const cur = getLang();
-  const items = LANGUAGES.map(l => `
-    <button class="btn ${l.code === cur ? 'btn--accent' : 'btn--outline'}" data-lang="${l.code}"
-      style="text-align:left">${l.name}</button>
-  `).join('');
-  wrap.innerHTML = `
-    <button class="back" id="back">${t('nav.home')}</button>
-    <p class="kicker">${t('lang.kicker')}</p>
-    <h2 style="font-size:30px;margin:6px 0 22px">${t('lang.title')}</h2>
-    <div class="stack" id="list" style="--stack-gap:10px">${items}</div>
-  `;
-  app.appendChild(wrap);
-  wrap.querySelector('#back').onclick = goHome;
-  wrap.querySelectorAll('[data-lang]').forEach(b => {
-    b.onclick = () => { setLang(b.dataset.lang); goHome(); };
-  });
-}
-
-function openGame(game) {
+function openGame(game, back) {
   setAccent(game.accent);
   clear();
   const root = document.createElement('div');
   root.className = 'screen';
   app.appendChild(root);
-  game.mount(root, { goHome });
+  game.mount(root, { goHome: back || goMultiplayer });
 }
 
 // ---------- ajuda: "Com es juga?" ----------
@@ -149,10 +186,10 @@ function helpList() {
     <div class="stack" id="list" style="--stack-gap:12px"></div>
   `;
   app.appendChild(wrap);
-  wrap.querySelector('#back').onclick = goHome;
+  wrap.querySelector('#back').onclick = goMultiplayer;
 
   const list = wrap.querySelector('#list');
-  GAMES.forEach(game => {
+  PARTY_GAMES.forEach(game => {
     const b = document.createElement('button');
     b.className = 'btn btn--outline';
     b.style.textAlign = 'left';
@@ -181,7 +218,7 @@ function helpDetail(game) {
 }
 
 // arrenca
-goHome();
+goLanding();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

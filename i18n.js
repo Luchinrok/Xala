@@ -452,7 +452,7 @@ const STRINGS = {
     'home.language': `Idioma`,
     'help.kicker': `Instruccions`,
     'help.title': `Com es juga?`,
-    'soon': `Aviat`,
+    'soon': `Aviat!`,
     'lang.kicker': `Idioma`,
     'lang.title': `Tria l'idioma`,
 
@@ -1470,13 +1470,11 @@ const STRINGS = {
 };
 
 const KEY = 'xala_lang';
-const DEFAULT = 'en';
+const DEFAULT = 'ca';
+// Idiomes temporalment DESACTIVATS: l'app va sempre en català. El sistema
+// i18n es manté perquè els jocs ja fan servir t()/tc(); el selector i la
+// persistència es reactivaran més endavant.
 let current = DEFAULT;
-
-try {
-  const saved = localStorage.getItem(KEY);
-  if (saved && STRINGS[saved]) current = saved;
-} catch (e) { /* sense localStorage: continuem amb el per defecte */ }
 
 export function getLang() { return current; }
 

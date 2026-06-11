@@ -2,7 +2,7 @@
 // Quan afegeixis fitxers nous (jocs, dades), inclou-los a ASSETS
 // i puja la versió de CACHE per forçar l'actualització.
 
-const CACHE = 'xala-v32';
+const CACHE = 'xala-v33';
 const ASSETS = [
   './',
   './index.html',
@@ -21,6 +21,12 @@ const ASSETS = [
   './impostor-paraules.js',
   './category-icons.js',
   './category-select.js',
+  './escacs.js',
+  './memory.js',
+  './sudoku.js',
+  './joc2048.js',
+  './sopa.js',
+  './penjat.js',
   './icon.svg',
 ];
 

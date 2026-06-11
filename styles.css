@@ -118,23 +118,43 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* a la portada, fixem l'alçada al viewport perquè la graella s'ajusti
    i no calgui desplaçar (la resta de pantalles continuen creixent) */
 #app:has(.home) { height: 100dvh; }
-.home { height: 100%; position: relative; }
+.home { height: 100%; }
 
-/* botó d'idioma, a dalt a la dreta, amb l'estil del botó "Enrere" */
-.home__lang {
-  position: absolute; top: 0; right: 0; z-index: 5;
-  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
-  font-family: var(--font-display); font-weight: 700; font-size: 14px;
-  color: var(--ink);
-  background: var(--paper);
-  border: 2px solid var(--ink);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow);
-  padding: 8px 12px;
-  transition: transform .08s ease, box-shadow .08s ease;
+/* pantalla inicial: dos modes grans que omplen l'alçada disponible */
+.modes {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: 1fr;
+  gap: 14px;
+  margin-top: 18px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
-.home__lang:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
-.home__lang svg { width: 18px; height: 18px; }
+.mode-card {
+  position: relative;
+  border: 2px solid var(--ink);
+  border-radius: var(--r-lg);
+  background: var(--c, var(--coral));
+  color: var(--ink);
+  padding: clamp(14px, 3vh, 28px) clamp(18px, 5vw, 28px);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .08s ease, box-shadow .08s ease;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(6px, 1.6vh, 14px);
+}
+.mode-card:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+.mode-card .glyph { width: clamp(34px, 6vh, 48px); height: clamp(34px, 6vh, 48px); }
+.mode-card h3 { font-size: clamp(26px, 5.2vh, 38px); }
+.mode-card p { font-size: clamp(12px, 1.9vh, 15px); font-weight: 500; color: var(--ink); opacity: .8; margin-top: 4px; line-height: 1.25; }
+/* modes amb fons fosc: text i icona en paper per llegir-los */
+.mode-card--dark { color: var(--paper); }
+.mode-card--dark p { color: var(--paper); }
 
 .home__head { margin-top: 2px; flex: 0 0 auto; }
 .home__head .brand { font-size: clamp(40px, 12vw, 64px); }
