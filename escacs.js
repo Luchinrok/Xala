@@ -370,6 +370,10 @@ export default {
     let legalForSel = [];     // jugades legals de la peça triada
     let allLegal = [];        // totes les jugades legals del torn
     let gameOver = false;
+    let animating = false;    // bloqueja l'entrada mentre llisca una peça
+
+    // Retard abans que la màquina mogui, perquè es vegi que "pensa".
+    const AI_DELAY = 750;
 
     // ---------- 1) configuració ----------
     function screenConfig() {
@@ -451,7 +455,7 @@ export default {
     }
 
     function handleClick(r, c) {
-      if (gameOver) return;
+      if (gameOver || animating) return;
       if (mode === 'cpu' && pos.turn === 'b') return; // torn de la IA
       const cell = pos.board[r][c];
       if (selected) {
@@ -471,20 +475,32 @@ export default {
     }
 
     function playMove(mv) {
+      makeMove(mv);
+    }
+
+    // Aplica un moviment, anima la peça lliscant de l'origen al destí i,
+    // quan acaba l'animació, continua amb postMove() (fi / torn de la IA).
+    function makeMove(mv) {
+      const mover = pos.turn;
+      const from = mv.fr, to = mv.to;
+      const glyph = GLYPH[mover][mv.t];
       pos = applyMove(pos, mv);
       selected = null;
       legalForSel = [];
-      afterMove();
+      renderBoard();
+      animating = true;
+      animateMove(from, to, glyph, () => { animating = false; postMove(); });
     }
 
     // ---------- després de cada moviment: fi de partida / torn de la IA ----------
-    function afterMove() {
+    function postMove() {
       allLegal = genLegal(pos);
       const check = inCheck(pos, pos.turn);
-      renderBoard();
 
       if (allLegal.length === 0) {
         gameOver = true;
+        // En escac i sense jugades = escac i mat (perd qui ha de moure).
+        // Sense escac i sense jugades = taules (rei ofegat).
         endScreen(check ? 'mate' : 'stalemate');
         return;
       }
@@ -492,12 +508,45 @@ export default {
 
       if (mode === 'cpu' && pos.turn === 'b') {
         setStatus('L\'ordinador pensa…');
-        // deixa pintar la UI abans del càlcul (bloquejant) de la IA
+        // Retard perquè es vegi que "pensa"; el càlcul (bloquejant) va dins.
         setTimeout(() => {
+          if (gameOver) return;
           const mv = pickAIMove(pos, DEPTH[diff]);
-          if (mv) { pos = applyMove(pos, mv); afterMove(); }
-        }, 30);
+          if (mv) makeMove(mv);
+        }, AI_DELAY);
       }
+    }
+
+    // Llisca la peça (glif) de la casella d'origen a la de destí.
+    function animateMove(from, to, glyph, done) {
+      const boardEl = root.querySelector('#board');
+      const size = boardEl ? boardEl.clientWidth / 8 : 0;
+      if (!boardEl || !size) { done(); return; } // sense layout: salta l'animació
+      // amaga la peça real al destí mentre llisca el clon
+      const destCell = boardEl.children[to[0] * 8 + to[1]];
+      const destPiece = destCell && destCell.querySelector('.piece');
+      if (destPiece) destPiece.style.visibility = 'hidden';
+
+      const fly = document.createElement('div');
+      fly.className = 'anim-piece';
+      fly.textContent = glyph;
+      fly.style.width = size + 'px';
+      fly.style.height = size + 'px';
+      fly.style.transform = `translate(${from[1] * size}px, ${from[0] * size}px)`;
+      boardEl.appendChild(fly);
+      void fly.offsetWidth; // força un reflux abans de la transició
+      fly.style.transform = `translate(${to[1] * size}px, ${to[0] * size}px)`;
+
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        if (destPiece) destPiece.style.visibility = '';
+        if (fly.parentNode) fly.parentNode.removeChild(fly);
+        done();
+      };
+      fly.addEventListener('transitionend', finish);
+      setTimeout(finish, 360); // xarxa de seguretat si no salta transitionend
     }
 
     function setStatus(txt) {
@@ -517,13 +566,15 @@ export default {
     function endScreen(kind) {
       let title, sub;
       if (kind === 'mate') {
-        const loser = pos.turn; // qui ha de moure i no pot, està en mat
+        const loser = pos.turn;                    // qui ha de moure i no pot
+        const winner = loser === 'w' ? 'b' : 'w';  // l'altre bàndol guanya
         if (mode === 'cpu') {
-          if (loser === 'w') { title = 'Escac i mat'; sub = 'Has perdut contra l\'ordinador.'; }
-          else { title = 'Escac i mat!'; sub = 'Has guanyat. Ben jugat!'; }
+          // el jugador porta les blanques
+          if (winner === 'w') { title = 'Guanyes!'; sub = 'Escac i mat. Ben jugat!'; }
+          else { title = 'Perds!'; sub = 'L\'ordinador t\'ha fet escac i mat.'; }
         } else {
-          const winner = loser === 'w' ? 'negres' : 'blanques';
-          title = 'Escac i mat'; sub = 'Guanyen les ' + winner + '.';
+          title = winner === 'w' ? 'Guanyen les blanques!' : 'Guanyen les negres!';
+          sub = 'Escac i mat.';
         }
         setStatus('Escac i mat');
       } else {
