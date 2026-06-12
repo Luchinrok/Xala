@@ -11,5 +11,10 @@ export default {
   accent: '#E4572E',
   color: '#E4572E',
   ready: false,
-  instructions: ['Aviat!'],
+  instructions: [
+    'Llisca amunt, avall, esquerra o dreta per moure totes les fitxes.',
+    'Dues fitxes amb el mateix número que xoquen es fusionen i se sumen.',
+    'Cada moviment apareix una fitxa nova a la graella.',
+    'Arriba a la fitxa 2048 sense quedar-te sense espai.',
+  ],
 };

@@ -11,5 +11,10 @@ export default {
   accent: '#E4572E',
   color: 'var(--paper-2)',
   ready: false,
-  instructions: ['Aviat!'],
+  instructions: [
+    'Destapa dues cartes per torn tocant-les.',
+    'Si fan parella, es queden destapades; si no, es tornen a girar.',
+    'Recorda on és cada dibuix i troba totes les parelles.',
+    'Acaba amb el mínim d\'intents possible.',
+  ],
 };

@@ -11,5 +11,10 @@ export default {
   accent: '#E4572E',
   color: 'var(--paper-2)',
   ready: false,
-  instructions: ['Aviat!'],
+  instructions: [
+    'Hi ha una paraula secreta amagada: només en veus els buits.',
+    'Prova lletres una a una amb el teclat.',
+    'Cada lletra fallada dibuixa una part del penjat.',
+    'Endevina la paraula sencera abans que es completi el dibuix.',
+  ],
 };

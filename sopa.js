@@ -11,5 +11,10 @@ export default {
   accent: '#E4572E',
   color: '#E4572E',
   ready: false,
-  instructions: ['Aviat!'],
+  instructions: [
+    'Busca a la graella les paraules de la llista.',
+    'Poden estar en horitzontal, vertical o diagonal.',
+    'Llisca el dit de la primera a l\'última lletra per marcar-les.',
+    'Troba-les totes per completar la sopa.',
+  ],
 };

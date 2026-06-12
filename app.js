@@ -124,7 +124,7 @@ function goMultiplayer() {
   app.appendChild(wrap);
   renderGameGrid(wrap.querySelector('#grid'), PARTY_GAMES, goMultiplayer);
   wrap.querySelector('#back').addEventListener('click', goLanding);
-  wrap.querySelector('#help').addEventListener('click', helpList);
+  wrap.querySelector('#help').addEventListener('click', () => helpList(PARTY_GAMES, goMultiplayer));
 }
 
 // ---------- graella de jocs d'un sol jugador ----------
@@ -140,10 +140,12 @@ function goSingle() {
       <p class="tagline">Jocs per a tu sol.</p>
     </header>
     <div class="grid" id="grid"></div>
+    <button class="btn btn--outline home__help" id="help">${t('home.help')}</button>
   `;
   app.appendChild(wrap);
   renderGameGrid(wrap.querySelector('#grid'), SOLO_GAMES, goSingle);
   wrap.querySelector('#back').addEventListener('click', goLanding);
+  wrap.querySelector('#help').addEventListener('click', () => helpList(SOLO_GAMES, goSingle));
 }
 
 // ---------- render compartit d'una graella de jocs ----------
@@ -173,35 +175,35 @@ function openGame(game, back) {
   game.mount(root, { goHome: back || goMultiplayer });
 }
 
-// ---------- ajuda: "Com es juga?" ----------
-function helpList() {
+// ---------- ajuda: "Com es juga?" (per a un catàleg de jocs) ----------
+function helpList(games, back) {
   setAccent('#E4572E');
   clear();
   const wrap = document.createElement('div');
   wrap.className = 'screen';
   wrap.innerHTML = `
-    <button class="back" id="back">${t('nav.home')}</button>
+    <button class="back" id="back">‹ Enrere</button>
     <p class="kicker">${t('help.kicker')}</p>
     <h2 style="font-size:30px;margin:6px 0 22px">${t('help.title')}</h2>
     <div class="stack" id="list" style="--stack-gap:12px"></div>
   `;
   app.appendChild(wrap);
-  wrap.querySelector('#back').onclick = goMultiplayer;
+  wrap.querySelector('#back').onclick = back;
 
   const list = wrap.querySelector('#list');
-  PARTY_GAMES.forEach(game => {
+  games.forEach(game => {
     const b = document.createElement('button');
     b.className = 'btn btn--outline';
     b.style.textAlign = 'left';
     b.innerHTML = `<span style="color:var(--accent)">${glyph(game.id)}</span> &nbsp; ${gameTitle(game)}`;
     b.style.display = 'flex';
     b.style.alignItems = 'center';
-    b.onclick = () => helpDetail(game);
+    b.onclick = () => helpDetail(game, games, back);
     list.appendChild(b);
   });
 }
 
-function helpDetail(game) {
+function helpDetail(game, games, back) {
   setAccent('#E4572E');
   clear();
   const wrap = document.createElement('div');
@@ -214,7 +216,7 @@ function helpDetail(game) {
     <ol class="howto">${steps}</ol>
   `;
   app.appendChild(wrap);
-  wrap.querySelector('#back').onclick = helpList;
+  wrap.querySelector('#back').onclick = () => helpList(games, back);
 }
 
 // arrenca
