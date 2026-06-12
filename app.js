@@ -91,11 +91,11 @@ function goLanding() {
       <p class="tagline">Tria com vols jugar.</p>
     </header>
     <div class="modes">
-      <button class="mode-card" id="mode-mp" style="--c:#E4572E">
+      <button class="mode-card" id="mode-mp" style="--c:var(--accent)">
         <span>${glyph('multi')}</span>
         <div><h3>Multijugador</h3><p>Els 6 jocs de festa: passa el mòbil i a riure.</p></div>
       </button>
-      <button class="mode-card mode-card--dark" id="mode-sp" style="--c:var(--ink)">
+      <button class="mode-card" id="mode-sp" style="--c:var(--paper-2)">
         <span>${glyph('solo')}</span>
         <div><h3>Un sol jugador</h3><p>6 jocs per a tu sol, quan vulguis.</p></div>
       </button>

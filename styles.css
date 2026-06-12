@@ -152,9 +152,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .mode-card .glyph { width: clamp(34px, 6vh, 48px); height: clamp(34px, 6vh, 48px); }
 .mode-card h3 { font-size: clamp(26px, 5.2vh, 38px); }
 .mode-card p { font-size: clamp(12px, 1.9vh, 15px); font-weight: 500; color: var(--ink); opacity: .8; margin-top: 4px; line-height: 1.25; }
-/* modes amb fons fosc: text i icona en paper per llegir-los */
-.mode-card--dark { color: var(--paper); }
-.mode-card--dark p { color: var(--paper); }
 
 .home__head { margin-top: 2px; flex: 0 0 auto; }
 .home__head .brand { font-size: clamp(40px, 12vw, 64px); }

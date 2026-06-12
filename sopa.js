@@ -9,7 +9,7 @@ export default {
   title: 'Sopa de lletres',
   tagline: 'Troba les paraules amagades',
   accent: '#E4572E',
-  color: 'var(--paper-2)',
+  color: '#E4572E',
   ready: false,
   instructions: ['Aviat!'],
 };

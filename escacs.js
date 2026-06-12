@@ -9,7 +9,7 @@ export default {
   title: 'Escacs',
   tagline: 'El joc dels reis, mou per mou',
   accent: '#E4572E',
-  color: 'var(--ink)',
+  color: '#E4572E',
   ready: false,
   instructions: ['Aviat!'],
 };

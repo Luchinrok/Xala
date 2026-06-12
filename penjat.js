@@ -9,7 +9,7 @@ export default {
   title: 'El penjat',
   tagline: 'Endevina la paraula lletra a lletra',
   accent: '#E4572E',
-  color: 'var(--ink)',
+  color: 'var(--paper-2)',
   ready: false,
   instructions: ['Aviat!'],
 };

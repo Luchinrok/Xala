@@ -9,7 +9,7 @@ export default {
   title: 'Memory',
   tagline: 'Troba totes les parelles de cartes',
   accent: '#E4572E',
-  color: '#E4572E',
+  color: 'var(--paper-2)',
   ready: false,
   instructions: ['Aviat!'],
 };
