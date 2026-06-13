@@ -1,15 +1,16 @@
 // ============================================================
-// Prova del motor d'escacs: detecció d'ESCAC I MAT.
+// Prova del motor d'escacs — variant CAPTURA DEL REI.
 // Executa:  node escacs.test.mjs   (o  npm test)
 //
-// Juga el "mat del boig" (1. f3 e5 2. g4 Dh4#) i comprova que, a l'inici
-// del torn de les blanques, NO hi ha cap moviment legal i el rei blanc
-// està en escac => escac i mat amb les blanques com a perdedores.
-// Inclou un cas d'ofegat (sense escac i sense moviments => taules) i un
-// control de perft per a la generació de moviments.
+// Regla: es pot fer qualsevol moviment legal de la peça (encara que deixi
+// el propi rei amenaçat). La partida s'acaba quan algú CAPTURA el rei
+// contrari: qui el captura guanya. "Escac" només és un avís.
 // ============================================================
 
-import { initialPos, genLegal, applyMove, inCheck } from './escacs.js';
+import {
+  initialPos, genLegal, genPseudo, applyMove, inCheck,
+  findKing, kingMissing, canCaptureKing, pickAIMove,
+} from './escacs.js';
 
 let failures = 0;
 function check(cond, msg) {
@@ -17,64 +18,93 @@ function check(cond, msg) {
   if (!cond) failures++;
 }
 
-// Converteix "e2" -> [fila, columna] del tauler intern (fila 0 = 8a).
 const sq = (s) => [8 - parseInt(s[1], 10), s.charCodeAt(0) - 97];
-
-// Fa el moviment from->to si és LEGAL (només els legals; un moviment és
-// legal si, després de fer-lo, el propi rei no queda en escac).
-function move(pos, fromS, toS) {
+function empty(turn) {
+  return { board: Array.from({ length: 8 }, () => Array(8).fill(null)), turn, castling: { wK: false, wQ: false, bK: false, bQ: false }, ep: null };
+}
+function set(pos, s, c, t) { const [r, cc] = sq(s); pos.board[r][cc] = { c, t }; }
+function find(pos, fromS, toS) {
   const f = sq(fromS), t = sq(toS);
-  const m = genLegal(pos).find(x => x.fr[0] === f[0] && x.fr[1] === f[1] && x.to[0] === t[0] && x.to[1] === t[1]);
-  if (!m) throw new Error(`Moviment inexistent o il·legal: ${fromS}${toS} (torn ${pos.turn})`);
-  return applyMove(pos, m);
+  return genLegal(pos).find(m => m.fr[0] === f[0] && m.fr[1] === f[1] && m.to[0] === t[0] && m.to[1] === t[1]);
 }
 
-// Classifica la posició a l'inici del torn de qui ha de moure.
-function status(pos) {
-  const legal = genLegal(pos);
-  const chk = inCheck(pos, pos.turn);
-  if (legal.length === 0) return chk ? { end: 'mate', loser: pos.turn } : { end: 'stalemate' };
-  return { end: null, legal: legal.length, check: chk };
+// ---------- 1) Capturar el rei acaba la partida (i es pot guanyar) ----------
+console.log('1) Captura del rei:');
+{
+  // Dama blanca a e7, rei negre a e8 -> les blanques poden capturar el rei.
+  const p = empty('w');
+  set(p, 'a1', 'w', 'K');
+  set(p, 'e7', 'w', 'Q');
+  set(p, 'e8', 'b', 'K');
+  const cap = find(p, 'e7', 'e8');
+  check(!!cap && cap.cap === 'K', 'genLegal inclou la captura del rei (De7xe8)');
+  const after = applyMove(p, cap);
+  check(findKing(after.board, 'b') === null, 'després de la captura, el rei negre ja no hi és');
+  check(kingMissing(after) === 'b', 'kingMissing detecta que falten les negres -> guanyen les blanques');
 }
 
-// ---------- 1) Mat del boig: 1. f3 e5 2. g4 Dh4# ----------
-console.log('Mat del boig (1. f3 e5 2. g4 Dh4#):');
-let pos = initialPos();
-pos = move(pos, 'f2', 'f3');   // 1. f3
-pos = move(pos, 'e7', 'e5');   //    e5
-pos = move(pos, 'g2', 'g4');   // 2. g4
-pos = move(pos, 'd8', 'h4');   //    Dh4#
-
-const s = status(pos);
-check(pos.turn === 'w', 'després de Dh4# han de moure les blanques');
-check(inCheck(pos, 'w'), 'el rei blanc està en escac');
-check(genLegal(pos).length === 0, `les blanques no tenen cap moviment legal (n=${genLegal(pos).length})`);
-check(s.end === 'mate', 'la posició es classifica com a ESCAC I MAT');
-check(s.end === 'mate' && s.loser === 'w', 'perden les blanques (guanyen les negres)');
-
-// ---------- 2) Ofegat: sense escac i sense moviments => taules ----------
-// Negres: rei a h8. Blanques: rei f7, dama g6. Negres a moure, ofegades.
-console.log('\nOfegat (taules):');
-function emptyBoard() {
-  return { board: Array.from({ length: 8 }, () => Array(8).fill(null)), turn: 'b', castling: { wK: false, wQ: false, bK: false, bQ: false }, ep: null };
+// ---------- 2) Es pot moure deixant el propi rei amenaçat ----------
+console.log('\n2) Moure encara que el rei quedi en escac (sense restricció):');
+{
+  // Rei blanc e1, cavall blanc e2, torre negra e8: el cavall està "clavat"
+  // a l'escacs normal; aquí SÍ que es pot moure.
+  const p = empty('w');
+  set(p, 'e1', 'w', 'K');
+  set(p, 'e2', 'w', 'N');
+  set(p, 'e8', 'b', 'R');
+  set(p, 'a8', 'b', 'K');
+  const knightMoves = genLegal(p).filter(m => m.fr[0] === sq('e2')[0] && m.fr[1] === sq('e2')[1]);
+  check(knightMoves.length > 0, 'el cavall clavat pot moure igualment (no es filtra per escac)');
+  // i el resultat deixa el rei blanc amenaçat per la torre
+  const mv = knightMoves[0];
+  const after = applyMove(p, mv);
+  check(inCheck(after, 'w'), 'després de moure el cavall, el rei blanc queda en escac (permès)');
 }
-const st = emptyBoard();
-const put = (s2, c, t) => { const [r, cc] = sq(s2); st.board[r][cc] = { c, t }; };
-put('h8', 'b', 'K');
-put('f7', 'w', 'K');
-put('g6', 'w', 'Q');
-const so = status(st);
-check(!inCheck(st, 'b'), 'el rei negre NO està en escac');
-check(genLegal(st).length === 0, `les negres no tenen cap moviment legal (n=${genLegal(st).length})`);
-check(so.end === 'stalemate', 'la posició es classifica com a TAULES (ofegat)');
 
-// ---------- 3) Perft (control de la generació de moviments) ----------
-console.log('\nPerft (control):');
-function perft(p, d) { if (d === 0) return 1; let n = 0; for (const m of genLegal(p)) n += perft(applyMove(p, m), d - 1); return n; }
-const p0 = initialPos();
-check(perft(p0, 1) === 20, 'perft(1) = 20');
-check(perft(p0, 2) === 400, 'perft(2) = 400');
-check(perft(p0, 3) === 8902, 'perft(3) = 8902');
+// ---------- 3) Avís d'escac (informatiu) ----------
+console.log('\n3) Avís d\'escac:');
+{
+  const p = empty('w');
+  set(p, 'e1', 'w', 'K');
+  set(p, 'e8', 'b', 'R'); // torre negra mira el rei blanc per la columna e
+  set(p, 'a8', 'b', 'K');
+  check(inCheck(p, 'w') === true, 'inCheck avisa que el rei blanc està amenaçat');
+}
+
+// ---------- 4) La IA captura el rei rival si pot ----------
+console.log('\n4) La IA captura el rei si pot:');
+{
+  // Negres a moure: dama negra a e2, rei blanc a e1 -> ha de capturar-lo.
+  for (const depth of [1, 2, 3]) {
+    const p = empty('b');
+    set(p, 'h8', 'b', 'K');
+    set(p, 'e2', 'b', 'Q');
+    set(p, 'e1', 'w', 'K');
+    const mv = pickAIMove(p, depth);
+    const capturesKing = mv && mv.cap === 'K' && mv.to[0] === sq('e1')[0] && mv.to[1] === sq('e1')[1];
+    check(capturesKing, `a profunditat ${depth}, la IA juga De2xe1 (captura el rei)`);
+  }
+}
+
+// ---------- 5) La IA evita deixar el seu rei capturable ----------
+console.log('\n5) La IA no penja el seu rei si pot evitar-ho:');
+{
+  // Negres a moure. Rei negre a e8. Torre blanca a a7 (controla la 7a fila):
+  // si el rei va a e7/d7/f7 el captura la torre. Té caselles segures (d8/f8).
+  // A més, una dama negra ben lluny per tenir més opcions no suïcides.
+  const p = empty('b');
+  set(p, 'e8', 'b', 'K');
+  set(p, 'h1', 'b', 'Q');
+  set(p, 'a7', 'w', 'R');
+  set(p, 'a1', 'w', 'K');
+  let safe = true;
+  for (let i = 0; i < 20; i++) {
+    const mv = pickAIMove(p, 2);
+    const after = applyMove(p, mv);
+    if (canCaptureKing(after)) { safe = false; break; } // les blanques podrien prendre el rei
+  }
+  check(safe, 'en 20 tries, la IA (depth 2) mai deixa el rei negre capturable');
+}
 
 console.log(failures === 0 ? '\n✔ TOTES LES PROVES PASSEN' : `\n✘ ${failures} PROVA(ES) FALLIDA(ES)`);
 process.exit(failures === 0 ? 0 : 1);
