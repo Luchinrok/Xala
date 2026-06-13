@@ -384,7 +384,7 @@ export default {
 
         <p class="label" style="margin:0 0 12px">Mode</p>
         <div class="btn-row" id="modes">
-          <button class="btn ${mode === 'cpu' ? 'btn--accent' : 'btn--outline'}" data-mode="cpu">Contra l'ordinador</button>
+          <button class="btn ${mode === 'cpu' ? 'btn--accent' : 'btn--outline'}" data-mode="cpu">Un jugador</button>
           <button class="btn ${mode === '2p' ? 'btn--accent' : 'btn--outline'}" data-mode="2p">2 jugadors</button>
         </div>
 
@@ -412,8 +412,9 @@ export default {
       selected = null;
       legalForSel = [];
       gameOver = false;
-      allLegal = genLegal(pos);
+      animating = false;
       screenBoard();
+      startTurn(); // prepara el primer torn (estat, jugades legals, etc.)
     }
 
     // ---------- 2) tauler ----------
@@ -432,7 +433,6 @@ export default {
         handleClick(parseInt(b.dataset.r, 10), parseInt(b.dataset.c, 10));
       });
       renderBoard();
-      updateStatus(inCheck(pos, pos.turn));
     }
 
     function renderBoard() {
@@ -478,33 +478,34 @@ export default {
       makeMove(mv);
     }
 
-    // Aplica un moviment, anima la peça lliscant de l'origen al destí i,
-    // quan acaba l'animació, continua amb postMove() (fi / torn de la IA).
+    // Aplica un moviment. La LÒGICA del joc (detecció de mat/taules i torn
+    // de la IA) s'executa SÍNCRONAMENT a startTurn(); l'animació és només
+    // cosmètica i no bloqueja mai l'avenç de la partida.
     function makeMove(mv) {
       const mover = pos.turn;
-      const from = mv.fr, to = mv.to;
-      const glyph = GLYPH[mover][mv.t];
+      const from = mv.fr, to = mv.to, type = mv.t;
       pos = applyMove(pos, mv);
       selected = null;
       legalForSel = [];
       renderBoard();
       animating = true;
-      animateMove(from, to, glyph, () => { animating = false; postMove(); });
+      animateMove(from, to, type, mover, () => { animating = false; });
+      startTurn();
     }
 
-    // ---------- després de cada moviment: fi de partida / torn de la IA ----------
-    function postMove() {
+    // ---------- inici de cada torn: fi de partida o torn de la IA ----------
+    // Si el bàndol que ha de moure no té cap jugada legal:
+    //   · en escac  -> ESCAC I MAT (perd; guanya l'altre).
+    //   · sense escac -> taules (rei ofegat).
+    function startTurn() {
       allLegal = genLegal(pos);
       const check = inCheck(pos, pos.turn);
 
       if (allLegal.length === 0) {
         gameOver = true;
-        // En escac i sense jugades = escac i mat (perd qui ha de moure).
-        // Sense escac i sense jugades = taules (rei ofegat).
         endScreen(check ? 'mate' : 'stalemate');
         return;
       }
-      updateStatus(check);
 
       if (mode === 'cpu' && pos.turn === 'b') {
         setStatus('L\'ordinador pensa…');
@@ -514,11 +515,15 @@ export default {
           const mv = pickAIMove(pos, DEPTH[diff]);
           if (mv) makeMove(mv);
         }, AI_DELAY);
+      } else {
+        updateStatus(check);
       }
     }
 
-    // Llisca la peça (glif) de la casella d'origen a la de destí.
-    function animateMove(from, to, glyph, done) {
+    // Animació cosmètica: llisca la peça de l'origen al destí. El cavall fa
+    // el recorregut en forma d'L (dos trams: primer el tram llarg, després
+    // el curt), no en diagonal recta.
+    function animateMove(from, to, type, mover, done) {
       const boardEl = root.querySelector('#board');
       const size = boardEl ? boardEl.clientWidth / 8 : 0;
       if (!boardEl || !size) { done(); return; } // sense layout: salta l'animació
@@ -527,15 +532,26 @@ export default {
       const destPiece = destCell && destCell.querySelector('.piece');
       if (destPiece) destPiece.style.visibility = 'hidden';
 
+      const at = (r, c) => `translate(${c * size}px, ${r * size}px)`;
       const fly = document.createElement('div');
       fly.className = 'anim-piece';
-      fly.textContent = glyph;
+      fly.textContent = GLYPH[mover][type];
       fly.style.width = size + 'px';
       fly.style.height = size + 'px';
-      fly.style.transform = `translate(${from[1] * size}px, ${from[0] * size}px)`;
+      fly.style.transform = at(from[0], from[1]);
       boardEl.appendChild(fly);
-      void fly.offsetWidth; // força un reflux abans de la transició
-      fly.style.transform = `translate(${to[1] * size}px, ${to[0] * size}px)`;
+      void fly.offsetWidth; // força un reflux abans de la primera transició
+
+      // Punts del recorregut. Cavall: cantonada en L + destí. Resta: destí.
+      const path = [];
+      if (type === 'N') {
+        const corner = Math.abs(to[0] - from[0]) === 2 ? [to[0], from[1]] : [from[0], to[1]];
+        path.push(corner, to);
+      } else {
+        path.push(to);
+      }
+      const legMs = type === 'N' ? 150 : 280;
+      fly.style.transition = `transform ${legMs}ms ease`;
 
       let finished = false;
       const finish = () => {
@@ -545,8 +561,11 @@ export default {
         if (fly.parentNode) fly.parentNode.removeChild(fly);
         done();
       };
-      fly.addEventListener('transitionend', finish);
-      setTimeout(finish, 360); // xarxa de seguretat si no salta transitionend
+      let i = 0;
+      const step = () => { const [r, c] = path[i++]; fly.style.transform = at(r, c); };
+      fly.addEventListener('transitionend', () => { if (i < path.length) step(); else finish(); });
+      step(); // arrenca el primer tram
+      setTimeout(finish, legMs * path.length + 140); // xarxa de seguretat
     }
 
     function setStatus(txt) {
