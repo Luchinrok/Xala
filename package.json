@@ -1,0 +1,8 @@
+{
+  "name": "xala",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node escacs.test.mjs"
+  }
+}

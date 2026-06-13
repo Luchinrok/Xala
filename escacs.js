@@ -488,8 +488,15 @@ export default {
       selected = null;
       legalForSel = [];
       renderBoard();
+      // L'animació és NOMÉS cosmètica i va aïllada en un try/catch: passi el
+      // que passi, mai no ha de poder impedir que s'executi la lògica del torn.
       animating = true;
-      animateMove(from, to, type, mover, () => { animating = false; });
+      try {
+        animateMove(from, to, type, mover, () => { animating = false; });
+      } catch (e) {
+        animating = false;
+      }
+      // La detecció de mat/taules i el torn de la IA s'executen SEMPRE.
       startTurn();
     }
 
