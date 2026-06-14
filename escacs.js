@@ -156,6 +156,7 @@ function inCheck(pos, color) {
 // Moviments pseudolegals (sense filtrar l'escac propi).
 function genPseudo(pos) {
   const { board, turn, ep, castling } = pos;
+  const opp = turn === 'w' ? 'b' : 'w';
   const dir = turn === 'w' ? -1 : 1;
   const startRow = turn === 'w' ? 6 : 1;
   const promoRow = turn === 'w' ? 0 : 7;
@@ -199,17 +200,18 @@ function genPseudo(pos) {
           const tgt = board[rr][cc];
           if (!tgt || tgt.c !== turn) moves.push({ fr: [r, c], to: [rr, cc], t: 'K', cap: tgt ? tgt.t : null });
         }
-        // enroc (variant captura del rei: només cal drets, caselles buides i
-        // la torre; l'escac ja no restringeix res)
+        // enroc
         const row = turn === 'w' ? 7 : 0;
         if (r === row && c === 4) {
           const kSide = turn === 'w' ? castling.wK : castling.bK;
           const qSide = turn === 'w' ? castling.wQ : castling.bQ;
           const rook = (cc) => { const x = board[row][cc]; return x && x.t === 'R' && x.c === turn; };
-          if (kSide && !board[row][5] && !board[row][6] && rook(7)) {
+          if (kSide && !board[row][5] && !board[row][6] && rook(7) &&
+              !isAttacked(board, row, 4, opp) && !isAttacked(board, row, 5, opp) && !isAttacked(board, row, 6, opp)) {
             moves.push({ fr: [row, 4], to: [row, 6], t: 'K', cap: null, castle: 'K' });
           }
-          if (qSide && !board[row][1] && !board[row][2] && !board[row][3] && rook(0)) {
+          if (qSide && !board[row][1] && !board[row][2] && !board[row][3] && rook(0) &&
+              !isAttacked(board, row, 4, opp) && !isAttacked(board, row, 3, opp) && !isAttacked(board, row, 2, opp)) {
             moves.push({ fr: [row, 4], to: [row, 2], t: 'K', cap: null, castle: 'Q' });
           }
         }
@@ -265,26 +267,14 @@ function applyMove(pos, m) {
   return { board, turn: opp, castling, ep };
 }
 
-// Variant CAPTURA DEL REI: un moviment és legal si segueix les regles de
-// moviment de la peça. SÍ que es pot deixar el propi rei en escac (i, per
-// tant, exposar-lo a ser capturat). Ja no es filtra per seguretat del rei.
+// Moviments legals: pseudolegals que NO deixen el propi rei en escac.
 function genLegal(pos) {
-  return genPseudo(pos);
-}
-
-// Quin bàndol ha perdut el rei (capturat)? 'w', 'b' o null si tots dos hi són.
-function kingMissing(pos) {
-  if (!findKing(pos.board, 'w')) return 'w';
-  if (!findKing(pos.board, 'b')) return 'b';
-  return null;
-}
-
-// Un moviment captura el rei contrari?
-const isKingCapture = (m) => m.cap === 'K';
-
-// El bàndol que ha de moure pot capturar el rei contrari ARA mateix?
-function canCaptureKing(pos) {
-  return genPseudo(pos).some(isKingCapture);
+  const opp = pos.turn === 'w' ? 'b' : 'w';
+  return genPseudo(pos).filter(m => {
+    const np = applyMove(pos, m);
+    const k = findKing(np.board, pos.turn);
+    return k && !isAttacked(np.board, k[0], k[1], opp);
+  });
 }
 
 // Avaluació (material + posició), positiu = bo per a les blanques.
@@ -302,23 +292,21 @@ function evaluate(pos) {
   return score;
 }
 
-// Ordena els moviments: primer la captura del rei (jugada guanyadora),
-// després la resta de captures; millora la poda alfa-beta.
+// Ordena els moviments (captures primer) per millorar la poda.
 function orderMoves(moves) {
-  const rank = (m) => (isKingCapture(m) ? 2 : m.cap ? 1 : 0);
-  return moves.slice().sort((a, b) => rank(b) - rank(a));
+  return moves.slice().sort((a, b) => (b.cap ? 1 : 0) - (a.cap ? 1 : 0));
 }
 
 // Minimax amb poda alfa-beta. Blanques maximitzen, negres minimitzen.
-// Terminal: si falta un rei (capturat), la partida s'ha acabat.
 function search(pos, depth, alpha, beta) {
-  const km = kingMissing(pos);
-  if (km) return km === 'w' ? -(MATE + depth) : (MATE + depth); // perd qui es queda sense rei
+  const moves = genLegal(pos);
+  if (moves.length === 0) {
+    if (inCheck(pos, pos.turn)) return pos.turn === 'w' ? -(MATE + depth) : (MATE + depth);
+    return 0; // ofegat
+  }
   if (depth === 0) return evaluate(pos);
 
-  const ord = orderMoves(genPseudo(pos));
-  if (ord.length === 0) return evaluate(pos);
-
+  const ord = orderMoves(moves);
   if (pos.turn === 'w') {
     let best = -Infinity;
     for (const m of ord) {
@@ -340,26 +328,12 @@ function search(pos, depth, alpha, beta) {
   }
 }
 
-// Tria el moviment de la IA (negres = minimitzar).
-//  1) Si pot capturar el rei rival, ho fa (jugada guanyadora immediata).
-//  2) Si no, minimax; a més, penalitza fort deixar el propi rei capturable
-//     (l'oponent el podria prendre el torn següent), perquè eviti penjar-lo.
+// Tria el moviment de la IA (negres = minimitzar). Una mica d'atzar entre
+// els millors per donar varietat; a Fàcil, més marge (joc més fluix).
 function pickAIMove(pos, depth) {
-  const moves = orderMoves(genPseudo(pos));
+  const moves = orderMoves(genLegal(pos));
   if (!moves.length) return null;
-
-  const winning = moves.find(isKingCapture);
-  if (winning) return winning;
-
-  const scored = moves.map(m => {
-    const np = applyMove(pos, m);
-    let s = search(np, depth - 1, -Infinity, Infinity);
-    // np és el torn de les blanques: si poden capturar el rei negre, és que
-    // la jugada deixa el rei penjat -> molt dolent per a les negres (+gran).
-    if (canCaptureKing(np)) s += 100000;
-    return { m, s };
-  });
-
+  const scored = moves.map(m => ({ m, s: search(applyMove(pos, m), depth - 1, -Infinity, Infinity) }));
   let min = Infinity;
   for (const x of scored) if (x.s < min) min = x.s;
   const eps = depth <= 1 ? 60 : 10;
@@ -370,7 +344,7 @@ function pickAIMove(pos, depth) {
 const DEPTH = { easy: 1, normal: 2, hard: 3 };
 
 // Exports nominals del motor (per a proves; el navegador només usa el default).
-export { initialPos, genLegal, genPseudo, applyMove, inCheck, isAttacked, findKing, evaluate, pickAIMove, kingMissing, canCaptureKing };
+export { initialPos, genLegal, genPseudo, applyMove, inCheck, isAttacked, findKing, evaluate, pickAIMove };
 
 export default {
   id: 'escacs',
@@ -381,10 +355,10 @@ export default {
   ready: true,
 
   instructions: [
-    'Toca una peça: s\'il·luminen amb un punt totes les seves jugades.',
-    'Toca una casella marcada per moure-hi. Pots moure encara que el teu rei quedi amenaçat.',
-    'Guanya qui captura el rei contrari: qui es queda sense rei, perd.',
-    'L\'avís "Escac!" només recorda que un rei està amenaçat (no obliga a res). Juga contra l\'ordinador o a 2 jugadors.',
+    'Toca una peça blanca: s\'il·luminen amb un punt totes les jugades legals.',
+    'Toca una casella marcada per moure-hi. Inclou enroc, captura al pas i coronació (auto a dama).',
+    'Fes escac i mat al rei contrari per guanyar; si el rei no està en escac però no es pot moure, són taules.',
+    'Tria jugar contra l\'ordinador (Fàcil, Normal o Difícil) o a 2 jugadors al mateix mòbil.',
   ],
 
   mount(root, { goHome }) {
@@ -504,13 +478,12 @@ export default {
       makeMove(mv);
     }
 
-    // Aplica un moviment. Variant CAPTURA DEL REI: si el moviment captura el
-    // rei contrari, la partida s'acaba i guanya qui l'ha capturat. La lògica
-    // s'executa SÍNCRONAMENT; l'animació és només cosmètica.
+    // Aplica un moviment. La LÒGICA del joc (detecció de mat/taules i torn
+    // de la IA) s'executa SÍNCRONAMENT a startTurn(); l'animació és només
+    // cosmètica i no bloqueja mai l'avenç de la partida.
     function makeMove(mv) {
       const mover = pos.turn;
       const from = mv.fr, to = mv.to, type = mv.t;
-      const capturedKing = mv.cap === 'K';
       pos = applyMove(pos, mv);
       selected = null;
       legalForSel = [];
@@ -523,26 +496,21 @@ export default {
       } catch (e) {
         animating = false;
       }
-      // Captura del rei = fi de la partida (guanya qui ha mogut).
-      if (capturedKing) {
-        gameOver = true;
-        endScreen(mover);
-        return;
-      }
+      // La detecció de mat/taules i el torn de la IA s'executen SEMPRE.
       startTurn();
     }
 
-    // ---------- inici de cada torn: avís d'escac i torn de la IA ----------
-    // En aquesta variant no hi ha mat ni ofegat: la partida només s'acaba
-    // quan algú captura el rei (a makeMove). L'avís "Escac!" és informatiu.
+    // ---------- inici de cada torn: fi de partida o torn de la IA ----------
+    // Si el bàndol que ha de moure no té cap jugada legal:
+    //   · en escac  -> ESCAC I MAT (perd; guanya l'altre).
+    //   · sense escac -> taules (rei ofegat).
     function startTurn() {
       allLegal = genLegal(pos);
       const check = inCheck(pos, pos.turn);
 
-      // Seguretat (gairebé impossible): si ningú pot moure, taules.
       if (allLegal.length === 0) {
         gameOver = true;
-        endScreen(null);
+        endScreen(check ? 'mate' : 'stalemate');
         return;
       }
 
@@ -621,21 +589,22 @@ export default {
     }
 
     // ---------- 3) final ----------
-    // winner: 'w' o 'b' (qui ha capturat el rei) o null (taules de seguretat).
-    function endScreen(winner) {
+    function endScreen(kind) {
       let title, sub;
-      if (winner) {
+      if (kind === 'mate') {
+        const loser = pos.turn;                    // qui ha de moure i no pot
+        const winner = loser === 'w' ? 'b' : 'w';  // l'altre bàndol guanya
         if (mode === 'cpu') {
           // el jugador porta les blanques
-          if (winner === 'w') { title = 'Guanyes!'; sub = 'Has capturat el rei rival.'; }
-          else { title = 'Perds!'; sub = 'L\'ordinador t\'ha capturat el rei.'; }
+          if (winner === 'w') { title = 'Guanyes!'; sub = 'Escac i mat. Ben jugat!'; }
+          else { title = 'Perds!'; sub = 'L\'ordinador t\'ha fet escac i mat.'; }
         } else {
           title = winner === 'w' ? 'Guanyen les blanques!' : 'Guanyen les negres!';
-          sub = 'Rei capturat.';
+          sub = 'Escac i mat.';
         }
-        setStatus('Rei capturat');
+        setStatus('Escac i mat');
       } else {
-        title = 'Taules'; sub = 'Cap moviment possible.';
+        title = 'Taules'; sub = 'Rei ofegat: ningú no guanya.';
         setStatus('Taules');
       }
 
