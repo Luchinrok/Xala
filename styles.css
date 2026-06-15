@@ -521,55 +521,45 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* ============================================================
    Memory (parelles)
    ============================================================ */
-/* la pantalla del joc ocupa el viewport perquè la graella càpiga sense scroll */
-#app:has(.mem-screen) { height: 100dvh; }
-.mem-screen { height: 100%; min-height: 0; }
-/* casella buida (5×5 té un forat): ocupa cel·la però no es veu */
-.mem-empty { visibility: hidden; }
-
 .mem-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 2px; }
 .mem-head .kicker { margin: 0; }
 .mem-head b { color: var(--accent); font-size: 16px; }
 
+/* Tauler quadrat (cols = rows) limitat per l'amplada I per l'alçada
+   disponibles, perquè càpiga sense scroll als tres nivells. */
 .mem-board {
-  flex: 1 1 auto; min-height: 0;
+  width: min(100%, calc(100dvh - 150px));
+  margin: 14px auto 0;
   display: grid;
   grid-template-columns: repeat(var(--cols), 1fr);
-  grid-template-rows: repeat(var(--rows), 1fr);
-  gap: clamp(6px, 1.6vw, 12px);
-  margin-top: 12px;
+  gap: clamp(5px, 1.5vw, 10px);
 }
 
+/* Cada carta té MIDA PRÒPIA: amplada de la columna i alçada igual
+   (aspect-ratio 1). Res en position:absolute, així no col·lapsa. */
 .mem-card {
-  background: transparent; border: 0; padding: 0; margin: 0;
-  min-height: 0; min-width: 0; cursor: pointer;
-  perspective: 800px;
-}
-.mem-card__inner {
-  position: relative; width: 100%; height: 100%;
-  transform-style: preserve-3d;
-  transition: transform .35s ease;
-}
-.mem-card.up .mem-card__inner { transform: rotateY(180deg); }
-
-.mem-card__face {
-  position: absolute; inset: 0;
+  aspect-ratio: 1 / 1;
+  width: 100%; min-width: 0; min-height: 0;
   display: flex; align-items: center; justify-content: center;
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  padding: 0; margin: 0; cursor: pointer; overflow: hidden;
   border: 2px solid var(--ink); border-radius: var(--r-sm);
-  overflow: hidden;
+  background: var(--accent); color: var(--paper);   /* tapada: corall */
+  transition: background-color .2s ease;
 }
-/* carta tapada: corall amb "?" en beix */
-.mem-card__back {
-  background: var(--accent); color: var(--paper);
+.mem-card.up { background: var(--paper-2); }          /* destapada: beix */
+.mem-card.matched { box-shadow: inset 0 0 0 3px var(--accent); }
+
+/* "?" centrat, visible quan està tapada */
+.mem-card__q {
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(20px, 5vh, 36px);
+  font-size: clamp(16px, 6vmin, 32px); color: var(--paper);
 }
-/* carta destapada: beix amb la icona en tinta */
-.mem-card__front {
-  background: var(--paper); color: var(--ink);
-  transform: rotateY(180deg);
-}
-.mem-card__front svg { width: 64%; height: 64%; }
-/* parella trobada: marc corall a la cara destapada */
-.mem-card.matched .mem-card__front { box-shadow: inset 0 0 0 3px var(--accent); }
+.mem-card.up .mem-card__q { display: none; }
+
+/* icona en tinta, visible i centrada quan està destapada */
+.mem-card__icon { display: none; width: 72%; height: 72%; align-items: center; justify-content: center; }
+.mem-card.up .mem-card__icon { display: flex; }
+.mem-card__icon svg { width: 100%; height: 100%; color: var(--ink); }
+
+/* casella buida (5×5 té un forat): ocupa cel·la però no es veu */
+.mem-empty { aspect-ratio: 1 / 1; width: 100%; visibility: hidden; }

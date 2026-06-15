@@ -156,10 +156,8 @@ export default {
       board.innerHTML = state.cells.map((card, i) => {
         if (!card) return '<span class="mem-empty" aria-hidden="true"></span>';
         return `<button class="mem-card${card.up || card.matched ? ' up' : ''}${card.matched ? ' matched' : ''}" data-i="${i}" aria-label="carta">
-          <span class="mem-card__inner">
-            <span class="mem-card__face mem-card__back">?</span>
-            <span class="mem-card__face mem-card__front">${CATEGORY_ICONS[card.id] || ''}</span>
-          </span>
+          <span class="mem-card__q">?</span>
+          <span class="mem-card__icon">${CATEGORY_ICONS[card.id] || ''}</span>
         </button>`;
       }).join('');
     }
