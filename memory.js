@@ -16,12 +16,12 @@ import { CATEGORY_ICONS } from './category-icons.js';
 
 const ICON_KEYS = Object.keys(CATEGORY_ICONS);
 
-// cols × rows i nombre de parelles per dificultat (orientació vertical
-// perquè càpiga al mòbil sense scroll).
+// cols × rows i nombre de parelles per dificultat. El 5×5 (25 cel·les) és
+// senar: es deixa una casella buida -> 24 cartes = 12 parelles.
 const LEVELS = {
-  easy:   { cols: 3, rows: 4, pairs: 6,  label: 'Fàcil' },   // 12 cartes
-  normal: { cols: 4, rows: 4, pairs: 8,  label: 'Normal' },  // 16 cartes
-  hard:   { cols: 4, rows: 5, pairs: 10, label: 'Difícil' }, // 20 cartes
+  easy:   { cols: 4, rows: 4, pairs: 8,  label: 'Fàcil' },   // 16 cartes
+  normal: { cols: 5, rows: 5, pairs: 12, label: 'Normal' },  // 25 cel·les, 24 cartes (1 buida)
+  hard:   { cols: 6, rows: 6, pairs: 18, label: 'Difícil' }, // 36 cartes
 };
 
 function shuffle(a) {
@@ -55,7 +55,7 @@ export default {
 
     const state = {
       level: 'normal',
-      cards: [],          // { id (clau d'icona), up, matched }
+      cells: [],          // cel·les del tauler: { id, up, matched } o null (buida)
       cols: 4, rows: 4, pairs: 8,
       first: null,        // índex de la primera carta destapada
       busy: false,        // cert mentre es comparen dues cartes
@@ -116,8 +116,13 @@ export default {
       state.cols = lv.cols; state.rows = lv.rows; state.pairs = lv.pairs;
       const keys = shuffle(ICON_KEYS).slice(0, lv.pairs);
       const deck = [];
-      keys.forEach(k => { deck.push({ id: k }, { id: k }); });
-      state.cards = shuffle(deck).map(c => ({ id: c.id, up: false, matched: false }));
+      keys.forEach(k => { deck.push({ id: k, up: false, matched: false }, { id: k, up: false, matched: false }); });
+      const cards = shuffle(deck);
+      // reparteix les caselles buides (5×5 -> 1 forat, al centre)
+      const total = lv.cols * lv.rows;
+      const cells = cards.slice();
+      for (let e = 0; e < total - cards.length; e++) cells.splice(Math.floor(total / 2) + e, 0, null);
+      state.cells = cells;
       state.first = null;
       state.busy = false;
       state.moves = 0;
@@ -136,7 +141,7 @@ export default {
         </div>
         <div class="mem-board" id="board" style="--cols:${state.cols};--rows:${state.rows}"></div>
       `;
-      root.querySelector('#back').onclick = leave;
+      root.querySelector('#back').onclick = screenConfig;
       renderBoard();
       root.querySelector('#board').addEventListener('click', (e) => {
         const b = e.target.closest('.mem-card');
@@ -148,21 +153,22 @@ export default {
 
     function renderBoard() {
       const board = root.querySelector('#board');
-      board.innerHTML = state.cards.map((card, i) => `
-        <button class="mem-card${card.up || card.matched ? ' up' : ''}${card.matched ? ' matched' : ''}" data-i="${i}" aria-label="carta">
+      board.innerHTML = state.cells.map((card, i) => {
+        if (!card) return '<span class="mem-empty" aria-hidden="true"></span>';
+        return `<button class="mem-card${card.up || card.matched ? ' up' : ''}${card.matched ? ' matched' : ''}" data-i="${i}" aria-label="carta">
           <span class="mem-card__inner">
             <span class="mem-card__face mem-card__back">?</span>
             <span class="mem-card__face mem-card__front">${CATEGORY_ICONS[card.id] || ''}</span>
           </span>
-        </button>
-      `).join('');
+        </button>`;
+      }).join('');
     }
 
     const cardEl = (i) => root.querySelector(`.mem-card[data-i="${i}"]`);
 
     function onCardClick(i) {
       if (state.busy) return;
-      const card = state.cards[i];
+      const card = state.cells[i];
       if (!card || card.up || card.matched) return;
 
       // destapa
@@ -180,7 +186,7 @@ export default {
       const mv = root.querySelector('#moves');
       if (mv) mv.textContent = state.moves;
 
-      const a = state.cards[state.first];
+      const a = state.cells[state.first];
       const firstIdx = state.first;
       state.first = null;
 
@@ -238,7 +244,7 @@ export default {
           <button class="btn btn--outline" id="home">Tornar a l'inici</button>
         </div>
       `;
-      root.querySelector('#back').onclick = leave;
+      root.querySelector('#back').onclick = screenConfig;
       root.querySelector('#again').onclick = beginGame;
       root.querySelector('#home').onclick = leave;
     }

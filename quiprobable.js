@@ -238,7 +238,7 @@ export default {
         <div class="spacer"></div>
         <button class="btn btn--accent" id="govote" style="margin-top:18px">${t('quiprobable.toVote')}</button>
       `;
-      root.querySelector('#back').onclick = goHome;
+      root.querySelector('#back').onclick = screenSetup;
       root.querySelector('#govote').onclick = screenPassVote;
     }
 
@@ -322,7 +322,7 @@ export default {
         <div class="spacer"></div>
         <button class="btn btn--accent" id="rank" style="margin-top:18px">${t('common.ranking')}</button>
       `;
-      root.querySelector('#back').onclick = goHome;
+      root.querySelector('#back').onclick = screenSetup;
       root.querySelector('#rank').onclick = screenRanking;
     }
 
@@ -348,7 +348,7 @@ export default {
           <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
-      root.querySelector('#back').onclick = goHome;
+      root.querySelector('#back').onclick = screenSetup;
       root.querySelector('#home').onclick = goHome;
       root.querySelector('#next').onclick = startRound;
       root.querySelectorAll('[data-player]').forEach(b => {

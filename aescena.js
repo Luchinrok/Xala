@@ -220,7 +220,7 @@ export default {
         <div class="spacer"></div>
         <p class="muted center">${t('aescena.dontLetSee')}</p>
       `;
-      root.querySelector('#home').onclick = goHome;
+      root.querySelector('#home').onclick = screenSetup;
       root.querySelector('#card').onclick = screenReveal;
     }
 
@@ -237,7 +237,7 @@ export default {
         <div class="spacer"></div>
         <button class="btn btn--accent" id="go" style="margin-top:18px">${t('common.letsBang')}</button>
       `;
-      root.querySelector('#home').onclick = goHome;
+      root.querySelector('#home').onclick = screenSetup;
       root.querySelector('#go').onclick = screenAct;
     }
 
@@ -255,7 +255,7 @@ export default {
           <button class="btn btn--outline" id="pass">${t('common.pass')}</button>
         </div>
       `;
-      root.querySelector('#home').onclick = goHome;
+      root.querySelector('#home').onclick = screenSetup;
       root.querySelector('#ok').onclick = () => { state.correct[actor()].push(state.word); state.scores[actor()]++; state.turn++; nextTurn(); };
       root.querySelector('#pass').onclick = () => { state.passed[actor()].push(state.word); state.turn++; nextTurn(); };
     }
@@ -292,7 +292,7 @@ export default {
           <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
-      root.querySelector('#back').onclick = goHome;
+      root.querySelector('#back').onclick = screenSetup;
       root.querySelector('#home').onclick = goHome;
       root.querySelector('#again').onclick = beginGame;
       root.querySelectorAll('[data-player]').forEach(b => {

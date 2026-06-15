@@ -425,7 +425,7 @@ export default {
         <div class="chess-board" id="board"></div>
         <div id="endbox"></div>
       `;
-      root.querySelector('#back').onclick = goHome;
+      root.querySelector('#back').onclick = () => { gameOver = true; screenConfig(); };
       const boardEl = root.querySelector('#board');
       boardEl.addEventListener('click', (e) => {
         const b = e.target.closest('.sq');

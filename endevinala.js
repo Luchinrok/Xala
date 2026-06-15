@@ -320,7 +320,7 @@ export default {
           <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
-      root.querySelector('#back').onclick = leaveHome;
+      root.querySelector('#back').onclick = screenSetup;
       root.querySelector('#home').onclick = leaveHome;
       root.querySelector('#again').onclick = () => screenCountdown(state.mode);
     }

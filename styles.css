@@ -523,7 +523,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
    ============================================================ */
 /* la pantalla del joc ocupa el viewport perquè la graella càpiga sense scroll */
 #app:has(.mem-screen) { height: 100dvh; }
-.mem-screen { min-height: 0; }
+.mem-screen { height: 100%; min-height: 0; }
+/* casella buida (5×5 té un forat): ocupa cel·la però no es veu */
+.mem-empty { visibility: hidden; }
 
 .mem-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 2px; }
 .mem-head .kicker { margin: 0; }

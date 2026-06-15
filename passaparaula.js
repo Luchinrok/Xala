@@ -638,7 +638,7 @@ export default {
         <div class="spacer"></div>
         <p class="muted center">${t('pp.youllHave', { n: state.timeSec })}</p>
       `;
-      root.querySelector('#home').onclick = leaveGame;
+      root.querySelector('#home').onclick = screenSetup;
       root.querySelector('#card').onclick = startPlay;
     }
 
@@ -720,7 +720,7 @@ export default {
         <div class="spacer"></div>
         ${isReveal ? resultHTML(result) : answerHTML()}
       `;
-      root.querySelector('#home').onclick = leaveGame;
+      root.querySelector('#home').onclick = screenSetup;
       if (!isReveal) {
         const input = root.querySelector('#pp-input');
         root.querySelector('#check').onclick = checkAnswer;
@@ -833,7 +833,7 @@ export default {
           <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
-      root.querySelector('#back').onclick = leaveGame;
+      root.querySelector('#back').onclick = screenSetup;
       root.querySelector('#home').onclick = leaveGame;
       root.querySelector('#again').onclick = beginGame;
       root.querySelectorAll('[data-player]').forEach(b => {

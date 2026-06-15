@@ -233,7 +233,7 @@ export default {
         <div id="ctl"></div>
       `;
       bombEl = root.querySelector('.bomb');
-      root.querySelector('#back').onclick = leaveGame;
+      root.querySelector('#back').onclick = screenSetup;
 
       const ctl = root.querySelector('#ctl');
       ctl.innerHTML = `
@@ -293,7 +293,7 @@ export default {
           <button class="btn btn--outline" id="home">${t('common.backHome')}</button>
         </div>
       `;
-      root.querySelector('#back').onclick = leaveGame;
+      root.querySelector('#back').onclick = screenSetup;
       root.querySelector('#home').onclick = leaveGame;
       root.querySelector('#again').onclick = () => { drawChallenge(); screenRound(); };
     }
