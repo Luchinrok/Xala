@@ -67,8 +67,9 @@ export function openCategoryScreen(root, { categoryIds, kicker = '', onBack, all
         const id = b.dataset.cat;
         const i = categoryIds.indexOf(id);
         if (i >= 0) {
-          // mínim 1: si és l'última seleccionada, no la desactivis
-          if (categoryIds.length > 1) { categoryIds.splice(i, 1); b.classList.remove('on'); }
+          // es poden desseleccionar totes; el joc avisa si no n'hi ha cap
+          categoryIds.splice(i, 1);
+          b.classList.remove('on');
         } else {
           categoryIds.push(id);
           b.classList.add('on');

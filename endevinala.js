@@ -43,7 +43,7 @@ export default {
 
   mount(root, { goHome }) {
     const state = {
-      categoryIds: [CATEGORIES[0].id],
+      categoryIds: [],
       duration: 60,
       mode: 'sensor',
       current: null,   // paraula que es mostra ara
@@ -102,9 +102,11 @@ export default {
 
         <div class="spacer"></div>
         <button class="btn btn--accent" id="go" style="margin-top:28px">${t('common.lets')}</button>
+        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">${t('common.pickCategory')}</p>
       `;
 
       root.querySelector('#back').onclick = leaveHome;
+      updateGo();
 
       root.querySelector('#cats').onclick = () => {
         openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: t('game.endevinala.title'), onBack: screenSetup });
@@ -120,7 +122,19 @@ export default {
         };
       });
 
-      root.querySelector('#go').onclick = screenReady;
+      root.querySelector('#go').onclick = () => {
+        if (state.categoryIds.length === 0) { updateGo(); return; }
+        screenReady();
+      };
+    }
+
+    // Habilita "Som-hi" només si hi ha alguna categoria triada.
+    function updateGo() {
+      const has = state.categoryIds.length > 0;
+      const go = root.querySelector('#go');
+      const warn = root.querySelector('#warn');
+      if (go) go.disabled = !has;
+      if (warn) warn.style.display = has ? 'none' : 'block';
     }
 
     // ---------- 2) preparació + permís ----------

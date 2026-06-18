@@ -13,6 +13,7 @@
 // ============================================================
 
 import { CATEGORY_ICONS } from './category-icons.js';
+import { getRecord, setRecord } from './records.js';
 
 const ICON_KEYS = Object.keys(CATEGORY_ICONS);
 
@@ -87,8 +88,9 @@ export default {
           ${opts.map(k => `<button class="btn ${state.level === k ? 'btn--accent' : 'btn--outline'}" data-level="${k}">${LEVELS[k].label}</button>`).join('')}
         </div>
         <p class="muted" id="lvinfo" style="margin-top:12px"></p>
+        <button class="btn btn--outline" id="record" style="margin-top:14px">Rècord</button>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
+        <button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>
       `;
       const info = () => {
         const lv = LEVELS[state.level];
@@ -106,7 +108,28 @@ export default {
           info();
         };
       });
+      root.querySelector('#record').onclick = screenRecords;
       root.querySelector('#start').onclick = beginGame;
+    }
+
+    // ---------- rècord: millor temps (i moviments) per nivell ----------
+    function screenRecords() {
+      cleanup();
+      const rows = ['easy', 'normal', 'hard'].map(lv => {
+        const r = getRecord('memory:' + lv);
+        const txt = r ? `${fmtTime(r.time)} · ${r.moves} mov` : '—';
+        return `<div class="btn btn--outline" style="display:flex;justify-content:space-between;cursor:default;text-align:left">
+          <span>${LEVELS[lv].label}</span><span style="color:var(--accent)">${txt}</span></div>`;
+      }).join('');
+      root.innerHTML = `
+        <button class="back" id="back">‹ Enrere</button>
+        <p class="kicker">Memory</p>
+        <h2 style="font-size:30px;margin:6px 0 8px">Rècord</h2>
+        <p class="muted" style="margin-bottom:14px">Millor temps per nivell</p>
+        <div class="stack" style="--stack-gap:10px">${rows}</div>
+        <div class="spacer"></div>
+      `;
+      root.querySelector('#back').onclick = screenConfig;
     }
 
     // ---------- arrenca la partida ----------
@@ -228,11 +251,18 @@ export default {
     // ---------- 3) final ----------
     function screenEnd() {
       cleanup();
+      // rècord per nivell: millor temps (desempat: menys moviments)
+      const id = 'memory:' + state.level;
+      const prev = getRecord(id);
+      const cur = { time: state.seconds, moves: state.moves };
+      const isRecord = !prev || cur.time < prev.time || (cur.time === prev.time && cur.moves < prev.moves);
+      if (isRecord) setRecord(id, cur);
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker center">Fet!</p>
         <div class="panel center stack" style="margin-top:18px">
           <h2 style="font-size:32px;color:var(--accent)">Totes les parelles!</h2>
+          ${isRecord ? '<p class="kicker" style="color:var(--accent)">Nou rècord!</p>' : ''}
           <p class="muted">Moviments: <b>${state.moves}</b></p>
           <p class="muted">Temps: <b>${fmtTime(state.seconds)}</b></p>
         </div>

@@ -587,12 +587,13 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 }
 .hang-space { width: clamp(10px, 3vw, 18px); }
 
-/* teclat A–Z, empès a baix de tot perquè càpiga sense scroll */
+/* teclat A–Z centrat (totes les files), empès a baix per cabre sense scroll */
 .hang-keys {
-  display: grid; grid-template-columns: repeat(7, 1fr);
+  display: flex; flex-wrap: wrap; justify-content: center;
   gap: 6px; margin-top: auto; padding-top: 10px;
 }
 .hang-key {
+  flex: 0 0 auto; width: clamp(34px, 11vw, 44px);
   font-family: var(--font-display); font-weight: 700;
   font-size: clamp(14px, 4vw, 18px);
   color: var(--ink); background: var(--paper-2);
@@ -601,5 +602,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   transition: transform .06s ease, box-shadow .06s ease;
 }
 .hang-key:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
-/* tecla ja usada: corall, sense ombra */
-.hang-key:disabled { background: var(--accent); color: var(--paper); box-shadow: none; cursor: default; }
+.hang-key:disabled { box-shadow: none; cursor: default; }
+/* encert en verd, fallada en vermell (corall) */
+.hang-key--ok { background: var(--ok); color: var(--paper); }
+.hang-key--no { background: var(--accent); color: var(--paper); }

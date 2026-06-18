@@ -59,7 +59,7 @@ export default {
     const state = {
       names: initialNames,
       impostors: 1,
-      categoryIds: [CATEGORIES[0].id],
+      categoryIds: [],
       hint: false,
       word: null,
       wordHint: null,
@@ -147,7 +147,7 @@ export default {
 
       root.querySelector('#start').onclick = () => {
         readNames();
-        if (!allFilled()) { updateButtons(); return; }
+        if (!allFilled() || state.categoryIds.length === 0) { updateButtons(); return; }
         save();
         beginRound();
       };
@@ -157,12 +157,17 @@ export default {
 
     function updateButtons() {
       const filled = allFilled();
+      const hasCat = state.categoryIds.length > 0;
       const add = root.querySelector('#addp');
       const start = root.querySelector('#start');
       const warn = root.querySelector('#warn');
       if (add) add.disabled = count() >= 12 || !filled;
-      if (start) start.disabled = !filled;
-      if (warn) warn.style.display = filled ? 'none' : 'block';
+      if (start) start.disabled = !filled || !hasCat;
+      if (warn) {
+        if (!filled) { warn.textContent = t('common.fillAllNames'); warn.style.display = 'block'; }
+        else if (!hasCat) { warn.textContent = t('common.pickCategory'); warn.style.display = 'block'; }
+        else { warn.style.display = 'none'; }
+      }
     }
 
     function renderNames() {

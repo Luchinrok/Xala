@@ -1,54 +1,62 @@
 // ============================================================
 // El penjat (hangman) — joc d'un sol jugador.
 //
-// La paraula surt a l'atzar de les categories triades (reaprofita
-// CATEGORIES; només la paraula). S'amaga amb un guió per lletra i els
-// espais es marquen. Tocant lletres de l'abecedari (A–Z) es revelen;
-// la comparació és INSENSIBLE A ACCENTS (tocar "a" descobreix à/á...).
-// Cada error dibuixa una part del penjat (6 errors = perds).
-//
-// Estètica: fons beix; forca i ninot en tinta (--ink); tecles beix amb
-// vora de tinta, usades en corall. Cap negre.
+// La paraula surt a l'atzar de les categories triades (CATEGORIES +
+// word-bag). S'amaga amb un guió per lletra; els espais es marquen.
+// Tocant lletres A–Z es revelen (comparació INSENSIBLE A ACCENTS:
+// a=à, c=ç, n=ñ...). Encert -> verd; error -> vermell i dibuixa una
+// part del penjat. Dificultat: Fàcil 8 errors (paraules curtes),
+// Normal 6, Difícil 4 errors (paraules llargues). Rècord: ratxa de
+// victòries (localStorage). Tot en tinta; cap negre.
 // ============================================================
 
 import { CATEGORIES } from './impostor-paraules.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
 import { drawFromBag } from './word-bag.js';
+import { getRecord, setRecord } from './records.js';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-const MAX_ERRORS = 6;
+
+// Errors permesos i mida de paraula per dificultat.
+const LEVELS = {
+  easy:   { label: 'Fàcil',   errors: 8, maxLen: 6 },   // paraules curtes
+  normal: { label: 'Normal',  errors: 6 },              // qualsevol mida
+  hard:   { label: 'Difícil', errors: 4, minLen: 8 },   // paraules llargues
+};
 
 // minúscula, sense accents ni diacrítics (per comparar a≈à, c≈ç, n≈ñ...)
 function norm(s) {
   return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
+const isLetterChar = (ch) => /^[a-z]$/.test(norm(ch));
+const letterCount = (word) => [...(word || '')].filter(isLetterChar).length;
 
-// Converteix una paraula en una llista de caràcters:
-//   { sep:true }                       -> espai (separació de paraules)
-//   { letter:true, norm, display, revealed } -> lletra a endevinar
-//   { letter:false, display }          -> literal (guió, apòstrof, ·...)
+// Converteix una paraula en caràcters:
+//   { sep:true } espai · { letter:true,norm,display,revealed } lletra ·
+//   { letter:false,display } literal (guió, apòstrof, ·...).
 function wordToChars(word) {
   return [...(word || '')].map(ch => {
     if (ch === ' ') return { sep: true };
-    const n = norm(ch);
-    if (/^[a-z]$/.test(n)) return { letter: true, norm: n, display: ch.toUpperCase(), revealed: false };
+    if (isLetterChar(ch)) return { letter: true, norm: norm(ch), display: ch.toUpperCase(), revealed: false };
     return { letter: false, display: ch };
   });
 }
 
-// Parts del ninot, en ordre d'error (1..6).
+// Fins a 8 parts: cap, cos, braç esq, braç dret, cama esq, cama dreta,
+// ulls, boca. Se'n dibuixen tantes com errors hi hagi.
 const BODY_PARTS = [
-  '<circle cx="85" cy="42" r="12"/>',          // 1 cap
-  '<line x1="85" y1="54" x2="85" y2="96"/>',    // 2 cos
-  '<line x1="85" y1="64" x2="70" y2="82"/>',    // 3 braç esquerre
-  '<line x1="85" y1="64" x2="100" y2="82"/>',   // 4 braç dret
-  '<line x1="85" y1="96" x2="72" y2="120"/>',   // 5 cama esquerra
-  '<line x1="85" y1="96" x2="98" y2="120"/>',   // 6 cama dreta
+  '<circle cx="85" cy="42" r="12"/>',                                                   // 1 cap
+  '<line x1="85" y1="54" x2="85" y2="96"/>',                                             // 2 cos
+  '<line x1="85" y1="64" x2="70" y2="82"/>',                                             // 3 braç esquerre
+  '<line x1="85" y1="64" x2="100" y2="82"/>',                                            // 4 braç dret
+  '<line x1="85" y1="96" x2="72" y2="120"/>',                                            // 5 cama esquerra
+  '<line x1="85" y1="96" x2="98" y2="120"/>',                                            // 6 cama dreta
+  '<circle cx="81" cy="40" r="1.6" fill="currentColor" stroke="none"/><circle cx="89" cy="40" r="1.6" fill="currentColor" stroke="none"/>', // 7 ulls
+  '<path d="M81 47 Q85 44 89 47"/>',                                                     // 8 boca
 ];
 
-// Forca sempre visible (pal, biga, corda) + una part del ninot per error.
 function gallowsSVG(errors) {
-  const body = BODY_PARTS.slice(0, Math.max(0, Math.min(errors, MAX_ERRORS))).join('');
+  const body = BODY_PARTS.slice(0, Math.max(0, Math.min(errors, BODY_PARTS.length))).join('');
   return `<svg class="hang-svg" viewBox="0 0 120 160" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <line x1="14" y1="152" x2="76" y2="152"/>
     <line x1="30" y1="152" x2="30" y2="12"/>
@@ -72,13 +80,15 @@ export default {
   instructions: [
     'Surt una paraula amagada amb un guió per cada lletra.',
     'Toca lletres de l\'abecedari; les accentuades compten igual (a = à).',
-    'Encerta i es revela; falla i es dibuixa una part del penjat.',
-    'Endevina la paraula abans de fer 6 errors!',
+    'Encert en verd; error en vermell i es dibuixa una part del penjat.',
+    'Tria dificultat (Fàcil 8 errors, Normal 6, Difícil 4) i endevina-la a temps!',
   ],
 
   mount(root, { goHome }) {
     const state = {
-      categoryIds: CATEGORIES.map(c => c.id), // totes per defecte
+      level: 'normal',
+      categoryIds: [],   // cap per defecte; cal triar-ne almenys una
+      maxErrors: LEVELS.normal.errors,
       word: '',
       chars: [],
       used: new Set(),
@@ -86,39 +96,93 @@ export default {
       over: false,
     };
 
+    // ---------- rècord: ratxa de victòries ----------
+    const loadStreak = () => getRecord('penjat:streak') || { best: 0, current: 0 };
+    const saveStreak = (s) => setRecord('penjat:streak', s);
+
     // ---------- 1) configuració ----------
     function screenConfig() {
+      const opts = ['easy', 'normal', 'hard'];
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">El penjat</p>
         <h2 style="font-size:30px;margin:6px 0 22px">Prepara la partida</h2>
-        <p class="label" style="margin:0 0 12px">Categories</p>
+
+        <p class="label" style="margin:0 0 12px">Dificultat</p>
+        <div class="btn-row" id="diffs">
+          ${opts.map(k => `<button class="btn ${state.level === k ? 'btn--accent' : 'btn--outline'}" data-diff="${k}">${LEVELS[k].label}</button>`).join('')}
+        </div>
+
+        <p class="label" style="margin:24px 0 12px">Categories</p>
         <button class="btn btn--outline" id="cats">${categoriesLabel(state.categoryIds)}</button>
-        <div class="spacer"></div>
-        <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
+        <button class="btn btn--outline" id="record" style="margin-top:12px">Rècord</button>
+
+        <button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>
+        <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">Selecciona almenys una categoria</p>
       `;
       root.querySelector('#back').onclick = goHome;
+      root.querySelectorAll('[data-diff]').forEach(b => {
+        b.onclick = () => { state.level = b.dataset.diff; screenConfig(); };
+      });
       root.querySelector('#cats').onclick = () => {
         openCategoryScreen(root, { categoryIds: state.categoryIds, kicker: 'El penjat', onBack: screenConfig });
       };
-      root.querySelector('#start').onclick = beginGame;
+      root.querySelector('#record').onclick = screenRecords;
+      root.querySelector('#start').onclick = () => {
+        if (state.categoryIds.length === 0) { updateStart(); return; }
+        beginGame();
+      };
+      updateStart();
+    }
+
+    function updateStart() {
+      const has = state.categoryIds.length > 0;
+      const start = root.querySelector('#start');
+      const warn = root.querySelector('#warn');
+      if (start) start.disabled = !has;
+      if (warn) warn.style.display = has ? 'none' : 'block';
+    }
+
+    // ---------- rècord (pantalla) ----------
+    function screenRecords() {
+      const s = loadStreak();
+      root.innerHTML = `
+        <button class="back" id="back">‹ Enrere</button>
+        <p class="kicker">El penjat</p>
+        <h2 style="font-size:30px;margin:6px 0 18px">Rècord</h2>
+        <div class="panel center stack" style="margin-top:8px">
+          <p class="muted">Millor ratxa de victòries</p>
+          <h2 style="font-size:44px;color:var(--accent)">${s.best}</h2>
+          <p class="muted">Ratxa actual: ${s.current}</p>
+        </div>
+        <div class="spacer"></div>
+      `;
+      root.querySelector('#back').onclick = screenConfig;
     }
 
     // ---------- paraula ----------
     function buildPool() {
       const seen = new Set();
-      const out = [];
+      const all = [];
       CATEGORIES.filter(c => state.categoryIds.includes(c.id)).forEach(c => {
         c.words.forEach(w => {
           const k = w.word.toLowerCase();
-          if (!seen.has(k)) { seen.add(k); out.push(w.word); }
+          if (!seen.has(k)) { seen.add(k); all.push(w.word); }
         });
       });
-      return out;
+      const lv = LEVELS[state.level];
+      const filtered = all.filter(w => {
+        const len = letterCount(w);
+        if (lv.maxLen && len > lv.maxLen) return false;
+        if (lv.minLen && len < lv.minLen) return false;
+        return true;
+      });
+      return filtered.length ? filtered : all; // si el filtre buida el pool, sense filtre
     }
 
     function beginGame() {
-      const key = 'penjat:' + state.categoryIds.slice().sort().join(',');
+      state.maxErrors = LEVELS[state.level].errors;
+      const key = 'penjat:' + state.level + ':' + state.categoryIds.slice().sort().join(',');
       state.word = drawFromBag(key, buildPool) || '';
       state.chars = wordToChars(state.word);
       state.used = new Set();
@@ -158,15 +222,12 @@ export default {
     }
     function renderStatus() {
       const el = root.querySelector('#status');
-      if (el) el.textContent = `Errors restants: ${MAX_ERRORS - state.errors}`;
+      if (el) el.textContent = `Errors restants: ${state.maxErrors - state.errors}`;
     }
     function renderKeys() {
       const keys = root.querySelector('#keys');
       if (!keys) return;
-      keys.innerHTML = ALPHABET.map(L => {
-        const l = L.toLowerCase();
-        return `<button class="hang-key" data-l="${l}"${state.used.has(l) ? ' disabled' : ''}>${L}</button>`;
-      }).join('');
+      keys.innerHTML = ALPHABET.map(L => `<button class="hang-key" data-l="${L.toLowerCase()}">${L}</button>`).join('');
       keys.addEventListener('click', (e) => {
         const b = e.target.closest('.hang-key');
         if (!b || b.disabled) return;
@@ -177,10 +238,10 @@ export default {
     function guess(letter) {
       if (state.over || state.used.has(letter)) return;
       state.used.add(letter);
-      const btn = root.querySelector(`.hang-key[data-l="${letter}"]`);
-      if (btn) btn.disabled = true;
-
       const hit = state.chars.some(ch => ch.letter && ch.norm === letter);
+      const btn = root.querySelector(`.hang-key[data-l="${letter}"]`);
+      if (btn) { btn.disabled = true; btn.classList.add(hit ? 'hang-key--ok' : 'hang-key--no'); }
+
       if (hit) {
         state.chars.forEach(ch => { if (ch.letter && ch.norm === letter) ch.revealed = true; });
         renderWord();
@@ -189,18 +250,26 @@ export default {
         state.errors++;
         renderGallows();
         renderStatus();
-        if (state.errors >= MAX_ERRORS) finish('lose');
+        if (state.errors >= state.maxErrors) finish('lose');
       }
     }
 
     // ---------- 3) final ----------
     function finish(result) {
       state.over = true;
-      if (result === 'lose') state.chars.forEach(ch => { if (ch.letter) ch.revealed = true; });
-      screenEnd(result);
+      const s = loadStreak();
+      if (result === 'win') {
+        s.current += 1;
+        if (s.current > s.best) s.best = s.current;
+      } else {
+        state.chars.forEach(ch => { if (ch.letter) ch.revealed = true; });
+        s.current = 0;
+      }
+      saveStreak(s);
+      screenEnd(result, s);
     }
 
-    function screenEnd(result) {
+    function screenEnd(result, streak) {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker center">Final</p>
@@ -209,6 +278,7 @@ export default {
           <h2 style="font-size:32px;color:var(--accent)">${result === 'win' ? 'Has guanyat!' : 'Has perdut!'}</h2>
           <p class="muted">La paraula era</p>
           <h2 style="font-size:26px">${state.word}</h2>
+          <p class="muted">${result === 'win' ? 'Ratxa de victòries: ' + streak.current : 'Ratxa reiniciada'}</p>
         </div>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:18px">
