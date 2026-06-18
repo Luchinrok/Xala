@@ -563,3 +563,43 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 
 /* casella buida (5×5 té un forat): ocupa cel·la però no es veu */
 .mem-empty { aspect-ratio: 1 / 1; width: 100%; visibility: hidden; }
+
+/* ============================================================
+   El penjat (hangman)
+   ============================================================ */
+.hang-stage { display: flex; justify-content: center; margin: 4px 0 2px; }
+.hang-svg { height: clamp(130px, 25vh, 195px); width: auto; color: var(--ink); }
+
+.hang-word {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center;
+  gap: 6px 8px; margin: 12px 6px;
+}
+.hang-slot {
+  min-width: clamp(18px, 5.5vw, 26px);
+  border-bottom: 3px solid var(--ink);
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(20px, 5.5vw, 30px); line-height: 1.15;
+  color: var(--ink); text-align: center;
+}
+.hang-lit {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(20px, 5.5vw, 30px); color: var(--ink);
+}
+.hang-space { width: clamp(10px, 3vw, 18px); }
+
+/* teclat A–Z, empès a baix de tot perquè càpiga sense scroll */
+.hang-keys {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 6px; margin-top: auto; padding-top: 10px;
+}
+.hang-key {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(14px, 4vw, 18px);
+  color: var(--ink); background: var(--paper-2);
+  border: 2px solid var(--ink); border-radius: var(--r-sm);
+  padding: 9px 0; cursor: pointer; box-shadow: var(--shadow);
+  transition: transform .06s ease, box-shadow .06s ease;
+}
+.hang-key:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+/* tecla ja usada: corall, sense ombra */
+.hang-key:disabled { background: var(--accent); color: var(--paper); box-shadow: none; cursor: default; }
