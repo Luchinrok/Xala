@@ -570,22 +570,28 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .hang-stage { display: flex; justify-content: center; margin: 4px 0 2px; }
 .hang-svg { height: clamp(130px, 25vh, 195px); width: auto; color: var(--ink); }
 
+/* La mida de lletra de .hang-word la fixa el JS (fitWord) perquè la
+   paraula càpiga; els fills hereten la mida amb unitats em. */
 .hang-word {
-  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center;
-  gap: 6px 8px; margin: 12px 6px;
+  display: flex; flex-wrap: nowrap; align-items: flex-end; justify-content: center;
+  gap: 0.3em 0.7em; margin: 12px 6px;
+  font-size: clamp(20px, 5.5vw, 30px);
+}
+.hang-group {
+  display: inline-flex; flex-wrap: nowrap; align-items: flex-end;
+  gap: 0.27em;
 }
 .hang-slot {
-  min-width: clamp(18px, 5.5vw, 26px);
-  border-bottom: 3px solid var(--ink);
+  min-width: 0.9em;
+  border-bottom: 0.1em solid var(--ink);
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(20px, 5.5vw, 30px); line-height: 1.15;
+  font-size: 1em; line-height: 1.15;
   color: var(--ink); text-align: center;
 }
 .hang-lit {
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(20px, 5.5vw, 30px); color: var(--ink);
+  font-size: 1em; color: var(--ink);
 }
-.hang-space { width: clamp(10px, 3vw, 18px); }
 
 /* teclat A–Z centrat (totes les files), empès a baix per cabre sense scroll */
 .hang-keys {

@@ -7,8 +7,9 @@
 // a=à, c=ç, n=ñ...). Encert -> verd; error -> vermell i dibuixa una
 // part del penjat. Dificultat: NOMÉS canvia la mida de la paraula
 // (Fàcil curtes, Normal qualsevol, Difícil llargues); les vides són
-// sempre 6 a tots els nivells. Rècord: ratxa de victòries
-// (localStorage). Tot en tinta; cap negre.
+// sempre 8 a tots els nivells (ninot complet: cap, cos, 2 braços, 2
+// cames, ulls i boca). Rècord: ratxa de victòries (localStorage). Tot
+// en tinta; cap negre.
 // ============================================================
 
 import { CATEGORIES } from './impostor-paraules.js';
@@ -19,8 +20,9 @@ import { getRecord, setRecord } from './records.js';
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 // La dificultat NOMÉS canvia la mida de la paraula; les vides (errors
-// permesos) són fixes a 6 a tots els nivells.
-const FIXED_ERRORS = 6;
+// permesos) són fixes a 8 a tots els nivells (ninot complet amb ulls i
+// boca).
+const FIXED_ERRORS = 8;
 const LEVELS = {
   easy:   { label: 'Fàcil',   errors: FIXED_ERRORS, maxLen: 6 },   // paraules curtes
   normal: { label: 'Normal',  errors: FIXED_ERRORS },              // qualsevol mida
@@ -84,7 +86,7 @@ export default {
     'Surt una paraula amagada amb un guió per cada lletra.',
     'Toca lletres de l\'abecedari; les accentuades compten igual (a = à).',
     'Encert en verd; error en vermell i es dibuixa una part del penjat.',
-    'La dificultat només canvia la llargada de la paraula; sempre tens 6 intents.',
+    'La dificultat només canvia la llargada de la paraula; sempre tens 8 intents.',
   ],
 
   mount(root, { goHome }) {
@@ -217,11 +219,39 @@ export default {
     function renderWord() {
       const el = root.querySelector('#word');
       if (!el) return;
-      el.innerHTML = state.chars.map(ch => {
-        if (ch.sep) return '<span class="hang-space"></span>';
+      // Agrupa per paraules: cada grup (.hang-group) manté les seves
+      // lletres juntes (sense partir-se); els espais separen grups, de
+      // manera que, si cal saltar de línia, es fa net entre paraules.
+      const groups = [];
+      let cur = [];
+      state.chars.forEach(ch => {
+        if (ch.sep) { if (cur.length) groups.push(cur); cur = []; }
+        else cur.push(ch);
+      });
+      if (cur.length) groups.push(cur);
+
+      el.innerHTML = groups.map(g => '<span class="hang-group">' + g.map(ch => {
         if (!ch.letter) return `<span class="hang-lit">${ch.display}</span>`;
         return `<span class="hang-slot">${ch.revealed ? ch.display : ''}</span>`;
-      }).join('');
+      }).join('') + '</span>').join('');
+
+      fitWord(el);
+    }
+
+    // Ajusta la mida de lletres i guions perquè la paraula càpiga:
+    // ideal en una sola línia (reduint la mida fins a un mínim); si tot
+    // i així no hi cap, permet salt net entre paraules. Sense solapaments.
+    function fitWord(el) {
+      const MAX = 30, MIN = 14;
+      el.style.flexWrap = 'nowrap';
+      let fs = MAX;
+      el.style.fontSize = fs + 'px';
+      while (fs > MIN && el.scrollWidth > el.clientWidth + 1) {
+        fs -= 1;
+        el.style.fontSize = fs + 'px';
+      }
+      // si al mínim encara desborda, deixa que salti per paraules
+      el.style.flexWrap = (el.scrollWidth > el.clientWidth + 1) ? 'wrap' : 'nowrap';
     }
     function renderStatus() {
       const el = root.querySelector('#status');
