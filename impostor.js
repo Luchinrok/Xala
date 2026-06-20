@@ -285,7 +285,9 @@ export default {
         ? aliveCivilians[Math.floor(Math.random() * aliveCivilians.length)]
         : null;
       const starterLine = starter === null ? ''
-        : `<p style="text-align:center;font-family:var(--font-display);font-weight:800;font-size:clamp(30px,8vw,46px);line-height:1.1;color:var(--accent);margin:10px 0 4px">${t('impostor.startsTurn', { name: getName(starter) })}</p>`;
+        : `<div style="display:flex;justify-content:center;width:100%;margin:10px 0 4px">
+             <span style="text-align:center;max-width:100%;overflow-wrap:anywhere;font-family:var(--font-display);font-weight:800;font-size:clamp(30px,8vw,46px);line-height:1.1;color:var(--accent)">${t('impostor.startsTurn', { name: getName(starter) })}</span>
+           </div>`;
 
       root.innerHTML = `
         <p class="kicker">${t('impostor.debateKicker')}</p>
