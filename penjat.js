@@ -5,9 +5,10 @@
 // word-bag). S'amaga amb un guió per lletra; els espais es marquen.
 // Tocant lletres A–Z es revelen (comparació INSENSIBLE A ACCENTS:
 // a=à, c=ç, n=ñ...). Encert -> verd; error -> vermell i dibuixa una
-// part del penjat. Dificultat: Fàcil 8 errors (paraules curtes),
-// Normal 6, Difícil 4 errors (paraules llargues). Rècord: ratxa de
-// victòries (localStorage). Tot en tinta; cap negre.
+// part del penjat. Dificultat: NOMÉS canvia la mida de la paraula
+// (Fàcil curtes, Normal qualsevol, Difícil llargues); les vides són
+// sempre 6 a tots els nivells. Rècord: ratxa de victòries
+// (localStorage). Tot en tinta; cap negre.
 // ============================================================
 
 import { CATEGORIES } from './impostor-paraules.js';
@@ -17,11 +18,13 @@ import { getRecord, setRecord } from './records.js';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-// Errors permesos i mida de paraula per dificultat.
+// La dificultat NOMÉS canvia la mida de la paraula; les vides (errors
+// permesos) són fixes a 6 a tots els nivells.
+const FIXED_ERRORS = 6;
 const LEVELS = {
-  easy:   { label: 'Fàcil',   errors: 8, maxLen: 6 },   // paraules curtes
-  normal: { label: 'Normal',  errors: 6 },              // qualsevol mida
-  hard:   { label: 'Difícil', errors: 4, minLen: 8 },   // paraules llargues
+  easy:   { label: 'Fàcil',   errors: FIXED_ERRORS, maxLen: 6 },   // paraules curtes
+  normal: { label: 'Normal',  errors: FIXED_ERRORS },              // qualsevol mida
+  hard:   { label: 'Difícil', errors: FIXED_ERRORS, minLen: 8 },   // paraules llargues
 };
 
 // minúscula, sense accents ni diacrítics (per comparar a≈à, c≈ç, n≈ñ...)
@@ -81,7 +84,7 @@ export default {
     'Surt una paraula amagada amb un guió per cada lletra.',
     'Toca lletres de l\'abecedari; les accentuades compten igual (a = à).',
     'Encert en verd; error en vermell i es dibuixa una part del penjat.',
-    'Tria dificultat (Fàcil 8 errors, Normal 6, Difícil 4) i endevina-la a temps!',
+    'La dificultat només canvia la llargada de la paraula; sempre tens 6 intents.',
   ],
 
   mount(root, { goHome }) {

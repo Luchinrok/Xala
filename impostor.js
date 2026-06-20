@@ -276,9 +276,21 @@ export default {
       let running = true;
       const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
+      // Qui comença: un jugador a l'atzar D'ENTRE ELS NO IMPOSTORS i
+      // viu (mai diem que comença l'impostor). Si no en queda cap de
+      // civil, no anunciem qui comença.
+      const aliveCivilians = [...Array(count()).keys()]
+        .filter(i => !state.eliminated.has(i) && !state.roles[i]);
+      const starter = aliveCivilians.length
+        ? aliveCivilians[Math.floor(Math.random() * aliveCivilians.length)]
+        : null;
+      const starterLine = starter === null ? ''
+        : `<p class="kicker center" style="color:var(--accent);font-weight:700">${t('impostor.startsTurn', { name: getName(starter) })}</p>`;
+
       root.innerHTML = `
         <p class="kicker">${t('impostor.debateKicker')}</p>
         <h2 style="font-size:26px;margin:6px 0 8px">${t('impostor.debateTitle')}</h2>
+        ${starterLine}
         <div class="spacer"></div>
         <div class="big-timer" id="timer">${fmt(remaining)}</div>
         <div class="spacer"></div>

@@ -49,6 +49,25 @@ function scrollTop() {
   obs.observe(app, { childList: true, subtree: true });
 })();
 
+// ---------- botó "enrere" del sistema (Android/navegador) ----------
+// Volem que la fletxa enrere del sistema faci el mateix que el botó
+// "Enrere" de l'app (pujar un nivell) en comptes de sortir de la pàgina.
+// Estratègia: mantenim sempre una entrada "tampó" a l'historial; quan
+// arriba un 'popstate', la tornem a posar (perquè la pàgina no marxi) i
+// disparem el botó .back visible de la pantalla actual, si n'hi ha.
+function armBackBuffer() {
+  try { history.pushState({ xala: true }, ''); } catch (e) {}
+}
+(function watchSystemBack() {
+  window.addEventListener('popstate', () => {
+    armBackBuffer(); // re-arma: la pàgina no s'ha de tancar
+    const back = app.querySelector('.back');
+    if (back) back.click(); // mateixa acció que el botó "Enrere" de l'app
+    // si no hi ha botó enrere (p. ex. revelació de l'impostor), no fem res
+  });
+  armBackBuffer();
+})();
+
 function setAccent(color) {
   document.documentElement.style.setProperty('--accent', color || 'var(--coral)');
   const meta = document.querySelector('meta[name="theme-color"]');

@@ -44,4 +44,7 @@ export const CATEGORY_ICONS = {
   pelis: svg(`<rect x="10" y="16" width="44" height="32" rx="3"/><line x1="10" y1="24" x2="54" y2="24"/><line x1="10" y1="40" x2="54" y2="40"/><line x1="18" y1="16" x2="18" y2="24"/><line x1="28" y1="16" x2="28" y2="24"/><line x1="38" y1="16" x2="38" y2="24"/><line x1="48" y1="16" x2="48" y2="24"/><line x1="18" y1="40" x2="18" y2="48"/><line x1="28" y1="40" x2="28" y2="48"/><line x1="38" y1="40" x2="38" y2="48"/><line x1="48" y1="40" x2="48" y2="48"/>`),
 
   objectes: svg(`<path d="M32 11 L52 21 L32 31 L12 21 Z"/><path d="M12 21 V43 L32 53 V31"/><path d="M52 21 V43 L32 53"/>`),
+
+  // Infantil: un globus amb el seu fil (coses de nens).
+  infantil: svg(`<ellipse cx="32" cy="24" rx="14" ry="16"/><path d="M28 39 L32 45 L36 39"/><path d="M32 45 q5 4 0 8 q-5 4 0 8"/>`),
 };

@@ -15,7 +15,7 @@ import { drawFromBag } from './word-bag.js';
 import { t, tc, joinAnd } from './i18n.js';
 
 // Subconjunt de categories bones per actuar.
-const ALLOWED = ['menjar', 'animals', 'accions', 'objectes', 'esports', 'professions', 'transport', 'musica'];
+const ALLOWED = ['menjar', 'animals', 'accions', 'objectes', 'esports', 'professions', 'transport', 'musica', 'infantil'];
 
 export default {
   id: 'aescena',
@@ -247,22 +247,43 @@ export default {
     }
 
     // ---------- 4) actuació (ho mira tothom) ----------
+    // Cada torn té un temporitzador d'1 minut (compte enrere). En
+    // esgotar-se, s'acaba el torn (la paraula compta com a passada).
     function screenAct() {
       const hint = state.mode === 'mime' ? t('aescena.mimeHint') : t('aescena.soundHint');
+      const TURN_SEC = 60;
+      let remaining = TURN_SEC;
+      const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
       root.innerHTML = `
         <button class="back" id="home">${t('nav.home')}</button>
         <p class="kicker center">${t('aescena.actName', { name: getName(actor()) })}</p>
         <div class="ae-mode-big">${modeLabel()}</div>
         <p class="muted center">${hint}</p>
         <div class="spacer"></div>
+        <div class="big-timer" id="timer">${fmt(remaining)}</div>
         <div class="stack" style="margin-top:14px">
           <button class="btn btn--accent" id="ok">${t('aescena.correct')}</button>
           <button class="btn btn--outline" id="pass">${t('common.pass')}</button>
         </div>
       `;
-      root.querySelector('#home').onclick = screenSetup;
-      root.querySelector('#ok').onclick = () => { state.correct[actor()].push(state.word); state.scores[actor()]++; state.turn++; nextTurn(); };
-      root.querySelector('#pass').onclick = () => { state.passed[actor()].push(state.word); state.turn++; nextTurn(); };
+
+      const tEl = root.querySelector('#timer');
+      const interval = setInterval(() => {
+        remaining--;
+        tEl.textContent = fmt(Math.max(0, remaining));
+        if (remaining <= 0) {
+          clearInterval(interval);
+          // temps esgotat: el torn s'acaba sense punt
+          state.passed[actor()].push(state.word);
+          state.turn++;
+          nextTurn();
+        }
+      }, 1000);
+
+      root.querySelector('#home').onclick = () => { clearInterval(interval); screenSetup(); };
+      root.querySelector('#ok').onclick = () => { clearInterval(interval); state.correct[actor()].push(state.word); state.scores[actor()]++; state.turn++; nextTurn(); };
+      root.querySelector('#pass').onclick = () => { clearInterval(interval); state.passed[actor()].push(state.word); state.turn++; nextTurn(); };
     }
 
     // ---------- 5) final: guanyador + classificació ----------

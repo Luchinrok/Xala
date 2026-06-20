@@ -189,7 +189,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .card.locked { cursor: default; }
 .card.locked:active { transform: none; box-shadow: var(--shadow); }
 .card .glyph { width: clamp(30px, 5vh, 40px); height: clamp(30px, 5vh, 40px); }
-.card h3 { font-size: clamp(20px, 3.6vh, 28px); margin-top: 0; }
+.card h3 { font-size: clamp(16px, 3.2vh, 28px); margin-top: 0; line-height: 1.12; overflow-wrap: anywhere; hyphens: auto; }
 .card p { font-size: clamp(11px, 1.7vh, 13px); font-weight: 500; color: var(--ink); opacity: .8; margin-top: 4px; line-height: 1.25; }
 
 /* targetes amb fons fosc: text, icona i tagline en beix per llegir-les */
