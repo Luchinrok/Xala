@@ -1,23 +1,34 @@
 // ============================================================
 // Sudoku — joc d'un sol jugador.
 //
-// Generació: es crea una graella 9×9 completa i vàlida amb backtracking
+// Mides: 9×9 (blocs 3×3, números 1–9) i 6×6 (blocs 2×3, números 1–6).
+// Generació: es crea una graella completa i vàlida amb backtracking
 // aleatori i, després, es treuen caselles (comprovant amb el solucionador
 // que la solució continuï sent ÚNICA) fins a la quantitat de "donades"
-// segons la dificultat: Fàcil ~40, Normal ~32, Difícil ~26.
+// segons mida i dificultat.
+//
+// Modes: Clàssic (números neutres + botó "Comprovar") i Guiat (verd/
+// vermell a l'instant, victòria automàtica).
 //
 // Estètica: fons i caselles beix (--paper); línies i números donats en
-// tinta (--ink); números de l'usuari en corall (--accent); conflictes en
-// vermell. Cap negre. La graella cap sense scroll.
+// tinta (--ink); número de l'usuari verd si és correcte i vermell si no
+// (o corall neutre en clàssic abans de comprovar). Cap negre. La graella
+// cap sense scroll.
 // ============================================================
 
 import { getRecord, setRecord } from './records.js';
 
-// Dificultat = nombre de caselles donades.
+// Mides disponibles. bh×bw = dimensions del bloc (files × columnes).
+const SIZES = {
+  '9': { N: 9, bh: 3, bw: 3, label: '9×9' },
+  '6': { N: 6, bh: 2, bw: 3, label: '6×6' },
+};
+
+// Dificultat = nombre de caselles donades, per mida.
 const LEVELS = {
-  easy:   { label: 'Fàcil',   givens: 40 },
-  normal: { label: 'Normal',  givens: 32 },
-  hard:   { label: 'Difícil', givens: 26 },
+  easy:   { label: 'Fàcil',   givens: { '9': 40, '6': 22 } },
+  normal: { label: 'Normal',  givens: { '9': 32, '6': 18 } },
+  hard:   { label: 'Difícil', givens: { '9': 26, '6': 14 } },
 };
 
 const fmtTime = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
@@ -31,35 +42,35 @@ function shuffle(a) {
   return arr;
 }
 
-// ---------- motor de Sudoku (graella plana de 81: 0 = buida) ----------
+// ---------- motor de Sudoku (graella plana N*N: 0 = buida) ----------
 function findEmpty(g) {
-  for (let i = 0; i < 81; i++) if (g[i] === 0) return i;
+  for (let i = 0; i < g.length; i++) if (g[i] === 0) return i;
   return -1;
 }
 
-function canPlace(g, i, v) {
-  const r = Math.floor(i / 9), c = i % 9;
-  for (let k = 0; k < 9; k++) {
-    if (g[r * 9 + k] === v) return false;   // fila
-    if (g[k * 9 + c] === v) return false;   // columna
+function canPlace(g, i, v, N, bh, bw) {
+  const r = Math.floor(i / N), c = i % N;
+  for (let k = 0; k < N; k++) {
+    if (g[r * N + k] === v) return false;   // fila
+    if (g[k * N + c] === v) return false;   // columna
   }
-  const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
-  for (let dr = 0; dr < 3; dr++) {
-    for (let dc = 0; dc < 3; dc++) {
-      if (g[(br + dr) * 9 + (bc + dc)] === v) return false; // bloc 3×3
+  const br = Math.floor(r / bh) * bh, bc = Math.floor(c / bw) * bw;
+  for (let dr = 0; dr < bh; dr++) {
+    for (let dc = 0; dc < bw; dc++) {
+      if (g[(br + dr) * N + (bc + dc)] === v) return false; // bloc
     }
   }
   return true;
 }
 
 // Omple una graella buida amb una solució completa (backtracking a l'atzar).
-function fillGrid(g) {
+function fillGrid(g, N, bh, bw) {
   const i = findEmpty(g);
   if (i === -1) return true;
-  for (const v of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
-    if (canPlace(g, i, v)) {
+  for (const v of shuffle(Array.from({ length: N }, (_, k) => k + 1))) {
+    if (canPlace(g, i, v, N, bh, bw)) {
       g[i] = v;
-      if (fillGrid(g)) return true;
+      if (fillGrid(g, N, bh, bw)) return true;
       g[i] = 0;
     }
   }
@@ -67,14 +78,14 @@ function fillGrid(g) {
 }
 
 // Compta solucions fins a `limit` (atura aviat per saber si és única).
-function countSolutions(g, limit) {
+function countSolutions(g, limit, N, bh, bw) {
   const i = findEmpty(g);
   if (i === -1) return 1;
   let total = 0;
-  for (let v = 1; v <= 9; v++) {
-    if (canPlace(g, i, v)) {
+  for (let v = 1; v <= N; v++) {
+    if (canPlace(g, i, v, N, bh, bw)) {
       g[i] = v;
-      total += countSolutions(g, limit);
+      total += countSolutions(g, limit, N, bh, bw);
       g[i] = 0;
       if (total >= limit) return total;
     }
@@ -83,38 +94,39 @@ function countSolutions(g, limit) {
 }
 
 // Crea un trencaclosques amb (idealment) solució única i ~givens donades.
-function makePuzzle(givens) {
-  const full = new Array(81).fill(0);
-  fillGrid(full);
+function makePuzzle(givens, N, bh, bw) {
+  const total = N * N;
+  const full = new Array(total).fill(0);
+  fillGrid(full, N, bh, bw);
   const puzzle = full.slice();
-  let count = 81;
-  for (const idx of shuffle([...Array(81).keys()])) {
+  let count = total;
+  for (const idx of shuffle([...Array(total).keys()])) {
     if (count <= givens) break;
     const backup = puzzle[idx];
     if (backup === 0) continue;
     puzzle[idx] = 0;
-    if (countSolutions(puzzle.slice(), 2) === 1) count--;
+    if (countSolutions(puzzle.slice(), 2, N, bh, bw) === 1) count--;
     else puzzle[idx] = backup; // trencaria la unicitat: la mantenim
   }
   return { puzzle, solution: full };
 }
 
 // Marca les caselles en conflicte (mateix valor a fila, columna o bloc).
-function conflicts(g) {
-  const bad = new Array(81).fill(false);
-  for (let i = 0; i < 81; i++) {
+function conflicts(g, N, bh, bw) {
+  const bad = new Array(g.length).fill(false);
+  for (let i = 0; i < g.length; i++) {
     const v = g[i];
     if (!v) continue;
-    const r = Math.floor(i / 9), c = i % 9;
-    for (let k = 0; k < 9; k++) {
-      const ri = r * 9 + k, ci = k * 9 + c;
+    const r = Math.floor(i / N), c = i % N;
+    for (let k = 0; k < N; k++) {
+      const ri = r * N + k, ci = k * N + c;
       if (ri !== i && g[ri] === v) bad[i] = true;
       if (ci !== i && g[ci] === v) bad[i] = true;
     }
-    const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
-    for (let dr = 0; dr < 3; dr++) {
-      for (let dc = 0; dc < 3; dc++) {
-        const bi = (br + dr) * 9 + (bc + dc);
+    const br = Math.floor(r / bh) * bh, bc = Math.floor(c / bw) * bw;
+    for (let dr = 0; dr < bh; dr++) {
+      for (let dc = 0; dc < bw; dc++) {
+        const bi = (br + dr) * N + (bc + dc);
         if (bi !== i && g[bi] === v) bad[i] = true;
       }
     }
@@ -128,24 +140,26 @@ export { fillGrid, countSolutions, makePuzzle, conflicts, canPlace };
 export default {
   id: 'sudoku',
   title: 'Sudoku',
-  tagline: "Omple la graella de l'1 al 9",
+  tagline: "Omple la graella sense repetir",
   accent: '#E4572E',
   color: 'var(--paper-2)',
   ready: true,
 
   instructions: [
-    'Omple les caselles buides amb xifres de l\'1 al 9.',
-    'Cap xifra es pot repetir a la mateixa fila, columna ni bloc de 3×3.',
+    'Omple les caselles buides sense repetir cap número a la mateixa fila, columna ni bloc.',
+    'Tria la mida (6×6 o 9×9), la dificultat i el mode de joc.',
     'Toca una casella i després un número del teclat; esborra amb ⌫.',
-    'Completa-ho tot sense conflictes el més ràpid que puguis.',
+    'Mode Guiat: et diu a l\'instant si encertes. Clàssic: comprova-ho amb el botó "Comprovar".',
   ],
 
   mount(root, { goHome }) {
     const state = {
+      size: '9',       // '9' o '6'
       level: 'normal',
-      mode: 'guided',  // 'guided' (verd/vermell a l'instant) o 'classic' (neutre + Comprovar)
-      grid: [],        // 81 valors (0 = buida)
-      given: [],       // 81 booleans (true = donada, fixa)
+      mode: 'classic', // 'classic' (neutre + Comprovar) o 'guided' (verd/vermell a l'instant)
+      N: 9, bh: 3, bw: 3,
+      grid: [],        // N*N valors (0 = buida)
+      given: [],       // N*N booleans (true = donada, fixa)
       solution: [],
       selected: null,  // índex de casella seleccionada
       seconds: 0,
@@ -163,21 +177,28 @@ export default {
     // ---------- 1) configuració ----------
     function screenConfig() {
       cleanup();
-      const opts = ['easy', 'normal', 'hard'];
+      const levelOpts = ['easy', 'normal', 'hard'];
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Sudoku</p>
         <h2 style="font-size:30px;margin:6px 0 22px">Prepara la partida</h2>
-        <p class="label" style="margin:0 0 12px">Dificultat</p>
+
+        <p class="label" style="margin:0 0 12px">Mida</p>
+        <div class="btn-row" id="sizes">
+          <button class="btn ${state.size === '9' ? 'btn--accent' : 'btn--outline'}" data-size="9">9×9</button>
+          <button class="btn ${state.size === '6' ? 'btn--accent' : 'btn--outline'}" data-size="6">6×6</button>
+        </div>
+
+        <p class="label" style="margin:22px 0 12px">Dificultat</p>
         <div class="btn-row" id="levels">
-          ${opts.map(k => `<button class="btn ${state.level === k ? 'btn--accent' : 'btn--outline'}" data-level="${k}">${LEVELS[k].label}</button>`).join('')}
+          ${levelOpts.map(k => `<button class="btn ${state.level === k ? 'btn--accent' : 'btn--outline'}" data-level="${k}">${LEVELS[k].label}</button>`).join('')}
         </div>
         <p class="muted" id="lvinfo" style="margin-top:12px"></p>
 
         <p class="label" style="margin:22px 0 12px">Mode</p>
         <div class="btn-row" id="modes">
-          <button class="btn ${state.mode === 'guided' ? 'btn--accent' : 'btn--outline'}" data-mode="guided">Guiat</button>
           <button class="btn ${state.mode === 'classic' ? 'btn--accent' : 'btn--outline'}" data-mode="classic">Clàssic</button>
+          <button class="btn ${state.mode === 'guided' ? 'btn--accent' : 'btn--outline'}" data-mode="guided">Guiat</button>
         </div>
         <p class="muted" id="modeinfo" style="margin-top:12px"></p>
 
@@ -187,51 +208,61 @@ export default {
       `;
       const info = () => {
         const el = root.querySelector('#lvinfo');
-        if (el) el.textContent = `${LEVELS[state.level].givens} caselles donades`;
+        if (el) el.textContent = `${LEVELS[state.level].givens[state.size]} caselles donades`;
         const me = root.querySelector('#modeinfo');
         if (me) me.textContent = state.mode === 'guided'
           ? 'Guiat: et diu a l\'instant si encertes.'
           : 'Clàssic: comprova-ho tu amb el botó "Comprovar".';
       };
       info();
+
       root.querySelector('#back').onclick = leave;
-      root.querySelectorAll('[data-level]').forEach(b => {
-        b.onclick = () => {
-          state.level = b.dataset.level;
-          root.querySelectorAll('[data-level]').forEach(x => {
-            x.className = 'btn ' + (x.dataset.level === state.level ? 'btn--accent' : 'btn--outline');
-          });
-          info();
-        };
-      });
-      root.querySelectorAll('[data-mode]').forEach(b => {
-        b.onclick = () => {
-          state.mode = b.dataset.mode;
-          root.querySelectorAll('[data-mode]').forEach(x => {
-            x.className = 'btn ' + (x.dataset.mode === state.mode ? 'btn--accent' : 'btn--outline');
-          });
-          info();
-        };
-      });
+
+      const wire = (sel, key) => {
+        root.querySelectorAll(sel).forEach(b => {
+          b.onclick = () => {
+            state[key] = b.dataset[key];
+            root.querySelectorAll(sel).forEach(x => {
+              x.className = 'btn ' + (x.dataset[key] === state[key] ? 'btn--accent' : 'btn--outline');
+            });
+            info();
+          };
+        });
+      };
+      wire('[data-size]', 'size');
+      wire('[data-level]', 'level');
+      wire('[data-mode]', 'mode');
+
       root.querySelector('#record').onclick = screenRecords;
       root.querySelector('#start').onclick = beginGame;
     }
 
-    // ---------- rècord: millor temps per dificultat ----------
+    // ---------- rècord: millor temps per mida + mode + dificultat ----------
+    function recordId(size, mode, level) { return `sudoku:${size}:${mode}:${level}`; }
+
     function screenRecords() {
       cleanup();
-      const rows = ['easy', 'normal', 'hard'].map(lv => {
-        const r = getRecord('sudoku:' + lv);
-        const txt = r ? fmtTime(r.time) : '—';
-        return `<div class="btn btn--outline" style="display:flex;justify-content:space-between;cursor:default;text-align:left">
-          <span>${LEVELS[lv].label}</span><span style="color:var(--accent)">${txt}</span></div>`;
-      }).join('');
+      const modesArr = [['classic', 'Clàssic'], ['guided', 'Guiat']];
+      const levelsArr = ['easy', 'normal', 'hard'];
+      let blocks = '';
+      ['9', '6'].forEach(sz => {
+        modesArr.forEach(([mk, mlabel]) => {
+          const rows = levelsArr.map(lv => {
+            const r = getRecord(recordId(sz, mk, lv));
+            const txt = r ? fmtTime(r.time) : '—';
+            return `<div class="btn btn--outline" style="display:flex;justify-content:space-between;cursor:default;text-align:left">
+              <span>${LEVELS[lv].label}</span><span style="color:var(--accent)">${txt}</span></div>`;
+          }).join('');
+          blocks += `<p class="label" style="margin:16px 0 8px">${SIZES[sz].label} · ${mlabel}</p>
+            <div class="stack" style="--stack-gap:8px">${rows}</div>`;
+        });
+      });
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Sudoku</p>
-        <h2 style="font-size:30px;margin:6px 0 8px">Rècord</h2>
-        <p class="muted" style="margin-bottom:14px">Millor temps per dificultat</p>
-        <div class="stack" style="--stack-gap:10px">${rows}</div>
+        <h2 style="font-size:30px;margin:6px 0 4px">Rècord</h2>
+        <p class="muted">Millor temps per mida, mode i dificultat</p>
+        ${blocks}
         <div class="spacer"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
@@ -240,7 +271,10 @@ export default {
     // ---------- arrenca la partida ----------
     function beginGame() {
       cleanup();
-      const { puzzle, solution } = makePuzzle(LEVELS[state.level].givens);
+      const sz = SIZES[state.size];
+      state.N = sz.N; state.bh = sz.bh; state.bw = sz.bw;
+      const givens = LEVELS[state.level].givens[state.size];
+      const { puzzle, solution } = makePuzzle(givens, sz.N, sz.bh, sz.bw);
       state.grid = puzzle.slice();
       state.given = puzzle.map(v => v !== 0);
       state.solution = solution;
@@ -253,40 +287,39 @@ export default {
     // ---------- 2) joc ----------
     function screenGame() {
       const classic = state.mode === 'classic';
+      const keysHtml =
+        Array.from({ length: state.N }, (_, k) => k + 1)
+          .map(n => `<button class="sudoku-key" data-n="${n}">${n}</button>`).join('') +
+        `<button class="sudoku-key sudoku-key--del" data-del="1" aria-label="Esborrar">⌫</button>`;
+
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <div class="sudoku-head"><span class="kicker">Temps: <b id="time">0:00</b></span></div>
-        <div class="sudoku-board${classic ? ' compact' : ''}" id="board"></div>
-        <div class="sudoku-keys" id="keys"></div>
+        <div class="sudoku-board${classic ? ' compact' : ''}" id="board" style="--n:${state.N}"></div>
+        <div class="sudoku-keys" id="keys">${keysHtml}</div>
         ${classic ? '<button class="btn btn--accent" id="check" style="margin-top:10px">Comprovar</button>' : ''}
       `;
       root.querySelector('#back').onclick = screenConfig;
 
       renderBoard();
 
-      const chk = root.querySelector('#check');
-      if (chk) chk.onclick = doCheck;
-
-      const keys = root.querySelector('#keys');
-      keys.innerHTML =
-        [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button class="sudoku-key" data-n="${n}">${n}</button>`).join('') +
-        `<button class="sudoku-key sudoku-key--del" data-del="1" aria-label="Esborrar">⌫</button>`;
-
       root.querySelector('#board').addEventListener('click', (e) => {
         const c = e.target.closest('.sudoku-cell');
         if (c) selectCell(parseInt(c.dataset.i, 10));
       });
-      keys.addEventListener('click', (e) => {
+      root.querySelector('#keys').addEventListener('click', (e) => {
         const b = e.target.closest('.sudoku-key');
         if (!b) return;
         if (b.dataset.del) erase();
         else place(parseInt(b.dataset.n, 10));
       });
+      const chk = root.querySelector('#check');
+      if (chk) chk.onclick = doCheck;
 
-      // Teclat físic (ordinador): 1–9 posa el número, Backspace/Delete buida.
+      // Teclat físic (ordinador): 1–N posa el número, Backspace/Delete buida.
       // Al mòbil no hi ha cap input de text, així que el teclat natiu no surt.
       keyHandler = (e) => {
-        if (e.key >= '1' && e.key <= '9') { place(parseInt(e.key, 10)); }
+        if (e.key >= '1' && e.key <= String(state.N)) { place(parseInt(e.key, 10)); }
         else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') { e.preventDefault(); erase(); }
       };
       document.addEventListener('keydown', keyHandler);
@@ -297,15 +330,16 @@ export default {
     function renderBoard() {
       const board = root.querySelector('#board');
       if (!board) return;
+      const { N, bh, bw } = state;
       // Guiat: marca sempre. Clàssic: només després de "Comprovar".
       const reveal = state.mode === 'guided' || state.showCheck;
       board.innerHTML = state.grid.map((v, i) => {
-        const r = Math.floor(i / 9), c = i % 9;
+        const r = Math.floor(i / N), c = i % N;
         const cls = ['sudoku-cell'];
-        if (c === 2 || c === 5) cls.push('col-edge');
-        if (r === 2 || r === 5) cls.push('row-edge');
-        if (c === 8) cls.push('last-col');
-        if (r === 8) cls.push('last-row');
+        if (c % bw === bw - 1 && c !== N - 1) cls.push('col-edge'); // límit de bloc
+        if (r % bh === bh - 1 && r !== N - 1) cls.push('row-edge');
+        if (c === N - 1) cls.push('last-col');
+        if (r === N - 1) cls.push('last-row');
         if (state.given[i]) cls.push('fixed');
         else if (v) cls.push(reveal ? (v === state.solution[i] ? 'ok' : 'bad') : 'neutral');
         if (state.selected === i) cls.push('sel');
@@ -350,7 +384,9 @@ export default {
 
     function checkSolved() {
       // resolt quan tota la graella coincideix amb la solució.
-      for (let i = 0; i < 81; i++) if (state.grid[i] !== state.solution[i]) return;
+      for (let i = 0; i < state.grid.length; i++) {
+        if (state.grid[i] !== state.solution[i]) return;
+      }
       stopTimer();
       screenEnd();
     }
@@ -370,7 +406,7 @@ export default {
     // ---------- 3) final ----------
     function screenEnd() {
       cleanup();
-      const id = 'sudoku:' + state.level;
+      const id = recordId(state.size, state.mode, state.level);
       const prev = getRecord(id);
       const isRecord = !prev || state.seconds < prev.time;
       if (isRecord) setRecord(id, { time: state.seconds });
@@ -380,6 +416,7 @@ export default {
         <div class="panel center stack" style="margin-top:18px">
           <h2 style="font-size:34px;color:var(--accent)">Resolt!</h2>
           ${isRecord ? '<p class="kicker" style="color:var(--accent)">Nou rècord!</p>' : ''}
+          <p class="muted">${SIZES[state.size].label} · ${state.mode === 'guided' ? 'Guiat' : 'Clàssic'} · ${LEVELS[state.level].label}</p>
           <p class="muted">Temps: <b>${fmtTime(state.seconds)}</b></p>
         </div>
         <div class="spacer"></div>
