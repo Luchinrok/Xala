@@ -49,24 +49,53 @@ function scrollTop() {
   obs.observe(app, { childList: true, subtree: true });
 })();
 
-// ---------- botó "enrere" del sistema (Android/navegador) ----------
-// Volem que la fletxa enrere del sistema faci el mateix que el botó
-// "Enrere" de l'app (pujar un nivell) en comptes de sortir de la pàgina.
-// Estratègia: mantenim sempre una entrada "tampó" a l'historial; quan
-// arriba un 'popstate', la tornem a posar (perquè la pàgina no marxi) i
-// disparem el botó .back visible de la pantalla actual, si n'hi ha.
-function armBackBuffer() {
-  try { history.pushState({ xala: true }, ''); } catch (e) {}
+// ---------- botó "<" del sistema (Android/navegador) ----------
+// Navegació centralitzada i robusta. Mentre NO siguem a la pantalla
+// inicial mantenim sempre una entrada "tampó" a l'historial, de manera
+// que el "<" del sistema MAI surti de l'app: el capturem amb un únic
+// 'popstate' i fem EXACTAMENT el mateix que el botó "Enrere" (pujar un
+// nivell), funcioni o no la pantalla amb botó "Enrere" visible.
+//   - Si la pantalla té botó "Enrere" visible -> el premem.
+//   - Si no en té (sub-pantalles de joc: "Passa el mòbil", votacions,
+//     revelacions...) -> tornem a la CONFIGURACIÓ del joc re-muntant-lo.
+//   - Només a la pantalla inicial (nivell més alt) el "<" surt de l'app.
+// Cada entrada de pantalla passa per ensureArmed()/setLevel() (vegeu les
+// funcions de navegació), així queda centralitzat.
+let navCurrentGame = null;  // joc obert actual (per re-muntar-lo = anar a la seva config)
+let navCurrentBack = null;  // "enrere" del joc (cap a la llista de jocs)
+let navAtLanding = true;    // cert només a la pantalla inicial
+let navArmed = false;       // si el tampó d'historial està posat
+
+function ensureArmed() {
+  if (navArmed) return;
+  try { history.pushState({ xala: true }, ''); navArmed = true; } catch (e) {}
 }
-(function watchSystemBack() {
-  window.addEventListener('popstate', () => {
-    armBackBuffer(); // re-arma: la pàgina no s'ha de tancar
-    const back = app.querySelector('.back');
-    if (back) back.click(); // mateixa acció que el botó "Enrere" de l'app
-    // si no hi ha botó enrere (p. ex. revelació de l'impostor), no fem res
-  });
-  armBackBuffer();
-})();
+
+// Marca el nivell actual de navegació en entrar a CADA pantalla.
+function setLevel({ landing = false, game = null, back = null } = {}) {
+  navAtLanding = landing;
+  navCurrentGame = game;
+  navCurrentBack = back;
+  if (!landing) ensureArmed();
+}
+
+window.addEventListener('popstate', () => {
+  navArmed = false; // el sistema acaba de consumir el nostre tampó
+  if (navAtLanding) {
+    // a l'inici (nivell més alt): deixa sortir de l'app
+    try { history.back(); } catch (e) {}
+    return;
+  }
+  ensureArmed(); // re-arma: el següent "<" també s'ha de capturar
+  // mateixa acció que el botó "Enrere": puja un nivell dins l'app
+  const back = app.querySelector('.back');
+  if (back) { back.click(); return; }
+  // sub-pantalla de joc sense botó "Enrere": torna a la configuració del
+  // joc (re-muntant-lo); si no hi ha joc, a la pantalla inicial
+  if (navCurrentGame) { openGame(navCurrentGame, navCurrentBack); return; }
+  goLanding();
+});
+ensureArmed(); // tampó inicial
 
 function setAccent(color) {
   document.documentElement.style.setProperty('--accent', color || 'var(--coral)');
@@ -100,6 +129,7 @@ function glyph(id) {
 
 // ---------- pantalla inicial: tria de mode ----------
 function goLanding() {
+  setLevel({ landing: true });
   setAccent(null);
   clear();
   const wrap = document.createElement('div');
@@ -127,6 +157,7 @@ function goLanding() {
 
 // ---------- graella de jocs de festa (multijugador) ----------
 function goMultiplayer() {
+  setLevel();
   setAccent(null);
   clear();
   const wrap = document.createElement('div');
@@ -148,6 +179,7 @@ function goMultiplayer() {
 
 // ---------- graella de jocs d'un sol jugador ----------
 function goSingle() {
+  setLevel();
   setAccent(null);
   clear();
   const wrap = document.createElement('div');
@@ -186,6 +218,7 @@ function renderGameGrid(grid, games, back) {
 }
 
 function openGame(game, back) {
+  setLevel({ game, back: back || goMultiplayer });
   setAccent(game.accent);
   clear();
   const root = document.createElement('div');
@@ -196,6 +229,7 @@ function openGame(game, back) {
 
 // ---------- ajuda: "Com es juga?" (per a un catàleg de jocs) ----------
 function helpList(games, back) {
+  setLevel();
   setAccent('#E4572E');
   clear();
   const wrap = document.createElement('div');
@@ -223,6 +257,7 @@ function helpList(games, back) {
 }
 
 function helpDetail(game, games, back) {
+  setLevel();
   setAccent('#E4572E');
   clear();
   const wrap = document.createElement('div');
