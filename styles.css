@@ -631,6 +631,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   background: var(--paper);
   overflow: hidden;
 }
+/* mode clàssic: deixa espai a sota per al botó "Comprovar" */
+.sudoku-board.compact { width: min(100%, calc(100dvh - 312px)); }
 .sudoku-cell {
   width: 100%; min-width: 0; min-height: 0;
   aspect-ratio: 1 / 1;
@@ -650,6 +652,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* donats en tinta (per defecte); número de l'usuari verd si és correcte
    (mateix verd que l'encert d'endevina-la) i vermell si és incorrecte. */
 .sudoku-cell.fixed { cursor: default; }
+.sudoku-cell.neutral { color: var(--accent); } /* clàssic: número neutre (corall) */
 .sudoku-cell.ok  { color: var(--ok); }
 .sudoku-cell.bad { color: #C62828; }
 /* casella seleccionada ressaltada */

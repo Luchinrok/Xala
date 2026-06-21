@@ -143,11 +143,13 @@ export default {
   mount(root, { goHome }) {
     const state = {
       level: 'normal',
+      mode: 'guided',  // 'guided' (verd/vermell a l'instant) o 'classic' (neutre + Comprovar)
       grid: [],        // 81 valors (0 = buida)
       given: [],       // 81 booleans (true = donada, fixa)
       solution: [],
       selected: null,  // índex de casella seleccionada
       seconds: 0,
+      showCheck: false, // (clàssic) cert quan s'han de mostrar les marques de Comprovar
     };
     let timerId = null;
     let keyHandler = null;   // teclat físic (ordinador)
@@ -171,6 +173,14 @@ export default {
           ${opts.map(k => `<button class="btn ${state.level === k ? 'btn--accent' : 'btn--outline'}" data-level="${k}">${LEVELS[k].label}</button>`).join('')}
         </div>
         <p class="muted" id="lvinfo" style="margin-top:12px"></p>
+
+        <p class="label" style="margin:22px 0 12px">Mode</p>
+        <div class="btn-row" id="modes">
+          <button class="btn ${state.mode === 'guided' ? 'btn--accent' : 'btn--outline'}" data-mode="guided">Guiat</button>
+          <button class="btn ${state.mode === 'classic' ? 'btn--accent' : 'btn--outline'}" data-mode="classic">Clàssic</button>
+        </div>
+        <p class="muted" id="modeinfo" style="margin-top:12px"></p>
+
         <button class="btn btn--outline" id="record" style="margin-top:14px">Rècord</button>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>
@@ -178,6 +188,10 @@ export default {
       const info = () => {
         const el = root.querySelector('#lvinfo');
         if (el) el.textContent = `${LEVELS[state.level].givens} caselles donades`;
+        const me = root.querySelector('#modeinfo');
+        if (me) me.textContent = state.mode === 'guided'
+          ? 'Guiat: et diu a l\'instant si encertes.'
+          : 'Clàssic: comprova-ho tu amb el botó "Comprovar".';
       };
       info();
       root.querySelector('#back').onclick = leave;
@@ -186,6 +200,15 @@ export default {
           state.level = b.dataset.level;
           root.querySelectorAll('[data-level]').forEach(x => {
             x.className = 'btn ' + (x.dataset.level === state.level ? 'btn--accent' : 'btn--outline');
+          });
+          info();
+        };
+      });
+      root.querySelectorAll('[data-mode]').forEach(b => {
+        b.onclick = () => {
+          state.mode = b.dataset.mode;
+          root.querySelectorAll('[data-mode]').forEach(x => {
+            x.className = 'btn ' + (x.dataset.mode === state.mode ? 'btn--accent' : 'btn--outline');
           });
           info();
         };
@@ -223,20 +246,26 @@ export default {
       state.solution = solution;
       state.selected = null;
       state.seconds = 0;
+      state.showCheck = false;
       screenGame();
     }
 
     // ---------- 2) joc ----------
     function screenGame() {
+      const classic = state.mode === 'classic';
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <div class="sudoku-head"><span class="kicker">Temps: <b id="time">0:00</b></span></div>
-        <div class="sudoku-board" id="board"></div>
+        <div class="sudoku-board${classic ? ' compact' : ''}" id="board"></div>
         <div class="sudoku-keys" id="keys"></div>
+        ${classic ? '<button class="btn btn--accent" id="check" style="margin-top:10px">Comprovar</button>' : ''}
       `;
       root.querySelector('#back').onclick = screenConfig;
 
       renderBoard();
+
+      const chk = root.querySelector('#check');
+      if (chk) chk.onclick = doCheck;
 
       const keys = root.querySelector('#keys');
       keys.innerHTML =
@@ -268,6 +297,8 @@ export default {
     function renderBoard() {
       const board = root.querySelector('#board');
       if (!board) return;
+      // Guiat: marca sempre. Clàssic: només després de "Comprovar".
+      const reveal = state.mode === 'guided' || state.showCheck;
       board.innerHTML = state.grid.map((v, i) => {
         const r = Math.floor(i / 9), c = i % 9;
         const cls = ['sudoku-cell'];
@@ -276,8 +307,7 @@ export default {
         if (c === 8) cls.push('last-col');
         if (r === 8) cls.push('last-row');
         if (state.given[i]) cls.push('fixed');
-        // número de l'usuari: verd si coincideix amb la solució, vermell si no.
-        else if (v) cls.push(v === state.solution[i] ? 'ok' : 'bad');
+        else if (v) cls.push(reveal ? (v === state.solution[i] ? 'ok' : 'bad') : 'neutral');
         if (state.selected === i) cls.push('sel');
         return `<button class="${cls.join(' ')}" data-i="${i}">${v || ''}</button>`;
       }).join('');
@@ -294,8 +324,11 @@ export default {
       const i = state.selected;
       if (state.given[i]) return;
       state.grid[i] = n;
+      // en clàssic, editar amaga les marques fins que es torni a comprovar
+      if (state.mode === 'classic') state.showCheck = false;
       renderBoard();
-      checkSolved();
+      // en guiat, es guanya automàticament en omplir-ho tot bé
+      if (state.mode === 'guided') checkSolved();
     }
 
     function erase() {
@@ -303,7 +336,16 @@ export default {
       const i = state.selected;
       if (state.given[i]) return;
       state.grid[i] = 0;
+      if (state.mode === 'classic') state.showCheck = false;
       renderBoard();
+    }
+
+    // (clàssic) "Comprovar": mostra correctes/incorrectes; si tot és
+    // correcte, acaba. Es pot corregir i tornar a comprovar.
+    function doCheck() {
+      state.showCheck = true;
+      renderBoard();
+      checkSolved();
     }
 
     function checkSolved() {
