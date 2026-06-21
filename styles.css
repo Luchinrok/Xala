@@ -674,3 +674,42 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 }
 .sudoku-key:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
 .sudoku-key--del { color: var(--accent); }
+
+/* ============================================================
+   2048
+   ============================================================ */
+.g2048-head { display: flex; justify-content: space-between; align-items: center; margin: 2px 2px 6px; }
+.g2048-win {
+  text-align: center; margin: 0 0 6px;
+  font-family: var(--font-display); font-weight: 800;
+  color: var(--accent); font-size: clamp(18px, 5vw, 24px);
+}
+
+/* Tauler quadrat limitat per amplada I alçada perquè càpiga sense scroll.
+   touch-action: none evita que la pàgina faci scroll en lliscar. */
+.g2048-board {
+  width: min(100%, calc(100dvh - 210px));
+  aspect-ratio: 1 / 1;
+  margin: 6px auto 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(6px, 1.8vw, 12px);
+  padding: clamp(6px, 1.8vw, 12px);
+  background: var(--line);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-md);
+  touch-action: none;
+}
+.g2048-tile {
+  aspect-ratio: 1 / 1; width: 100%; min-width: 0; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r-sm);
+  font-family: var(--font-display); font-weight: 800;
+  line-height: 1; overflow: hidden;
+}
+.g2048-tile--empty { background: var(--paper-2); }
+.g2048-tile.is-new { animation: g2048-pop-in .16s ease; }
+.g2048-tile.is-merged { animation: g2048-pop .16s ease; }
+
+@keyframes g2048-pop-in { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes g2048-pop { 0% { transform: scale(1); } 50% { transform: scale(1.16); } 100% { transform: scale(1); } }
