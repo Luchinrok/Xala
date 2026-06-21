@@ -647,10 +647,10 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .sudoku-cell.row-edge { border-bottom: 2.5px solid var(--ink); }
 .sudoku-cell.last-col { border-right: none; }
 .sudoku-cell.last-row { border-bottom: none; }
-/* números de l'usuari en corall; donats en tinta (per defecte) */
-.sudoku-cell.user { color: var(--accent); }
+/* donats en tinta (per defecte); número de l'usuari verd si és correcte
+   (mateix verd que l'encert d'endevina-la) i vermell si és incorrecte. */
 .sudoku-cell.fixed { cursor: default; }
-/* conflicte: en vermell (no negre) */
+.sudoku-cell.ok  { color: var(--ok); }
 .sudoku-cell.bad { color: #C62828; }
 /* casella seleccionada ressaltada */
 .sudoku-cell.sel { background: var(--paper-2); box-shadow: inset 0 0 0 3px var(--accent); }

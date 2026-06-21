@@ -150,8 +150,12 @@ export default {
       seconds: 0,
     };
     let timerId = null;
+    let keyHandler = null;   // teclat físic (ordinador)
 
-    function cleanup() { if (timerId) { clearInterval(timerId); timerId = null; } }
+    function cleanup() {
+      if (timerId) { clearInterval(timerId); timerId = null; }
+      if (keyHandler) { document.removeEventListener('keydown', keyHandler); keyHandler = null; }
+    }
     function leave() { cleanup(); goHome(); }
 
     // ---------- 1) configuració ----------
@@ -250,13 +254,20 @@ export default {
         else place(parseInt(b.dataset.n, 10));
       });
 
+      // Teclat físic (ordinador): 1–9 posa el número, Backspace/Delete buida.
+      // Al mòbil no hi ha cap input de text, així que el teclat natiu no surt.
+      keyHandler = (e) => {
+        if (e.key >= '1' && e.key <= '9') { place(parseInt(e.key, 10)); }
+        else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') { e.preventDefault(); erase(); }
+      };
+      document.addEventListener('keydown', keyHandler);
+
       startTimer();
     }
 
     function renderBoard() {
       const board = root.querySelector('#board');
       if (!board) return;
-      const bad = conflicts(state.grid);
       board.innerHTML = state.grid.map((v, i) => {
         const r = Math.floor(i / 9), c = i % 9;
         const cls = ['sudoku-cell'];
@@ -264,8 +275,9 @@ export default {
         if (r === 2 || r === 5) cls.push('row-edge');
         if (c === 8) cls.push('last-col');
         if (r === 8) cls.push('last-row');
-        if (state.given[i]) cls.push('fixed'); else cls.push('user');
-        if (v && bad[i]) cls.push('bad');
+        if (state.given[i]) cls.push('fixed');
+        // número de l'usuari: verd si coincideix amb la solució, vermell si no.
+        else if (v) cls.push(v === state.solution[i] ? 'ok' : 'bad');
         if (state.selected === i) cls.push('sel');
         return `<button class="${cls.join(' ')}" data-i="${i}">${v || ''}</button>`;
       }).join('');
@@ -295,8 +307,8 @@ export default {
     }
 
     function checkSolved() {
-      if (state.grid.includes(0)) return;
-      if (conflicts(state.grid).some(Boolean)) return;
+      // resolt quan tota la graella coincideix amb la solució.
+      for (let i = 0; i < 81; i++) if (state.grid[i] !== state.solution[i]) return;
       stopTimer();
       screenEnd();
     }
