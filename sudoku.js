@@ -233,39 +233,44 @@ export default {
       wire('[data-level]', 'level');
       wire('[data-mode]', 'mode');
 
-      root.querySelector('#record').onclick = screenRecords;
+      root.querySelector('#record').onclick = () => screenRecords(state.size);
       root.querySelector('#start').onclick = beginGame;
     }
 
     // ---------- rècord: millor temps per mida + mode + dificultat ----------
     function recordId(size, mode, level) { return `sudoku:${size}:${mode}:${level}`; }
 
-    function screenRecords() {
+    function screenRecords(recSize) {
       cleanup();
-      const modesArr = [['classic', 'Clàssic'], ['guided', 'Guiat']];
+      if (!SIZES[recSize]) recSize = state.size; // mida triada a la pantalla de rècord
+      const modesArr = [['guided', 'Guiat'], ['classic', 'Clàssic']];
       const levelsArr = ['easy', 'normal', 'hard'];
-      let blocks = '';
-      ['9', '6'].forEach(sz => {
-        modesArr.forEach(([mk, mlabel]) => {
-          const rows = levelsArr.map(lv => {
-            const r = getRecord(recordId(sz, mk, lv));
-            const txt = r ? fmtTime(r.time) : '—';
-            return `<div class="btn btn--outline" style="display:flex;justify-content:space-between;cursor:default;text-align:left">
-              <span>${LEVELS[lv].label}</span><span style="color:var(--accent)">${txt}</span></div>`;
-          }).join('');
-          blocks += `<p class="label" style="margin:16px 0 8px">${SIZES[sz].label} · ${mlabel}</p>
-            <div class="stack" style="--stack-gap:8px">${rows}</div>`;
-        });
-      });
+      const blocks = modesArr.map(([mk, mlabel]) => {
+        const rows = levelsArr.map(lv => {
+          const r = getRecord(recordId(recSize, mk, lv));
+          const txt = r ? fmtTime(r.time) : '—';
+          return `<div class="btn btn--outline" style="display:flex;justify-content:space-between;cursor:default;text-align:left">
+            <span>${LEVELS[lv].label}</span><span style="color:var(--accent)">${txt}</span></div>`;
+        }).join('');
+        return `<p class="label" style="margin:16px 0 8px">${mlabel}</p>
+          <div class="stack" style="--stack-gap:8px">${rows}</div>`;
+      }).join('');
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Sudoku</p>
-        <h2 style="font-size:30px;margin:6px 0 4px">Rècord</h2>
-        <p class="muted">Millor temps per mida, mode i dificultat</p>
+        <h2 style="font-size:30px;margin:6px 0 14px">Rècord</h2>
+        <div class="btn-row" id="recsizes">
+          <button class="btn ${recSize === '9' ? 'btn--accent' : 'btn--outline'}" data-size="9">9×9</button>
+          <button class="btn ${recSize === '6' ? 'btn--accent' : 'btn--outline'}" data-size="6">6×6</button>
+        </div>
+        <p class="muted" style="margin-top:12px">Millor temps de cada mode i dificultat</p>
         ${blocks}
         <div class="spacer"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
+      root.querySelectorAll('#recsizes [data-size]').forEach(b => {
+        b.onclick = () => screenRecords(b.dataset.size);
+      });
     }
 
     // ---------- arrenca la partida ----------
