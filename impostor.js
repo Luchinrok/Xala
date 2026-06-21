@@ -67,6 +67,8 @@ export default {
       revealIndex: 0,
       eliminated: new Set(),
       timerSec: 180,
+      starter: null,    // qui comença: es tria un cop per partida (vegeu beginRound)
+      remaining: 180,   // segons del comptador; es conserva en anar a votar (pausa)
     };
 
     const count = () => state.names.length;
@@ -215,6 +217,13 @@ export default {
       state.roles = Array.from({ length: count() }, (_, i) => idx.includes(i));
       state.revealIndex = 0;
       state.eliminated = new Set();
+      // Qui comença: UNA SOLA VEGADA per partida, a l'atzar entre TOTS
+      // els jugadors (l'impostor també hi entra; només se'n mostra el
+      // NOM, mai el rol). No es torna a triar durant la partida.
+      state.starter = Math.floor(Math.random() * count());
+      // El comptador arrenca a 3 min. Anar a votar el posa en pausa i, en
+      // tornar, continua; només es reinicia quan un vot torna al debat.
+      state.remaining = state.timerSec;
       screenPass();
     }
 
@@ -272,29 +281,21 @@ export default {
 
     // ---------- debat ----------
     function screenDebate() {
-      let remaining = state.timerSec;
       let running = true;
       const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
-      // Qui comença: un jugador a l'atzar D'ENTRE ELS NO IMPOSTORS i
-      // viu (mai diem que comença l'impostor). Si no en queda cap de
-      // civil, no anunciem qui comença.
-      const aliveCivilians = [...Array(count()).keys()]
-        .filter(i => !state.eliminated.has(i) && !state.roles[i]);
-      const starter = aliveCivilians.length
-        ? aliveCivilians[Math.floor(Math.random() * aliveCivilians.length)]
-        : null;
-      const starterLine = starter === null ? ''
-        : `<div style="display:flex;justify-content:center;width:100%;margin:10px 0 4px">
-             <span style="text-align:center;max-width:100%;overflow-wrap:anywhere;font-family:var(--font-display);font-weight:800;font-size:clamp(30px,8vw,46px);line-height:1.1;color:var(--accent)">${t('impostor.startsTurn', { name: getName(starter) })}</span>
-           </div>`;
+      // Qui comença: SEMPRE el mateix de tota la partida (state.starter,
+      // triat a beginRound entre TOTS els jugadors). Mostra només el NOM.
+      // Bloc que ocupa tota l'amplada amb text centrat de debò.
+      const starterLine = state.starter === null ? ''
+        : `<p style="display:block;width:100%;box-sizing:border-box;text-align:center;margin:10px 0 4px;color:var(--accent);font-family:var(--font-display);font-weight:800;font-size:clamp(28px,7vw,44px);line-height:1.1;overflow-wrap:anywhere">${t('impostor.startsTurn', { name: getName(state.starter) })}</p>`;
 
       root.innerHTML = `
         <p class="kicker">${t('impostor.debateKicker')}</p>
         <h2 style="font-size:26px;margin:6px 0 8px">${t('impostor.debateTitle')}</h2>
         ${starterLine}
         <div class="spacer"></div>
-        <div class="big-timer" id="timer">${fmt(remaining)}</div>
+        <div class="big-timer" id="timer">${fmt(Math.max(0, state.remaining))}</div>
         <div class="spacer"></div>
         <div class="btn-row" style="margin-top:18px">
           <button class="btn btn--outline" id="pause">${t('common.pause')}</button>
@@ -305,15 +306,23 @@ export default {
       const tEl = root.querySelector('#timer');
       const interval = setInterval(() => {
         if (!running) return;
-        remaining--;
-        tEl.textContent = fmt(Math.max(0, remaining));
-        if (remaining <= 0) { clearInterval(interval); running = false; tEl.textContent = t('impostor.timeUp'); }
+        state.remaining--;
+        tEl.textContent = fmt(Math.max(0, state.remaining));
+        if (state.remaining <= 0) {
+          clearInterval(interval);
+          running = false;
+          // Temps esgotat: "Temps!" i tot seguit guanya l'impostor.
+          tEl.textContent = t('impostor.timeUp');
+          setTimeout(() => screenEnd('lose'), 1300);
+        }
       }, 1000);
 
       root.querySelector('#pause').onclick = (e) => {
         running = !running;
         e.target.textContent = running ? t('common.pause') : t('common.resume');
       };
+      // Anar a votar = pausa: aturem el comptador però conservem
+      // state.remaining perquè en tornar continuï des d'on era.
       root.querySelector('#vote').onclick = () => { clearInterval(interval); screenVote(); };
     }
 
@@ -360,7 +369,9 @@ export default {
         <div class="spacer"></div>
         <button class="btn btn--accent" id="cont" style="margin-top:24px">${t('common.continue')}</button>
       `;
-      root.querySelector('#cont').onclick = screenDebate;
+      // Un vot que torna al debat (eliminació i la ronda continua)
+      // reinicia el comptador a 3 min.
+      root.querySelector('#cont').onclick = () => { state.remaining = state.timerSec; screenDebate(); };
     }
 
     // ---------- final ----------
