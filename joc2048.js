@@ -65,6 +65,54 @@ function tileVisual(v) {
   };
 }
 
+// Calcula el resultat d'un moviment a partir de la llista de fitxes
+// (objectes { id, val, idx }). FUNCIÓ PURA: no toca el DOM ni l'estat.
+// Retorna:
+//   changed     -> el moviment fa alguna cosa
+//   gained      -> punts sumats (valor de cada fusió)
+//   target      -> Map id -> casella destí (per animar el desplaçament)
+//   finalTiles  -> nou estat de fitxes [{ id, val, idx }] (fusions fetes,
+//                  absorbides ja excloses; cada fitxa es fusiona 1 cop)
+//   absorbedIds -> Set d'ids de fitxes absorbides en fusions
+function computeMove(tiles, dir) {
+  const byIdx = new Map();
+  tiles.forEach(t => byIdx.set(t.idx, t));
+  const target = new Map();      // id -> idx destí
+  const mergedSurv = new Set();  // ids de supervivents que ja han fusionat
+  const merges = [];
+  const finalTiles = [];
+  let gained = 0;
+
+  LINES[dir].forEach(idxs => {
+    const lineTiles = idxs.map(i => byIdx.get(i)).filter(Boolean);
+    let pos = 0;     // següent casella lliure de la línia
+    let last = null; // darrera fitxa col·locada (candidata a fusió)
+    lineTiles.forEach(t => {
+      if (last && !mergedSurv.has(last.id) && last.val === t.val) {
+        // fusió: t llisca fins a la casella del supervivent (last)
+        target.set(t.id, target.get(last.id));
+        mergedSurv.add(last.id);
+        const newVal = last.val * 2;
+        gained += newVal;
+        merges.push({ survivorId: last.id, absorbedId: t.id });
+        const ft = finalTiles.find(f => f.id === last.id);
+        if (ft) ft.val = newVal; // el supervivent dobla el valor
+      } else {
+        const to = idxs[pos++];
+        target.set(t.id, to);
+        finalTiles.push({ id: t.id, val: t.val, idx: to });
+        last = t;
+      }
+    });
+  });
+
+  const absorbedIds = new Set(merges.map(m => m.absorbedId));
+  const changed = merges.length > 0 || tiles.some(t => target.get(t.id) !== t.idx);
+  return { changed, gained, target, finalTiles, absorbedIds };
+}
+
+export { computeMove };
+
 export default {
   id: '2048',
   title: '2048',
@@ -229,6 +277,7 @@ export default {
     function addTileEl(tile, slots, isNew) {
       const el = makeTileEl(tile, slots);
       root.querySelector('#layer').appendChild(el);
+      tileEls.set(tile.id, el);      // registra l'element per poder-lo animar/treure
       void el.offsetWidth;          // reflux: fixa la posició inicial
       el.style.transition = '';      // torna a la transició del CSS
       if (isNew) popInner(el, 'pop-in');
@@ -287,67 +336,41 @@ export default {
       state.tiles.forEach(t => { state.grid[t.idx] = t.val; });
     }
 
-    // Calcula destins i fusions per a una direcció (no toca encara el DOM).
-    function planMove(dir) {
-      const byIdx = new Map();
-      state.tiles.forEach(t => { byIdx.set(t.idx, t); t._target = t.idx; t._merged = false; });
-      const merges = []; // { survivor, absorbed, newVal }
-      let gained = 0;
-
-      LINES[dir].forEach(idxs => {
-        const lineTiles = idxs.map(i => byIdx.get(i)).filter(Boolean);
-        let pos = 0;        // següent casella lliure de la línia
-        let last = null;    // darrera fitxa col·locada (candidata a fusió)
-        lineTiles.forEach(t => {
-          if (last && !last._merged && last.val === t.val) {
-            t._target = last._target;     // llisca fins a la fitxa supervivent
-            last._merged = true;
-            const newVal = last.val * 2;
-            gained += newVal;
-            merges.push({ survivor: last, absorbed: t, newVal });
-          } else {
-            t._target = idxs[pos++];
-            last = t;
-          }
-        });
-      });
-
-      const changed = state.tiles.some(t => t._target !== t.idx) || merges.length > 0;
-      return { changed, gained, merges };
-    }
-
     // ---------- moviment animat ----------
     function move(dir) {
       if (animating) return;
-      const { changed, gained, merges } = planMove(dir);
+      const { changed, gained, target, finalTiles, absorbedIds } = computeMove(state.tiles, dir);
       if (!changed) return;
       animating = true;
 
       const slots = slotRects();
-      // 1) totes les fitxes llisquen al seu destí (transició CSS)
+      // 1) totes les fitxes (també les absorbides) llisquen al seu destí
       state.tiles.forEach(t => {
         const el = tileEls.get(t.id);
-        if (el) el.style.transform = tileTransform(slots, t._target);
+        if (el) el.style.transform = tileTransform(slots, target.get(t.id));
       });
       state.score += gained;
       updateScore();
 
-      // 2) en acabar el desplaçament: aplica fusions, fitxa nova i finals
+      // 2) en acabar el desplaçament: aplica l'estat real, fusions i nova
       setTimeout(() => {
-        // treu les fitxes absorbides
-        const absorbed = new Set(merges.map(m => m.absorbed.id));
-        merges.forEach(m => {
-          const ael = tileEls.get(m.absorbed.id);
-          if (ael && ael.parentNode) ael.parentNode.removeChild(ael);
-          tileEls.delete(m.absorbed.id);
+        // treu els elements de les fitxes absorbides
+        absorbedIds.forEach(id => {
+          const el = tileEls.get(id);
+          if (el && el.parentNode) el.parentNode.removeChild(el);
+          tileEls.delete(id);
         });
-        state.tiles = state.tiles.filter(t => !absorbed.has(t.id));
-        // fixa noves posicions i valors fusionats (pop a la resultant)
-        state.tiles.forEach(t => { t.idx = t._target; });
-        merges.forEach(m => {
-          m.survivor.val = m.newVal;
-          const el = tileEls.get(m.survivor.id);
-          if (el) { setTileVisual(el, m.newVal); popInner(el, 'pop'); }
+        // l'estat passa a ser exactament el resultat calculat
+        state.tiles = finalTiles;
+        // actualitza els elements supervivents que han canviat de valor (pop)
+        finalTiles.forEach(t => {
+          const el = tileEls.get(t.id);
+          if (!el) return;
+          const inner = el.firstChild;
+          if (inner && inner.textContent !== String(t.val)) {
+            setTileVisual(el, t.val);
+            popInner(el, 'pop');
+          }
         });
         rebuildGrid();
 
