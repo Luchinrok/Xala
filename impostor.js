@@ -288,7 +288,7 @@ export default {
       // triat a beginRound entre TOTS els jugadors). Mostra només el NOM.
       // Bloc que ocupa tota l'amplada amb text centrat de debò.
       const starterLine = state.starter === null ? ''
-        : `<p style="display:block;width:100%;box-sizing:border-box;text-align:center;margin:10px 0 4px;color:var(--accent);font-family:var(--font-display);font-weight:800;font-size:clamp(28px,7vw,44px);line-height:1.1;overflow-wrap:anywhere">${t('impostor.startsTurn', { name: getName(state.starter) })}</p>`;
+        : `<p style="display:block;width:100%;box-sizing:border-box;text-align:center;margin:34px 0 6px;color:var(--accent);font-family:var(--font-display);font-weight:800;font-size:clamp(28px,7vw,44px);line-height:1.1;overflow-wrap:anywhere">${t('impostor.startsTurn', { name: getName(state.starter) })}</p>`;
 
       root.innerHTML = `
         <p class="kicker">${t('impostor.debateKicker')}</p>
@@ -353,6 +353,12 @@ export default {
 
       if (impostorsLeft === 0) return screenEnd('win');
       if (civiliansLeft <= impostorsLeft) return screenEnd('lose');
+      // El "qui comença" es manté mentre segueixi jugant; si l'han
+      // eliminat i la partida continua, en triem un altre a l'atzar
+      // entre els que QUEDEN actius (l'impostor també pot ser-ho).
+      if (state.eliminated.has(state.starter)) {
+        state.starter = alive[Math.floor(Math.random() * alive.length)];
+      }
       return screenContinue(accused, caught, impostorsLeft);
     }
 
