@@ -113,6 +113,12 @@ export default {
       const flash = withFlash ? '<div class="flash-layer" id="flash"></div>' : '';
       return `<div class="land-stage">${flash}<div class="land-stage__inner" id="landinner" style="--land-rot:${rotDeg()}deg">${inner}</div></div>`;
     }
+    // Embolcalla el contingut d'una pantalla de JOC VERTICAL (mode botons, de
+    // reserva): es juga amb el mòbil dret, així que NO es gira res.
+    function vertWrap(inner, withFlash = true) {
+      const flash = withFlash ? '<div class="flash-layer" id="flash"></div>' : '';
+      return `<div class="vert-stage">${flash}<div class="vert-stage__inner">${inner}</div></div>`;
+    }
     function applyRotation() {
       const inner = root.querySelector('#landinner');
       if (inner) inner.style.setProperty('--land-rot', rotDeg() + 'deg');
@@ -240,13 +246,20 @@ export default {
     function screenCountdown(mode) {
       cleanup();
       let n = 3;
-      root.innerHTML = landWrap(`
+      // El compte enrere segueix l'orientació del joc que ve a continuació:
+      // horitzontal abans del mode sensor, vertical abans del mode botons.
+      const inner = `
         <p class="kicker center">${t('endevinala.countReady')}</p>
         <div class="spacer"></div>
         <div class="big-timer" id="count">${n}</div>
         <div class="spacer"></div>
-      `, false);
-      startOrientWatch();
+      `;
+      if (mode === 'sensor') {
+        root.innerHTML = landWrap(inner, false);
+        startOrientWatch();
+      } else {
+        root.innerHTML = vertWrap(inner, false);
+      }
       const el = root.querySelector('#count');
       const iv = setInterval(() => {
         n--;
@@ -363,7 +376,8 @@ export default {
     function screenPlayButtons() {
       const cur = state.current || '';
       const left = root.querySelector('#timer') ? root.querySelector('#timer').textContent : state.duration;
-      root.innerHTML = landWrap(`
+      // Mode botons: es juga amb el mòbil en VERTICAL, sense girar res.
+      root.innerHTML = vertWrap(`
         <div class="play play--btns" id="play">
           <button class="zone zone--ok" id="ok">${t('endevinala.zoneOk')}</button>
           <div class="zone-mid">
@@ -374,7 +388,6 @@ export default {
           <button class="zone zone--pass" id="pass">${t('endevinala.zonePass')}</button>
         </div>
       `);
-      startOrientWatch();
       root.querySelector('#ok').onclick = () => register(true);
       root.querySelector('#pass').onclick = () => register(false);
     }

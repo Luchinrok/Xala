@@ -182,6 +182,7 @@ const STRINGS = {
     'bomba.boom': `BOOM!`,
     'bomba.whoLoses': `Whoever holds it loses!`,
     'bomba.anotherChallenge': `Another challenge`,
+    'bomba.nextChallenge': `Next topic`,
 
     'quiprobable.setupTitle': `Who's playing?`,
     'quiprobable.newChallenge': `New challenge`,
@@ -390,6 +391,7 @@ const STRINGS = {
     'bomba.boom': `¡BOOM!`,
     'bomba.whoLoses': `¡Quien la tenga, pierde!`,
     'bomba.anotherChallenge': `Otro reto`,
+    'bomba.nextChallenge': `Siguiente tema`,
 
     'quiprobable.setupTitle': `¿Quién juega?`,
     'quiprobable.newChallenge': `Nuevo reto`,
@@ -598,6 +600,7 @@ const STRINGS = {
     'bomba.boom': `BOOM!`,
     'bomba.whoLoses': `Qui la tingui, perd!`,
     'bomba.anotherChallenge': `Un altre repte`,
+    'bomba.nextChallenge': `Següent tema`,
 
     'quiprobable.setupTitle': `Qui juga?`,
     'quiprobable.newChallenge': `Nou repte`,
@@ -806,6 +809,7 @@ const STRINGS = {
     'bomba.boom': `BOOM !`,
     'bomba.whoLoses': `Celui qui la tient perd !`,
     'bomba.anotherChallenge': `Un autre défi`,
+    'bomba.nextChallenge': `Sujet suivant`,
 
     'quiprobable.setupTitle': `Qui joue ?`,
     'quiprobable.newChallenge': `Nouveau défi`,
@@ -1014,6 +1018,7 @@ const STRINGS = {
     'bomba.boom': `BOOM!`,
     'bomba.whoLoses': `Chi la tiene perde!`,
     'bomba.anotherChallenge': `Un'altra sfida`,
+    'bomba.nextChallenge': `Prossimo tema`,
 
     'quiprobable.setupTitle': `Chi gioca?`,
     'quiprobable.newChallenge': `Nuova sfida`,
@@ -1222,6 +1227,7 @@ const STRINGS = {
     'bomba.boom': `BOOM!`,
     'bomba.whoLoses': `Wer sie hält, verliert!`,
     'bomba.anotherChallenge': `Noch eine Aufgabe`,
+    'bomba.nextChallenge': `Nächstes Thema`,
 
     'quiprobable.setupTitle': `Wer spielt?`,
     'quiprobable.newChallenge': `Neue Aufgabe`,
@@ -1430,6 +1436,7 @@ const STRINGS = {
     'bomba.boom': `BOOM!`,
     'bomba.whoLoses': `Quem a tiver, perde!`,
     'bomba.anotherChallenge': `Outro desafio`,
+    'bomba.nextChallenge': `Próximo tema`,
 
     'quiprobable.setupTitle': `Quem joga?`,
     'quiprobable.newChallenge': `Novo desafio`,

@@ -238,9 +238,17 @@ export default {
       const ctl = root.querySelector('#ctl');
       ctl.innerHTML = `
         <button class="btn btn--accent" id="start">${t('bomba.lightFuse')}</button>
+        <button class="btn btn--outline" id="next" style="margin-top:10px">${t('bomba.nextChallenge')}</button>
         <p class="muted center" style="margin-top:10px">${t('bomba.readChallenge')}</p>`;
+      // Canvia el repte sense engegar la bomba (per si no t'agrada o no l'entens).
+      root.querySelector('#next').onclick = () => {
+        drawChallenge();
+        const ch = root.querySelector('#challenge');
+        if (ch) ch.textContent = state.challenge;
+      };
       root.querySelector('#start').onclick = () => {
         initAudio(); // cal el gest de l'usuari
+        // un cop encesa la metxa, ja no cal canviar de tema
         ctl.innerHTML = `<p class="bomb-pass center">${t('bomba.sayPass')}</p>`;
         startBomb();
       };
