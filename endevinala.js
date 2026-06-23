@@ -12,19 +12,51 @@ import { openCategoryScreen, categoriesLabel } from './category-select.js';
 import { drawFromBag } from './word-bag.js';
 import { t } from './i18n.js';
 
-// --- Paràmetres del sensor (fàcils de canviar) ---
-// Amb el mòbil en horitzontal al front, l'eix dominant sol ser 'gamma'.
-// AMUNT = encertada, AVALL = passa. La detecció fa servir `up = valor * upSign`:
+// --- Orientació del dispositiu (es juga amb el mòbil EN HORITZONTAL) ---
+// L'app va bloquejada en vertical (manifest), però el joc es juga amb el
+// mòbil de costat al front. Per això girem el contingut de les pantalles de
+// joc 90° amb CSS i, segons cap a quin costat s'hagi tombat el mòbil, triem
+// el SENTIT del gir i el SIGNE de la inclinació perquè el text quedi dret i
+// inclinar el TOP del mòbil cap amunt sigui sempre "encertat".
+//
+// Detecció de la inclinació (fàcil de tocar). `up = valor[axis] * sign`:
 //   up >= threshold  -> AMUNT (encertada)
 //   up <= -threshold -> AVALL (passa)
-// Si en un mòbil real surt invertit, canvia upSign a +1 (o prova axis: 'beta').
-const ORIENT = {
-  axis: 'gamma',     // eix dominant ('gamma' o 'beta')
+//   |up| <= neutral  -> tornat a pla, a punt per al gest següent
+const TILT = {
+  axis: 'gamma',     // eix dominant amb el mòbil de costat ('gamma' o 'beta')
   threshold: 45,     // graus per registrar un gest
   neutral: 20,       // cal tornar dins ±neutral abans del gest següent
-  upSign: -1,        // signe de l'eix quan s'inclina AMUNT (encertada)
+  signA: -1,         // signe d'AMUNT a l'orientació 90°  (un costat)
+  signB: +1,         // signe d'AMUNT a l'orientació 270°/-90° (l'altre costat)
 };
+
+// Gir CSS (graus) que deixa el text dret a cada costat landscape.
+const ROT = {
+  degA: 90,          // orientació 90°
+  degB: -90,         // orientació 270°/-90°
+};
+
 const SENSOR_WAIT = 1500;  // ms d'espera d'una lectura abans de caure al mode botons
+
+// Angle d'orientació normalitzat (0/90/180/270). Prova les APIs en ordre i
+// cau amb gràcia si cap no està disponible.
+function orientationAngle() {
+  const so = screen.orientation;
+  if (so && typeof so.angle === 'number') return so.angle;
+  if (typeof window.orientation === 'number') return ((window.orientation % 360) + 360) % 360;
+  if (window.matchMedia && window.matchMedia('(orientation: landscape)').matches) return 90;
+  return 0;
+}
+
+// Costat cap on està tombat el mòbil: 'B' a 270°/-90°, si no 'A'
+// (el cas vertical/bloquejat cau a 'A' per defecte).
+function landscapeSide() {
+  return orientationAngle() === 270 ? 'B' : 'A';
+}
+
+const rotDeg = () => (landscapeSide() === 'B' ? ROT.degB : ROT.degA);
+const tiltSign = () => (landscapeSide() === 'B' ? TILT.signB : TILT.signA);
 
 export default {
   id: 'endevinala',
@@ -73,11 +105,41 @@ export default {
     let orientHandler = null;
     let timerIv = null;
     let sensorWaitTo = null;
+    let orientWatch = null;
+
+    // Embolcalla el contingut d'una pantalla de JOC perquè es vegi recte amb
+    // el mòbil en horitzontal: caixa fixa girada 90° (segons l'orientació).
+    function landWrap(inner, withFlash = true) {
+      const flash = withFlash ? '<div class="flash-layer" id="flash"></div>' : '';
+      return `<div class="land-stage">${flash}<div class="land-stage__inner" id="landinner" style="--land-rot:${rotDeg()}deg">${inner}</div></div>`;
+    }
+    function applyRotation() {
+      const inner = root.querySelector('#landinner');
+      if (inner) inner.style.setProperty('--land-rot', rotDeg() + 'deg');
+    }
+    // Reajusta el gir si el mòbil canvia de costat enmig de la partida.
+    function startOrientWatch() {
+      stopOrientWatch();
+      orientWatch = () => applyRotation();
+      window.addEventListener('orientationchange', orientWatch);
+      if (screen.orientation && screen.orientation.addEventListener) {
+        screen.orientation.addEventListener('change', orientWatch);
+      }
+    }
+    function stopOrientWatch() {
+      if (!orientWatch) return;
+      window.removeEventListener('orientationchange', orientWatch);
+      if (screen.orientation && screen.orientation.removeEventListener) {
+        screen.orientation.removeEventListener('change', orientWatch);
+      }
+      orientWatch = null;
+    }
 
     function cleanup() {
       if (orientHandler) { window.removeEventListener('deviceorientation', orientHandler); orientHandler = null; }
       if (timerIv) { clearInterval(timerIv); timerIv = null; }
       if (sensorWaitTo) { clearTimeout(sensorWaitTo); sensorWaitTo = null; }
+      stopOrientWatch();
     }
 
     function leaveHome() { cleanup(); goHome(); }
@@ -178,12 +240,13 @@ export default {
     function screenCountdown(mode) {
       cleanup();
       let n = 3;
-      root.innerHTML = `
+      root.innerHTML = landWrap(`
         <p class="kicker center">${t('endevinala.countReady')}</p>
         <div class="spacer"></div>
         <div class="big-timer" id="count">${n}</div>
         <div class="spacer"></div>
-      `;
+      `, false);
+      startOrientWatch();
       const el = root.querySelector('#count');
       const iv = setInterval(() => {
         n--;
@@ -244,8 +307,7 @@ export default {
     // ---------- 4) joc amb sensor ----------
     function screenPlaySensor() {
       const first = state.current || '';
-      root.innerHTML = `
-        <div class="flash-layer" id="flash"></div>
+      root.innerHTML = landWrap(`
         <div class="play" id="play">
           <div class="play__top">
             <span class="play__timer" id="timer">${state.duration}</span>
@@ -257,7 +319,8 @@ export default {
             <button class="btn--link" id="tobtns">${t('endevinala.toButtons')}</button>
           </div>
         </div>
-      `;
+      `);
+      startOrientWatch();
       root.querySelector('#tobtns').onclick = () => {
         // continua la mateixa ronda en mode botons (atura només el sensor, no el temps)
         if (orientHandler) { window.removeEventListener('deviceorientation', orientHandler); orientHandler = null; }
@@ -269,15 +332,17 @@ export default {
       let armed = true;
       let gotReading = false;
       orientHandler = (e) => {
-        let v = e[ORIENT.axis];
+        let v = e[TILT.axis];
         if (v == null) v = e.beta; // recurs si l'eix triat no dona dada
         if (v == null) return;
         gotReading = true;
-        const up = v * ORIENT.upSign; // up>0 quan s'inclina amunt
+        // El signe es llegeix en viu: si el mòbil canvia de costat, el gest
+        // amunt/avall continua sent correcte (mai s'inverteix).
+        const up = v * tiltSign(); // up>0 quan el TOP del mòbil va cap al sostre
         if (armed) {
-          if (up >= ORIENT.threshold) { armed = false; register(true); }      // amunt = encertada
-          else if (up <= -ORIENT.threshold) { armed = false; register(false); } // avall = passa
-        } else if (Math.abs(up) <= ORIENT.neutral) {
+          if (up >= TILT.threshold) { armed = false; register(true); }      // amunt = encertada
+          else if (up <= -TILT.threshold) { armed = false; register(false); } // avall = passa
+        } else if (Math.abs(up) <= TILT.neutral) {
           armed = true; // tornat a pla: a punt per al gest següent
         }
       };
@@ -298,8 +363,7 @@ export default {
     function screenPlayButtons() {
       const cur = state.current || '';
       const left = root.querySelector('#timer') ? root.querySelector('#timer').textContent : state.duration;
-      root.innerHTML = `
-        <div class="flash-layer" id="flash"></div>
+      root.innerHTML = landWrap(`
         <div class="play play--btns" id="play">
           <button class="zone zone--ok" id="ok">${t('endevinala.zoneOk')}</button>
           <div class="zone-mid">
@@ -309,7 +373,8 @@ export default {
           </div>
           <button class="zone zone--pass" id="pass">${t('endevinala.zonePass')}</button>
         </div>
-      `;
+      `);
+      startOrientWatch();
       root.querySelector('#ok').onclick = () => register(true);
       root.querySelector('#pass').onclick = () => register(false);
     }
