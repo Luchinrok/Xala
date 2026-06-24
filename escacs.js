@@ -351,7 +351,9 @@ export default {
   title: 'Escacs',
   tagline: 'El joc dels reis, mou per mou',
   accent: '#E4572E',
-  color: '#E4572E',
+  // Targeta a "Dos jugadors": ocupa el lloc del Reversi (beix), mantenint
+  // el patró corall/beix de la carpeta.
+  color: 'var(--paper-2)',
   ready: true,
 
   instructions: [

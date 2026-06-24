@@ -20,7 +20,7 @@ import tresenratlla from './tresenratlla.js';
 import connecta4 from './connecta4.js';
 import dames from './dames.js';
 import puntsicaixes from './puntsicaixes.js';
-import reversi from './reversi.js';
+import encaixa from './encaixa.js';
 import { t } from './i18n.js';
 
 // Títol, tagline i instruccions surten dels camps del mòdul de cada joc.
@@ -30,8 +30,8 @@ const gameInstructions = (g) => g.instructions || [];
 
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
-const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, reversi];
-const SOLO_GAMES = [escacs, memory, sudoku, joc2048, sopa, penjat];
+const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs];
+const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat];
 
 const app = document.getElementById('app');
 
@@ -137,7 +137,8 @@ function glyph(id) {
     connecta4:  '<rect x="7" y="9" width="26" height="24" rx="3" fill="none" stroke-width="3"/><circle cx="14" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="20" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="26" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="14" cy="26" r="2.6" fill="none" stroke-width="2"/><circle cx="26" cy="26" r="2.6" fill="none" stroke-width="2"/><circle cx="20" cy="26" r="2.6" fill="currentColor" stroke="none"/>',
     dames:      '<rect x="6" y="6" width="28" height="28" rx="2" fill="none" stroke-width="3"/><path d="M15.3 6v28M24.7 6v28M6 15.3h28M6 24.7h28" stroke-width="1.6"/><circle cx="20" cy="20" r="4.6" fill="none" stroke-width="2.6"/><circle cx="20" cy="20" r="1.8" fill="none" stroke-width="2"/>',
     puntsicaixes:'<circle cx="10" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="30" r="2" fill="currentColor" stroke="none"/><path d="M10 10h10M10 20h10M10 10v10M20 10v10" fill="none" stroke-width="2.4"/>',
-    reversi:    '<circle cx="20" cy="20" r="13" fill="none" stroke-width="3"/><path d="M20 7a13 13 0 0 1 0 26z" fill="currentColor" stroke="none"/>',
+    // joc d'un sol jugador (block-puzzle): tres blocs en L
+    encaixa:    '<rect x="10" y="9" width="9" height="9" rx="1.5" stroke-width="3"/><rect x="10" y="20" width="9" height="9" rx="1.5" stroke-width="3"/><rect x="20" y="20" width="9" height="9" rx="1.5" stroke-width="3"/>',
   }[id] || '<circle cx="20" cy="20" r="12" fill="none" stroke-width="3"/>';
   return `<svg class="glyph" viewBox="0 0 40 40" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">${g}</svg>`;
 }
