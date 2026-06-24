@@ -756,6 +756,59 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .sopa-word.found { color: var(--accent); text-decoration: line-through; opacity: .6; }
 
 /* ============================================================
+   Encaixa! (block puzzle)
+   ============================================================ */
+.encaixa-head { display: flex; justify-content: space-between; align-items: center; margin: 2px 2px 4px; }
+.encaixa-score { font-family: var(--font-display); font-weight: 800; color: var(--accent); font-size: clamp(22px, 6vw, 32px); }
+
+/* Graella 8×8 quadrada, limitada per amplada I alçada perquè càpiga sense
+   scroll deixant lloc per a la safata. El marc és un box-shadow (no canvia
+   la mida), així cada casella fa exactament amplada/8 i el punter s'hi mapa
+   amb precisió. touch-action: none evita el scroll en arrossegar. */
+.encaixa-board {
+  width: min(100%, calc(100dvh - 280px));
+  aspect-ratio: 1 / 1;
+  margin: 8px auto 0;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  background: var(--paper-2);
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px var(--ink);
+  overflow: hidden;
+  touch-action: none;
+}
+.encaixa-cell {
+  aspect-ratio: 1 / 1; min-width: 0; min-height: 0;
+  background: var(--paper-2);
+  box-shadow: inset 0 0 0 1px var(--paper);
+}
+.encaixa-cell.on { background: var(--accent); box-shadow: inset 0 0 0 1px var(--paper); }
+/* previsualització mentre s'arrossega: verd si encaixa, vermell si no */
+.encaixa-cell.prev-ok  { background: rgba(31, 138, 112, .55); }
+.encaixa-cell.prev-bad { background: rgba(198, 40, 40, .5); }
+/* neteja de línia */
+.encaixa-cell.clearing { animation: encaixa-clear .2s ease forwards; }
+@keyframes encaixa-clear { from { transform: scale(1); opacity: 1; } to { transform: scale(.2); opacity: 0; } }
+
+/* safata amb les 3 peces */
+.encaixa-tray {
+  --pc: clamp(13px, 2.6vh, 18px);
+  display: flex; justify-content: space-around; align-items: center;
+  gap: 10px; margin-top: 14px; min-height: calc(var(--pc) * 5);
+  touch-action: none;
+}
+.encaixa-slot { flex: 1; display: flex; align-items: center; justify-content: center; }
+.encaixa-piece { display: grid; gap: 3px; cursor: grab; touch-action: none; }
+.encaixa-pcell { width: var(--pc); height: var(--pc); border-radius: 3px; }
+.encaixa-pcell.on { background: var(--accent); }
+.encaixa-pcell.off { background: transparent; }
+
+/* peça flotant que segueix el dit/ratolí */
+.encaixa-ghost { position: fixed; left: 0; top: 0; display: grid; gap: 0; pointer-events: none; z-index: 80; opacity: .9; }
+.encaixa-ghost .encaixa-pcell { border-radius: 4px; }
+.encaixa-ghost .encaixa-pcell.on { background: var(--accent); box-shadow: inset 0 0 0 1px var(--paper); }
+
+/* ============================================================
    2048
    ============================================================ */
 .g2048-head { display: flex; justify-content: space-between; align-items: center; margin: 2px 2px 6px; }
