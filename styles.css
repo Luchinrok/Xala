@@ -120,7 +120,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 #app:has(.home) { height: 100dvh; }
 .home { height: 100%; }
 
-/* pantalla inicial: dos modes grans que omplen l'alçada disponible */
+/* pantalla inicial: modes grans que es reparteixen l'alçada disponible */
 .modes {
   display: grid;
   grid-template-columns: 1fr;

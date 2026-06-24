@@ -15,6 +15,12 @@ import sudoku from './sudoku.js';
 import joc2048 from './joc2048.js';
 import sopa from './sopa.js';
 import penjat from './penjat.js';
+import vaixells from './vaixells.js';
+import tresenratlla from './tresenratlla.js';
+import connecta4 from './connecta4.js';
+import dames from './dames.js';
+import puntsicaixes from './puntsicaixes.js';
+import reversi from './reversi.js';
 import { t } from './i18n.js';
 
 // Títol, tagline i instruccions surten dels camps del mòdul de cada joc.
@@ -22,8 +28,9 @@ const gameTitle = (g) => g.title;
 const gameTagline = (g) => g.tagline;
 const gameInstructions = (g) => g.instructions || [];
 
-// Dos catàlegs: jocs de festa (multijugador) i jocs d'un sol jugador.
+// Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
+const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, reversi];
 const SOLO_GAMES = [escacs, memory, sudoku, joc2048, sopa, penjat];
 
 const app = document.getElementById('app');
@@ -115,6 +122,7 @@ function glyph(id) {
     passaparaula:'<circle cx="20" cy="20" r="13" fill="none" stroke-width="3"/><circle cx="20" cy="7" r="2.4"/><circle cx="33" cy="20" r="2.4"/><circle cx="20" cy="33" r="2.4"/><circle cx="7" cy="20" r="2.4"/>',
     // modes de la pantalla inicial
     multi:      '<circle cx="13" cy="13" r="6"/><circle cx="29" cy="15" r="5"/><path d="M3 36c0-6 4-9 10-9s10 3 10 9M21 36c0-5 3-8 8-8s8 3 8 8" fill="none" stroke-width="3"/>',
+    duo:        '<circle cx="13" cy="13" r="6" fill="none" stroke-width="3"/><circle cx="27" cy="13" r="6" fill="none" stroke-width="3"/><path d="M4 36c0-7 4-10 9-10s9 3 9 10" fill="none" stroke-width="3"/><path d="M18 36c0-7 4-10 9-10s9 3 9 10" fill="none" stroke-width="3"/>',
     solo:       '<circle cx="20" cy="13" r="7"/><path d="M7 37c0-9 6-14 13-14s13 5 13 14" fill="none" stroke-width="3"/>',
     // jocs d'un sol jugador
     escacs:     '<circle cx="20" cy="11" r="5" fill="none" stroke-width="3"/><path d="M16 19c-1 4-3 6-5 13h18c-2-7-4-9-5-13z" fill="none" stroke-width="3"/><path d="M9 36h22" stroke-width="3"/>',
@@ -123,6 +131,13 @@ function glyph(id) {
     '2048':     '<rect x="8" y="8" width="24" height="24" rx="5" fill="none" stroke-width="3"/><path d="M20 14v12M15 19l5-5 5 5" fill="none" stroke-width="2.6"/>',
     sopa:       '<rect x="5" y="5" width="22" height="22" rx="2" fill="none" stroke-width="3"/><path d="M12 5v22M19 5v22M5 12h22M5 19h22" stroke-width="1.6"/><circle cx="27" cy="27" r="6" fill="none" stroke-width="3"/><path d="M31.5 31.5l4 4" stroke-width="3"/>',
     penjat:     '<path d="M8 35h16" stroke-width="3"/><path d="M13 35V7h13" fill="none" stroke-width="3"/><path d="M26 7v5" stroke-width="3"/><circle cx="26" cy="16" r="3.5" fill="none" stroke-width="3"/><path d="M26 19v7M26 22l-4 3M26 22l4 3M26 26l-3 5M26 26l3 5" fill="none" stroke-width="2.4"/>',
+    // jocs per a dos
+    vaixells:   '<path d="M7 24h26l-4 9H11z" fill="none" stroke-width="3"/><path d="M20 7v17" stroke-width="3"/><path d="M20 9l8 12h-8z" fill="none" stroke-width="2.6"/><path d="M5 36c2-1.6 4-1.6 6 0s4 1.6 6 0 4-1.6 6 0 4 1.6 6 0" fill="none" stroke-width="2.2"/>',
+    tresenratlla:'<path d="M15.7 7v26M24.3 7v26M7 15.7h26M7 24.3h26" stroke-width="2"/><path d="M8.5 8.8l4.7 4.7M13.2 8.8l-4.7 4.7" stroke-width="2.6"/><circle cx="20" cy="20" r="3" fill="none" stroke-width="2.6"/>',
+    connecta4:  '<rect x="7" y="9" width="26" height="24" rx="3" fill="none" stroke-width="3"/><circle cx="14" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="20" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="26" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="14" cy="26" r="2.6" fill="none" stroke-width="2"/><circle cx="26" cy="26" r="2.6" fill="none" stroke-width="2"/><circle cx="20" cy="26" r="2.6" fill="currentColor" stroke="none"/>',
+    dames:      '<rect x="6" y="6" width="28" height="28" rx="2" fill="none" stroke-width="3"/><path d="M15.3 6v28M24.7 6v28M6 15.3h28M6 24.7h28" stroke-width="1.6"/><circle cx="20" cy="20" r="4.6" fill="none" stroke-width="2.6"/><circle cx="20" cy="20" r="1.8" fill="none" stroke-width="2"/>',
+    puntsicaixes:'<circle cx="10" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="30" r="2" fill="currentColor" stroke="none"/><path d="M10 10h10M10 20h10M10 10v10M20 10v10" fill="none" stroke-width="2.4"/>',
+    reversi:    '<circle cx="20" cy="20" r="13" fill="none" stroke-width="3"/><path d="M20 7a13 13 0 0 1 0 26z" fill="currentColor" stroke="none"/>',
   }[id] || '<circle cx="20" cy="20" r="12" fill="none" stroke-width="3"/>';
   return `<svg class="glyph" viewBox="0 0 40 40" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">${g}</svg>`;
 }
@@ -140,9 +155,13 @@ function goLanding() {
       <p class="tagline">Tria com vols jugar.</p>
     </header>
     <div class="modes">
-      <button class="mode-card" id="mode-mp" style="--c:var(--accent)">
+      <button class="mode-card" id="mode-mp" style="--c:var(--paper-2)">
         <span>${glyph('multi')}</span>
         <div><h3>Multijugador</h3><p>Els 6 jocs de festa: passa el mòbil i a riure.</p></div>
+      </button>
+      <button class="mode-card" id="mode-duo" style="--c:var(--accent)">
+        <span>${glyph('duo')}</span>
+        <div><h3>Dos jugadors</h3><p>6 jocs per a dos, un contra un.</p></div>
       </button>
       <button class="mode-card" id="mode-sp" style="--c:var(--paper-2)">
         <span>${glyph('solo')}</span>
@@ -152,6 +171,7 @@ function goLanding() {
   `;
   app.appendChild(wrap);
   wrap.querySelector('#mode-mp').addEventListener('click', goMultiplayer);
+  wrap.querySelector('#mode-duo').addEventListener('click', goDuo);
   wrap.querySelector('#mode-sp').addEventListener('click', goSingle);
 }
 
@@ -175,6 +195,28 @@ function goMultiplayer() {
   renderGameGrid(wrap.querySelector('#grid'), PARTY_GAMES, goMultiplayer);
   wrap.querySelector('#back').addEventListener('click', goLanding);
   wrap.querySelector('#help').addEventListener('click', () => helpList(PARTY_GAMES, goMultiplayer));
+}
+
+// ---------- graella de jocs per a dos ----------
+function goDuo() {
+  setLevel();
+  setAccent(null);
+  clear();
+  const wrap = document.createElement('div');
+  wrap.className = 'screen home';
+  wrap.innerHTML = `
+    <button class="back" id="back">‹ Enrere</button>
+    <header class="home__head">
+      <div class="brand">Xala<span>!</span></div>
+      <p class="tagline">Jocs per a dos.</p>
+    </header>
+    <div class="grid" id="grid"></div>
+    <button class="btn btn--outline home__help" id="help">${t('home.help')}</button>
+  `;
+  app.appendChild(wrap);
+  renderGameGrid(wrap.querySelector('#grid'), DUO_GAMES, goDuo);
+  wrap.querySelector('#back').addEventListener('click', goLanding);
+  wrap.querySelector('#help').addEventListener('click', () => helpList(DUO_GAMES, goDuo));
 }
 
 // ---------- graella de jocs d'un sol jugador ----------
