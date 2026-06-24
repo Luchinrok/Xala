@@ -809,6 +809,60 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .encaixa-ghost .encaixa-pcell.on { background: var(--accent); box-shadow: inset 0 0 0 1px var(--paper); }
 
 /* ============================================================
+   Enfonsar els vaixells
+   ============================================================ */
+.vx-status {
+  text-align: center; min-height: 1.4em; margin: 2px 0 6px;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(15px, 4.6vw, 21px); color: var(--ink);
+}
+.vx-status.hit { color: var(--accent); }
+
+/* Taulers 10×10 quadrats; el marc és un box-shadow (no canvia la mida),
+   així cada casella fa exactament amplada/10 i el punter s'hi mapa amb
+   precisió. touch-action: none evita el scroll en tocar. */
+.vx-board {
+  width: min(100%, calc(100dvh - 230px));
+  aspect-ratio: 1 / 1;
+  margin: 6px auto 0;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  background: var(--paper-2);
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px var(--ink);
+  overflow: hidden;
+  touch-action: none;
+}
+.vx-board--place { width: min(100%, calc(100dvh - 330px)); }
+.vx-cell {
+  aspect-ratio: 1 / 1; min-width: 0; min-height: 0;
+  background: var(--paper-2);
+  box-shadow: inset 0 0 0 1px var(--paper);
+}
+.vx-cell.ship { background: var(--ink); }                 /* vaixell propi: tinta */
+.vx-cell.aim  { cursor: pointer; }
+.vx-cell.hit  { background: var(--accent); }              /* tocat: corall */
+.vx-cell.sunk { background: #B83A1E; }                    /* enfonsat: corall intens */
+.vx-cell.miss { background: radial-gradient(circle at center, var(--ink) 0 16%, var(--paper-2) 18%); } /* aigua: punt de tinta */
+.vx-cell.prev-ok  { background: rgba(31, 138, 112, .5); }
+.vx-cell.prev-bad { background: rgba(198, 40, 40, .5); }
+
+/* llista de vaixells a col·locar */
+.vx-ships { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
+.vx-ship {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(12px, 3.2vw, 14px);
+  padding: 6px 10px; border: 2px solid var(--ink); border-radius: var(--r-sm);
+  background: var(--paper); color: var(--ink); cursor: pointer;
+}
+.vx-ship b { color: var(--accent); }
+.vx-ship.placed { opacity: .55; }
+.vx-ship.sel { background: var(--accent); color: var(--paper); opacity: 1; }
+.vx-ship.sel b { color: var(--paper); }
+
+.vx-door { cursor: pointer; }
+
+/* ============================================================
    2048
    ============================================================ */
 .g2048-head { display: flex; justify-content: space-between; align-items: center; margin: 2px 2px 6px; }

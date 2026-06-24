@@ -364,7 +364,7 @@ export default {
   ],
 
   mount(root, { goHome }) {
-    let mode = 'cpu';     // 'cpu' | '2p'
+    let mode = '2p';      // 'cpu' | '2p' — per defecte 2 jugadors
     let diff = 'normal';  // 'easy' | 'normal' | 'hard'
 
     let pos = null;
