@@ -118,7 +118,7 @@ export default {
   title: '2048',
   tagline: 'Ajunta els números fins al 2048',
   accent: '#E4572E',
-  color: 'var(--paper-2)',
+  color: '#E4572E',
   ready: true,
 
   instructions: [

@@ -26,10 +26,18 @@ const LEVELS = {
   hard:   { label: 'Difícil', N: 13, count: 12 },
 };
 
-// Les 8 direccions (horitzontal, vertical i diagonal, endavant i enrere).
+// Sentits permesos, sempre cap a la dreta o avall (mai cap a l'esquerra
+// ni de baix a dalt): [dr, dc] amb dc >= 0. Així cada paraula es llegeix
+// sempre en l'ordre natural de col·locació.
+//   [0, 1]  horitzontal esquerra → dreta
+//   [1, 0]  vertical dalt → baix
+//   [1, 1]  diagonal avall-dreta ↘
+//   [-1, 1] diagonal amunt-dreta ↗
 const DIRS = [
-  [0, 1], [0, -1], [1, 0], [-1, 0],
-  [1, 1], [1, -1], [-1, 1], [-1, -1],
+  [0, 1],
+  [1, 0],
+  [1, 1],
+  [-1, 1],
 ];
 
 const fmtTime = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
@@ -104,7 +112,7 @@ export default {
   title: 'Sopa de lletres',
   tagline: 'Troba les paraules amagades',
   accent: '#E4572E',
-  color: 'var(--paper-2)',
+  color: '#E4572E',
   ready: true,
 
   instructions: [
