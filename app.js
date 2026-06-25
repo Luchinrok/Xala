@@ -121,8 +121,10 @@ function glyph(id) {
     aescena:    '<path d="M8 8h24v13c0 8-5 13-12 13S8 29 8 21z" fill="none" stroke-width="3"/><path d="M15 17l3 2M25 17l-3 2" stroke-width="3"/><path d="M15 27c2 2 8 2 10 0" fill="none" stroke-width="3"/>',
     passaparaula:'<circle cx="20" cy="20" r="13" fill="none" stroke-width="3"/><circle cx="20" cy="7" r="2.4"/><circle cx="33" cy="20" r="2.4"/><circle cx="20" cy="33" r="2.4"/><circle cx="7" cy="20" r="2.4"/>',
     // modes de la pantalla inicial
-    multi:      '<circle cx="13" cy="13" r="6"/><circle cx="29" cy="15" r="5"/><path d="M3 36c0-6 4-9 10-9s10 3 10 9M21 36c0-5 3-8 8-8s8 3 8 8" fill="none" stroke-width="3"/>',
-    duo:        '<circle cx="13" cy="13" r="6" fill="none" stroke-width="3"/><circle cx="27" cy="13" r="6" fill="none" stroke-width="3"/><path d="M4 36c0-7 4-10 9-10s9 3 9 10" fill="none" stroke-width="3"/><path d="M18 36c0-7 4-10 9-10s9 3 9 10" fill="none" stroke-width="3"/>',
+    // Multijugador: tres persones (alta, baixa, alta)
+    multi:      '<circle cx="9" cy="12" r="4" stroke-width="3"/><path d="M4 36V24q0-5 5-5t5 5v12" stroke-width="3"/><circle cx="20" cy="17" r="4" stroke-width="3"/><path d="M15 36v-8q0-4 5-4t5 4v8" stroke-width="3"/><circle cx="31" cy="12" r="4" stroke-width="3"/><path d="M26 36V24q0-5 5-5t5 5v12" stroke-width="3"/>',
+    // Dos jugadors: dues persones
+    duo:        '<circle cx="13" cy="13" r="6"/><circle cx="29" cy="15" r="5"/><path d="M3 36c0-6 4-9 10-9s10 3 10 9M21 36c0-5 3-8 8-8s8 3 8 8" fill="none" stroke-width="3"/>',
     solo:       '<circle cx="20" cy="13" r="7"/><path d="M7 37c0-9 6-14 13-14s13 5 13 14" fill="none" stroke-width="3"/>',
     // jocs d'un sol jugador
     escacs:     '<circle cx="20" cy="11" r="5" fill="none" stroke-width="3"/><path d="M16 19c-1 4-3 6-5 13h18c-2-7-4-9-5-13z" fill="none" stroke-width="3"/><path d="M9 36h22" stroke-width="3"/>',

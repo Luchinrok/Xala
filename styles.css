@@ -873,6 +873,43 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .vx-ship.sel b { color: var(--paper); }
 
 /* ============================================================
+   Tres en ratlla
+   ============================================================ */
+.ttt-turn {
+  text-align: center; min-height: 1.5em; margin: 4px 0 10px;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(16px, 4.8vw, 22px); color: var(--ink);
+}
+.ttt-turn .x, .ttt-cell.x { color: var(--accent); }   /* X en corall */
+.ttt-turn .o, .ttt-cell.o { color: var(--ink); }      /* O en tinta */
+
+/* Tauler 3×3 quadrat, limitat per amplada I alçada perquè càpiga sense
+   scroll. El marc i les línies són box-shadow (no canvien la mida). */
+.ttt-board {
+  width: min(86vw, calc(100dvh - 300px), 420px);
+  aspect-ratio: 1 / 1;
+  margin: 8px auto 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--paper-2);
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px var(--ink);
+  overflow: hidden;
+}
+.ttt-cell {
+  aspect-ratio: 1 / 1; min-width: 0; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--paper-2); color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink);     /* línies en tinta */
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(40px, 16vmin, 96px); line-height: 1;
+  cursor: pointer; padding: 0;
+  transition: background .12s ease;
+}
+.ttt-cell:disabled { cursor: default; }
+.ttt-cell.win { background: var(--accent); color: var(--paper); }  /* línia guanyadora */
+
+/* ============================================================
    2048
    ============================================================ */
 .g2048-head { display: flex; justify-content: space-between; align-items: center; margin: 2px 2px 6px; }
