@@ -143,6 +143,23 @@ export default {
       return parts.join(', ');
     }
 
+    // Contorn per al tauler de SEGUIMENT de l'enemic: agrupa les caselles JA
+    // TOCADES del mateix vaixell i separa les de vaixells diferents. Només
+    // mira caselles tocades: NO revela on són els vaixells encara intactes
+    // (la vora cap a un veí intacte és igual que cap a aigua).
+    function hitEdgeShadow(board, r, c) {
+      const idx = board.cellShip[r][c];
+      if (idx === -1) return '';
+      const W = '2.5px', col = 'var(--paper)';
+      const conn = (rr, cc) => inB(rr, cc) && board.cellShip[rr][cc] === idx && board.shots[rr][cc] === 'hit';
+      const parts = [];
+      if (!conn(r - 1, c)) parts.push(`inset 0 ${W} 0 0 ${col}`);
+      if (!conn(r + 1, c)) parts.push(`inset 0 -${W} 0 0 ${col}`);
+      if (!conn(r, c - 1)) parts.push(`inset ${W} 0 0 0 ${col}`);
+      if (!conn(r, c + 1)) parts.push(`inset -${W} 0 0 0 ${col}`);
+      return parts.join(', ');
+    }
+
     const isCpu = () => state.mode === 'cpu';
     function playerName(i) {
       if (isCpu()) return i === 0 ? 'Tu' : 'La màquina';
@@ -190,24 +207,6 @@ export default {
     }
 
     // ============================================================
-    // porta de passada (només 2 jugadors)
-    // ============================================================
-    function screenPass(name, sub, onTap) {
-      root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
-        <div class="spacer"></div>
-        <div class="panel center stack vx-door" id="door">
-          <p class="kicker">${sub}</p>
-          <h2 style="font-size:28px">Passa el mòbil a<br>${name}</h2>
-          <p class="muted">Toca la pantalla quan el tinguis</p>
-        </div>
-        <div class="spacer"></div>
-      `;
-      root.querySelector('#back').onclick = screenConfig;
-      root.querySelector('#door').onclick = onTap;
-    }
-
-    // ============================================================
     // 2) col·locació de la flota
     // ============================================================
     function startSetup() {
@@ -216,18 +215,16 @@ export default {
         randomFleet(state.boards[1]); // la màquina es col·loca a l'atzar
         beginPlacement(0, () => startCombat());
       } else {
-        beginPlacement(0, () => {
-          screenPass(playerName(1), 'Col·locació', () =>
-            beginPlacement(1, () => startCombat()));
-        });
+        // A 2 jugadors: col·loca el Jugador 1 i tot seguit el 2, sense
+        // pantalles de secret (es diu en veu alta on es dispara).
+        beginPlacement(0, () => beginPlacement(1, () => startCombat()));
       }
     }
 
     function beginPlacement(player, onDone) {
       state.sel = firstUnplaced(state.boards[player]);
       state.orient = 'h';
-      if (isCpu()) screenPlacement(player, onDone);
-      else screenPass(playerName(player), 'Col·locació', () => screenPlacement(player, onDone));
+      screenPlacement(player, onDone);
     }
 
     function firstUnplaced(board) {
@@ -390,8 +387,9 @@ export default {
     }
 
     function nextTurn() {
-      if (isCpu()) { screenShoot(0); return; } // a 1P sempre dispares tu primer
-      screenPass(playerName(state.current), 'El teu torn', () => screenShoot(state.current));
+      // Sense porta de passada: es mostra directament el torn del jugador
+      // actual; la capçalera ("Jugador X dispara") indica de qui és el torn.
+      screenShoot(state.current);
     }
 
     // Tauler de seguiment de l'enemic (sense vaixells): es dispara aquí.
@@ -532,6 +530,8 @@ export default {
           else if (s === 'hit') cls += isSunkCell(board, r, c) ? ' sunk' : ' hit';
           else if (interactive) cls += ' aim';
           d.className = cls;
+          // agrupa visualment els tocats del mateix vaixell (només els tocats)
+          if (s === 'hit') d.style.boxShadow = hitEdgeShadow(board, r, c);
           el.appendChild(d);
         }
       }

@@ -872,8 +872,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .vx-ship.sel { background: var(--accent); color: var(--paper); opacity: 1; }
 .vx-ship.sel b { color: var(--paper); }
 
-.vx-door { cursor: pointer; }
-
 /* ============================================================
    2048
    ============================================================ */
