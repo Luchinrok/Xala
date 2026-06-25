@@ -907,6 +907,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   transition: background .12s ease;
 }
 .ttt-cell:disabled { cursor: default; }
+.ttt-cell.sel { box-shadow: inset 0 0 0 4px var(--accent); }       /* fitxa triada */
+.ttt-cell.target { background: rgba(228, 87, 46, .14); }            /* casella destí vàlida */
 .ttt-cell.win { background: var(--accent); color: var(--paper); }  /* línia guanyadora */
 
 /* ============================================================
