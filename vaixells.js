@@ -491,11 +491,15 @@ export default {
         }
       }
       if (interactive && onFire) {
+        let done = false; // un sol tret per torn
         const fire = (e) => {
+          if (done) return;
           const rc = cellFromPoint(el, e.clientX, e.clientY);
           if (!rc) return;
-          if (board.shots[rc[0]][rc[1]] != null) return;
+          if (board.shots[rc[0]][rc[1]] != null) return; // no es repeteix casella
           e.preventDefault();
+          done = true;
+          el.removeEventListener('pointerup', fire); // bloqueja més trets fins al torn següent
           onFire(rc[0], rc[1]);
         };
         el.addEventListener('pointerup', fire);
