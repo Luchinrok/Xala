@@ -108,12 +108,40 @@ export default {
     // recursos de l'arrossegament/preview de col·locació
     let placeBoardEl = null;
     let prevCells = [];
+    let aiTimer = null;   // temporitzadors de la pausa/animació de la màquina
 
+    function clearAiTimer() { if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; } }
     function cleanupPlace() {
       prevCells = [];
       placeBoardEl = null;
+      clearAiTimer();
     }
     function leave() { cleanupPlace(); goHome(); }
+
+    // Animació breu d'impacte a una casella (ona + escala del marcador).
+    function animateImpact(boardEl, r, c) {
+      if (!boardEl) return;
+      const cell = boardEl.children[r * N + c];
+      if (!cell) return;
+      cell.classList.add('vx-impact', 'vx-pop');
+      setTimeout(() => { cell.classList.remove('vx-impact', 'vx-pop'); }, 600);
+    }
+
+    // Contorn (box-shadow per costats) que delimita cada vaixell sencer: es
+    // dibuixa la vora només als costats que NO toquen el mateix vaixell, de
+    // manera que dos vaixells adjacents queden separats per les seves vores.
+    function shipEdgeShadow(board, r, c) {
+      const idx = board.cellShip[r][c];
+      if (idx === -1) return '';
+      const W = '2.5px', col = 'var(--paper)';
+      const same = (rr, cc) => inB(rr, cc) && board.cellShip[rr][cc] === idx;
+      const parts = [];
+      if (!same(r - 1, c)) parts.push(`inset 0 ${W} 0 0 ${col}`);
+      if (!same(r + 1, c)) parts.push(`inset 0 -${W} 0 0 ${col}`);
+      if (!same(r, c - 1)) parts.push(`inset ${W} 0 0 0 ${col}`);
+      if (!same(r, c + 1)) parts.push(`inset -${W} 0 0 0 ${col}`);
+      return parts.join(', ');
+    }
 
     const isCpu = () => state.mode === 'cpu';
     function playerName(i) {
@@ -241,7 +269,9 @@ export default {
       for (let r = 0; r < N; r++) {
         for (let c = 0; c < N; c++) {
           const d = document.createElement('div');
-          d.className = 'vx-cell' + (board.cellShip[r][c] !== -1 ? ' ship' : '');
+          const ship = board.cellShip[r][c] !== -1;
+          d.className = 'vx-cell' + (ship ? ' ship' : '');
+          if (ship) d.style.boxShadow = shipEdgeShadow(board, r, c);
           d.dataset.r = r; d.dataset.c = c;
           placeBoardEl.appendChild(d);
         }
@@ -366,6 +396,7 @@ export default {
 
     // Tauler de seguiment de l'enemic (sense vaixells): es dispara aquí.
     function screenShoot(shooter) {
+      clearAiTimer();
       const opp = state.boards[1 - shooter];
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
@@ -385,6 +416,7 @@ export default {
       if (!res) return; // ja s'hi havia disparat
       const tb = root.querySelector('#tboard');
       renderTrackBoard(tb, opp, false, null); // congela el tauler
+      animateImpact(tb, r, c);                // anima on ha caigut el tret
       setStatus(res);
       if (allSunk(opp)) { endGame(shooter); return; }
       const ctl = root.querySelector('#ctl');
@@ -407,6 +439,7 @@ export default {
 
     // ---------- torn de la màquina (mode 1 jugador) ----------
     function machineTurn() {
+      clearAiTimer();
       const mine = state.boards[0];
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
@@ -418,19 +451,31 @@ export default {
       root.querySelector('#back').onclick = screenConfig;
       renderOwnBoard(root.querySelector('#oboard'), mine);
 
-      const [r, c] = aiChooseShot(mine);
-      const res = fireAt(mine, r, c);
-      aiUpdate(mine, r, c, res);
-      renderOwnBoard(root.querySelector('#oboard'), mine);
-      const el = root.querySelector('#status');
-      if (res.result === 'miss') { el.textContent = `La màquina dispara… Aigua`; el.className = 'vx-status'; }
-      else if (res.result === 'hit') { el.textContent = `La màquina et toca un vaixell!`; el.className = 'vx-status hit'; }
-      else { el.textContent = `La màquina t'enfonsa el ${res.ship.name}!`; el.className = 'vx-status hit'; }
+      // Pausa "d'apuntar" perquè es vegi el torn, i després el tret animat.
+      aiTimer = setTimeout(() => {
+        aiTimer = null;
+        const ob = root.querySelector('#oboard');
+        if (!ob) return; // s'ha sortit de la pantalla mentrestant
+        const [r, c] = aiChooseShot(mine);
+        const res = fireAt(mine, r, c);
+        aiUpdate(mine, r, c, res);
+        renderOwnBoard(ob, mine);
+        animateImpact(ob, r, c);
+        const el = root.querySelector('#status');
+        if (res.result === 'miss') { el.textContent = `La màquina dispara… Aigua`; el.className = 'vx-status'; }
+        else if (res.result === 'hit') { el.textContent = `La màquina et toca un vaixell!`; el.className = 'vx-status hit'; }
+        else { el.textContent = `La màquina t'enfonsa el ${res.ship.name}!`; el.className = 'vx-status hit'; }
 
-      if (allSunk(mine)) { endGame(1); return; }
-      const ctl = root.querySelector('#ctl');
-      ctl.innerHTML = `<button class="btn btn--accent" id="cont">Continua</button>`;
-      ctl.querySelector('#cont').onclick = () => screenShoot(0);
+        if (allSunk(mine)) { aiTimer = setTimeout(() => endGame(1), 800); return; }
+        // deixa veure l'impacte abans d'oferir continuar
+        aiTimer = setTimeout(() => {
+          aiTimer = null;
+          const ctl = root.querySelector('#ctl');
+          if (!ctl) return;
+          ctl.innerHTML = `<button class="btn btn--accent" id="cont">Continua</button>`;
+          ctl.querySelector('#cont').onclick = () => screenShoot(0);
+        }, 550);
+      }, 850);
     }
 
     // IA "buscar i rematar": prova la pila d'objectius; si no, caça per parets.
@@ -519,6 +564,8 @@ export default {
           else if (s === 'miss') cls += ' miss';
           else if (hasShip) cls += ' ship';
           d.className = cls;
+          // contorn de cada vaixell (també sota els impactes) per delimitar-lo
+          if (hasShip) d.style.boxShadow = shipEdgeShadow(board, r, c);
           el.appendChild(d);
         }
       }
