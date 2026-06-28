@@ -123,10 +123,10 @@ function glyph(id) {
     // modes de la pantalla inicial. Cada persona té el mateix estil que
     // "solo" (cap = cercle separat + cos = espatlles obertes en arc); només
     // canvia el nombre. Coordenades de l'SVG 64×64 escalades a 40×40 (×0.625).
-    // Multijugador: tres persones (alta, baixa, alta)
-    multi:      '<circle cx="8.125" cy="12.5" r="3.4375"/><path d="M2.5 27.5 Q2.5 20.625 8.125 20.625 Q13.75 20.625 13.75 27.5" stroke-width="3"/><circle cx="20" cy="16.875" r="3.4375"/><path d="M14.375 27.5 Q14.375 23.75 20 23.75 Q25.625 23.75 25.625 27.5" stroke-width="3"/><circle cx="31.875" cy="12.5" r="3.4375"/><path d="M26.25 27.5 Q26.25 20.625 31.875 20.625 Q37.5 20.625 37.5 27.5" stroke-width="3"/>',
-    // Dos jugadors: dues persones
-    duo:        '<circle cx="13.75" cy="13.75" r="3.75"/><path d="M7.5 27.5 Q7.5 20.625 13.75 20.625 Q20 20.625 20 27.5" stroke-width="3"/><circle cx="26.25" cy="13.75" r="3.75"/><path d="M20 27.5 Q20 20.625 26.25 20.625 Q32.5 20.625 32.5 27.5" stroke-width="3"/>',
+    // Multijugador: tres persones (dues grans als costats + una petita al mig)
+    multi:      '<circle cx="8.125" cy="13.125" r="4.0625"/><path d="M1.875 28.125 Q1.875 20.625 8.125 20.625 Q14.375 20.625 14.375 28.125" stroke-width="3"/><circle cx="20" cy="17.5" r="2.8125"/><path d="M15.625 28.125 Q15.625 23.75 20 23.75 Q24.375 23.75 24.375 28.125" stroke-width="3"/><circle cx="31.875" cy="13.125" r="4.0625"/><path d="M25.625 28.125 Q25.625 20.625 31.875 20.625 Q38.125 20.625 38.125 28.125" stroke-width="3"/>',
+    // Dos jugadors: una gran + una petita
+    duo:        '<circle cx="12.5" cy="12.5" r="4.375"/><path d="M5.625 28.125 Q5.625 20 12.5 20 Q19.375 20 19.375 28.125" stroke-width="3"/><circle cx="28.125" cy="16.25" r="3.125"/><path d="M23.125 28.125 Q23.125 22.5 28.125 22.5 Q33.125 22.5 33.125 28.125" stroke-width="3"/>',
     solo:       '<circle cx="20" cy="13" r="7"/><path d="M7 37c0-9 6-14 13-14s13 5 13 14" fill="none" stroke-width="3"/>',
     // jocs d'un sol jugador
     escacs:     '<circle cx="20" cy="11" r="5" fill="none" stroke-width="3"/><path d="M16 19c-1 4-3 6-5 13h18c-2-7-4-9-5-13z" fill="none" stroke-width="3"/><path d="M9 36h22" stroke-width="3"/>',

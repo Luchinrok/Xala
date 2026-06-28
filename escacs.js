@@ -373,6 +373,7 @@ export default {
     let allLegal = [];        // totes les jugades legals del torn
     let gameOver = false;
     let animating = false;    // bloqueja l'entrada mentre llisca una peça
+    let confirming = false;   // mostra la confirmació de rendir-se
 
     // Retard abans que la màquina mogui, perquè es vegi que "pensa".
     const AI_DELAY = 750;
@@ -425,9 +426,11 @@ export default {
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker center" id="status">El teu torn — blanques</p>
         <div class="chess-board" id="board"></div>
+        <div id="controls" class="center" style="margin-top:12px"></div>
         <div id="endbox"></div>
       `;
       root.querySelector('#back').onclick = () => { gameOver = true; screenConfig(); };
+      resetControls();
       const boardEl = root.querySelector('#board');
       boardEl.addEventListener('click', (e) => {
         const b = e.target.closest('.sq');
@@ -456,8 +459,38 @@ export default {
       boardEl.innerHTML = html;
     }
 
+    // ---------- rendir-se ----------
+    // Mostra el botó "Rendir-se" durant la partida.
+    function resetControls() {
+      const ctl = root.querySelector('#controls');
+      if (!ctl) return;
+      ctl.innerHTML = `<button class="btn btn--outline" id="resign">Rendir-se</button>`;
+      ctl.querySelector('#resign').onclick = askResign;
+    }
+    // Demana confirmació abans de rendir-se.
+    function askResign() {
+      if (gameOver) return;
+      confirming = true;
+      const ctl = root.querySelector('#controls');
+      ctl.innerHTML = `
+        <div class="panel center stack" style="margin-top:4px;--stack-gap:12px">
+          <p style="font-weight:700">Segur que et vols rendir?</p>
+          <div class="btn-row">
+            <button class="btn btn--accent" id="ryes">Sí</button>
+            <button class="btn btn--outline" id="rno">No</button>
+          </div>
+        </div>`;
+      ctl.querySelector('#ryes').onclick = () => { confirming = false; doResign(); };
+      ctl.querySelector('#rno').onclick = () => { confirming = false; resetControls(); };
+    }
+    function doResign() {
+      if (gameOver) return;
+      gameOver = true;
+      endScreen('resign');
+    }
+
     function handleClick(r, c) {
-      if (gameOver || animating) return;
+      if (gameOver || animating || confirming) return;
       if (mode === 'cpu' && pos.turn === 'b') return; // torn de la IA
       const cell = pos.board[r][c];
       if (selected) {
@@ -592,6 +625,10 @@ export default {
 
     // ---------- 3) final ----------
     function endScreen(kind) {
+      // treu el botó de rendir-se / la confirmació
+      const ctl = root.querySelector('#controls');
+      if (ctl) ctl.innerHTML = '';
+
       let title, sub;
       if (kind === 'mate') {
         const loser = pos.turn;                    // qui ha de moure i no pot
@@ -605,6 +642,17 @@ export default {
           sub = 'Escac i mat.';
         }
         setStatus('Escac i mat');
+      } else if (kind === 'resign') {
+        // a 1 jugador es rendeix sempre el jugador (blanques); a 2 jugadors,
+        // el bàndol que té el torn.
+        const loser = mode === 'cpu' ? 'w' : pos.turn;
+        const winner = loser === 'w' ? 'b' : 'w';
+        if (mode === 'cpu') { title = 'Perds!'; sub = 'T\'has rendit.'; }
+        else {
+          title = winner === 'w' ? 'Guanyen les blanques!' : 'Guanyen les negres!';
+          sub = (loser === 'w' ? 'Les blanques' : 'Les negres') + ' s\'han rendit.';
+        }
+        setStatus('Rendició');
       } else {
         title = 'Taules'; sub = 'Rei ofegat: ningú no guanya.';
         setStatus('Taules');
