@@ -120,13 +120,13 @@ function glyph(id) {
     quiprobable:'<circle cx="13" cy="13" r="6"/><circle cx="29" cy="15" r="5"/><path d="M3 36c0-6 4-9 10-9s10 3 10 9M21 36c0-5 3-8 8-8s8 3 8 8" fill="none" stroke-width="3"/>',
     aescena:    '<path d="M8 8h24v13c0 8-5 13-12 13S8 29 8 21z" fill="none" stroke-width="3"/><path d="M15 17l3 2M25 17l-3 2" stroke-width="3"/><path d="M15 27c2 2 8 2 10 0" fill="none" stroke-width="3"/>',
     passaparaula:'<circle cx="20" cy="20" r="13" fill="none" stroke-width="3"/><circle cx="20" cy="7" r="2.4"/><circle cx="33" cy="20" r="2.4"/><circle cx="20" cy="33" r="2.4"/><circle cx="7" cy="20" r="2.4"/>',
-    // modes de la pantalla inicial (mateix estil: cap = cercle + espatlles
-    // arrodonides; només canvia el nombre de persones). Coordenades de
-    // l'SVG 64×64 escalades al viewBox 40×40 (×0.625).
+    // modes de la pantalla inicial. Cada persona té el mateix estil que
+    // "solo" (cap = cercle separat + cos = espatlles obertes en arc); només
+    // canvia el nombre. Coordenades de l'SVG 64×64 escalades a 40×40 (×0.625).
     // Multijugador: tres persones (alta, baixa, alta)
-    multi:      '<circle cx="8.125" cy="11.875" r="3.125" stroke-width="3"/><path d="M3.125 29.375 Q3.125 19.375 8.125 19.375 Q13.125 19.375 13.125 29.375" stroke-width="3"/><circle cx="20" cy="15.625" r="3.125" stroke-width="3"/><path d="M15 29.375 Q15 23.125 20 23.125 Q25 23.125 25 29.375" stroke-width="3"/><circle cx="31.875" cy="11.875" r="3.125" stroke-width="3"/><path d="M26.875 29.375 Q26.875 19.375 31.875 19.375 Q36.875 19.375 36.875 29.375" stroke-width="3"/>',
+    multi:      '<circle cx="8.125" cy="12.5" r="3.4375"/><path d="M2.5 27.5 Q2.5 20.625 8.125 20.625 Q13.75 20.625 13.75 27.5" stroke-width="3"/><circle cx="20" cy="16.875" r="3.4375"/><path d="M14.375 27.5 Q14.375 23.75 20 23.75 Q25.625 23.75 25.625 27.5" stroke-width="3"/><circle cx="31.875" cy="12.5" r="3.4375"/><path d="M26.25 27.5 Q26.25 20.625 31.875 20.625 Q37.5 20.625 37.5 27.5" stroke-width="3"/>',
     // Dos jugadors: dues persones
-    duo:        '<circle cx="13.75" cy="11.875" r="3.125" stroke-width="3"/><path d="M8.75 29.375 Q8.75 19.375 13.75 19.375 Q18.75 19.375 18.75 29.375" stroke-width="3"/><circle cx="26.25" cy="11.875" r="3.125" stroke-width="3"/><path d="M21.25 29.375 Q21.25 19.375 26.25 19.375 Q31.25 19.375 31.25 29.375" stroke-width="3"/>',
+    duo:        '<circle cx="13.75" cy="13.75" r="3.75"/><path d="M7.5 27.5 Q7.5 20.625 13.75 20.625 Q20 20.625 20 27.5" stroke-width="3"/><circle cx="26.25" cy="13.75" r="3.75"/><path d="M20 27.5 Q20 20.625 26.25 20.625 Q32.5 20.625 32.5 27.5" stroke-width="3"/>',
     solo:       '<circle cx="20" cy="13" r="7"/><path d="M7 37c0-9 6-14 13-14s13 5 13 14" fill="none" stroke-width="3"/>',
     // jocs d'un sol jugador
     escacs:     '<circle cx="20" cy="11" r="5" fill="none" stroke-width="3"/><path d="M16 19c-1 4-3 6-5 13h18c-2-7-4-9-5-13z" fill="none" stroke-width="3"/><path d="M9 36h22" stroke-width="3"/>',
