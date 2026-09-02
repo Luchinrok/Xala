@@ -557,13 +557,12 @@ export default {
     function selectAt(r, c) {
       selected = [r, c];
       legalForSel = allLegal.filter(m => m.fr[0] === r && m.fr[1] === c);
-      // Si estàs en escac, marca amb × on aniria la peça però la deixaria el
-      // rei en escac (moviments pseudolegals que NO són legals).
-      crossForSel = [];
-      if (inCheck(pos, pos.turn)) {
-        const pseudo = genPseudo(pos).filter(m => m.fr[0] === r && m.fr[1] === c);
-        crossForSel = pseudo.filter(pm => !legalForSel.some(lm => lm.to[0] === pm.to[0] && lm.to[1] === pm.to[1]));
-      }
+      // Marca SEMPRE amb × les caselles on la peça podria anar pel seu
+      // moviment però que són IL·LEGALS perquè deixarien el propi rei en escac
+      // (clavades). No cal estar en escac. Els moviments pseudolegals que NO
+      // són legals són, precisament, aquests.
+      const pseudo = genPseudo(pos).filter(m => m.fr[0] === r && m.fr[1] === c);
+      crossForSel = pseudo.filter(pm => !legalForSel.some(lm => lm.to[0] === pm.to[0] && lm.to[1] === pm.to[1]));
       renderBoard();
     }
 
