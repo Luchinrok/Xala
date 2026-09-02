@@ -388,6 +388,7 @@ export default {
     let gameOver = false;
     let animating = false;    // bloqueja l'entrada mentre llisca una peça
     let confirming = false;   // mostra la confirmació de rendir-se
+    let promoting = false;    // mostra el diàleg de coronació (bloqueja el joc)
 
     // Retard abans que la màquina mogui, perquè es vegi que "pensa".
     const AI_DELAY = 750;
@@ -429,6 +430,7 @@ export default {
       selected = null;
       legalForSel = [];
       crossForSel = [];
+      promoting = false;
       gameOver = false;
       animating = false;
       screenBoard();
@@ -526,13 +528,15 @@ export default {
     }
 
     function handleClick(r, c) {
-      if (gameOver || animating || confirming) return;
+      if (gameOver || animating || confirming || promoting) return;
       if (mode === 'cpu' && pos.turn === 'b') return; // torn de la IA
       const cell = pos.board[r][c];
       if (selected) {
         // Tornar a tocar la peça seleccionada: la deselecciona.
         if (selected[0] === r && selected[1] === c) { deselect(); return; }
         const mv = legalForSel.find(m => m.to[0] === r && m.to[1] === c);
+        // Coronació: el jugador humà tria la peça abans de completar la jugada.
+        if (mv && mv.promo) { selected = null; legalForSel = []; crossForSel = []; renderBoard(); askPromotion(mv); return; }
         if (mv) { playMove(mv); return; }
         // Les caselles amb creueta (×) no són clicables: no s'hi pot moure.
         if (crossForSel.some(m => m.to[0] === r && m.to[1] === c)) return;
@@ -565,6 +569,38 @@ export default {
 
     function playMove(mv) {
       makeMove(mv);
+    }
+
+    // Diàleg de coronació: mostra Dama, Torre, Alfil i Cavall (del color del
+    // peó). El joc no continua fins que el jugador en tria una. La màquina
+    // (negres, a 1 jugador) NO passa mai per aquí: corona automàticament a
+    // dama perquè pickAIMove ja tria jugades amb promo 'Q'.
+    function askPromotion(mv) {
+      promoting = true;
+      const color = pos.turn; // el peó que corona és del bàndol que mou ara
+      const names = { Q: 'Dama', R: 'Torre', B: 'Alfil', N: 'Cavall' };
+      const overlay = document.createElement('div');
+      overlay.className = 'promo-overlay';
+      overlay.innerHTML = `
+        <div class="promo-dialog">
+          <p class="promo-title">Corona el peó</p>
+          <div class="promo-opts">
+            ${['Q', 'R', 'B', 'N'].map(t => `
+              <button class="promo-opt" data-t="${t}" aria-label="${names[t]}">
+                <span class="promo-glyph">${GLYPH[color][t]}</span>
+                <span class="promo-name">${names[t]}</span>
+              </button>`).join('')}
+          </div>
+        </div>`;
+      root.appendChild(overlay);
+      overlay.querySelectorAll('.promo-opt').forEach(b => {
+        b.onclick = () => {
+          if (!promoting) return;
+          promoting = false;
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          playMove({ ...mv, promo: b.dataset.t });
+        };
+      });
     }
 
     // Aplica un moviment. La LÒGICA del joc (detecció de mat/taules i torn

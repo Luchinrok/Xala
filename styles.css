@@ -578,6 +578,35 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   75% { transform: translateX(3px) rotate(7deg); }
 }
 
+/* diàleg de coronació: tria de peça (dama/torre/alfil/cavall) */
+.promo-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, .35);
+  animation: rise .18s ease both;
+}
+.promo-dialog {
+  background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-md);
+  box-shadow: var(--shadow); padding: 18px; width: min(88vw, 340px);
+}
+.promo-title {
+  font-family: var(--font-display); font-weight: 800; font-size: 18px;
+  text-align: center; margin: 0 0 14px; color: var(--ink);
+}
+.promo-opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.promo-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: var(--paper-2); border: 2px solid var(--ink); border-radius: var(--r-sm);
+  padding: 12px 4px; cursor: pointer;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.promo-opt:active { transform: translateY(3px); }
+.promo-glyph {
+  font-size: 32px; line-height: 1; color: var(--ink);
+  font-family: 'Segoe UI Symbol', 'Noto Sans Symbols2', 'Apple Symbols', 'Symbola', system-ui, sans-serif;
+}
+.promo-name { font-size: 12px; font-weight: 700; color: var(--ink); }
+
 /* ============================================================
    Memory (parelles)
    ============================================================ */
