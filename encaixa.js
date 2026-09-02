@@ -57,7 +57,25 @@ const SHAPES = [
 ];
 
 const randShape = () => SHAPES[Math.floor(Math.random() * SHAPES.length)];
-const newTray = () => [randShape(), randShape(), randShape()];
+
+// Paleta de colors ben distingibles i llegibles sobre la graella beix.
+// corall, verd, groc mostassa, blau, lila, un to fosc i un de clar.
+const COLORS = ['#E4572E', '#1F8A70', '#D4A017', '#2E6DB4', '#7E5AA2', '#33404D', '#E58FB0'];
+
+// Tria n colors DISTINTS de la paleta (sense repetir).
+function pickColors(n) {
+  const pool = COLORS.slice();
+  const out = [];
+  for (let i = 0; i < n && pool.length; i++) out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  return out;
+}
+
+// Safata de 3 peces; cada peça és { shape, color } i les 3 tenen colors
+// diferents entre elles.
+function newTray() {
+  const cols = pickColors(3);
+  return [randShape(), randShape(), randShape()].map((shape, i) => ({ shape, color: cols[i] }));
+}
 
 // Dimensions (files, columnes) de la caixa contenidora d'una forma.
 function dims(shape) {
@@ -91,8 +109,9 @@ export default {
     };
     let board = null;
     let ghost = null;
-    let drag = null;     // { index, shape, cell, rect } durant l'arrossegament
+    let drag = null;     // { index, shape, color, cell, rect } durant l'arrossegament
     let prevCells = [];  // caselles ressaltades en la previsualització
+    let hintCells = [];  // caselles de fila/columna que es completaria (animades)
 
     function cleanup() {
       endDrag();
@@ -168,7 +187,9 @@ export default {
         const row = [];
         for (let c = 0; c < SIZE; c++) {
           const d = document.createElement('div');
-          d.className = 'encaixa-cell' + (state.grid[r][c] ? ' on' : '');
+          const v = state.grid[r][c];
+          d.className = 'encaixa-cell' + (v ? ' on' : '');
+          if (v) d.style.setProperty('--cell-color', v); // color de la peça col·locada
           board.appendChild(d);
           row.push(d);
         }
@@ -179,19 +200,20 @@ export default {
     function renderTray() {
       const tray = root.querySelector('#tray');
       tray.innerHTML = '';
-      state.tray.forEach((shape, i) => {
+      state.tray.forEach((piece, i) => {
         const slot = document.createElement('div');
         slot.className = 'encaixa-slot';
-        if (shape) slot.appendChild(buildPiece(shape, i));
+        if (piece) slot.appendChild(buildPiece(piece.shape, i, piece.color));
         tray.appendChild(slot);
       });
     }
 
     // Construeix l'element d'una peça de la safata (graella petita).
-    function buildPiece(shape, index) {
+    function buildPiece(shape, index, color) {
       const { rows, cols } = dims(shape);
       const el = document.createElement('div');
       el.className = 'encaixa-piece';
+      el.style.setProperty('--cell-color', color);
       el.style.gridTemplateColumns = `repeat(${cols}, var(--pc))`;
       const filled = new Set(shape.map(([r, c]) => r * cols + c));
       for (let r = 0; r < rows; r++) {
@@ -214,11 +236,12 @@ export default {
     function startDrag(e, index) {
       if (state.over || !state.tray[index]) return;
       e.preventDefault();
-      const shape = state.tray[index];
+      const piece = state.tray[index];
+      const shape = piece.shape;
       const rect = board.getBoundingClientRect();
       const cell = rect.width / SIZE;           // mida exacta de casella (sense vores)
-      drag = { index, shape, cell, rect };
-      buildGhost(shape, cell);
+      drag = { index, shape, color: piece.color, cell, rect };
+      buildGhost(shape, cell, piece.color);
       positionGhost(e.clientX, e.clientY);
       updatePreview(e.clientX, e.clientY);
       window.addEventListener('pointermove', onMove, { passive: false });
@@ -236,11 +259,11 @@ export default {
     function onEnd(e) {
       if (!drag) return;
       e.preventDefault();
-      const { shape, index } = drag;
+      const { shape, index, color } = drag;
       const p = placementAt(e.clientX, e.clientY);
       endDrag();
       if (p.fits) {
-        placeShape(shape, p.r, p.c);
+        placeShape(shape, p.r, p.c, color);
         state.tray[index] = null;
         renderBoard();
         afterPlace(shape.length);
@@ -257,11 +280,12 @@ export default {
       drag = null;
     }
 
-    function buildGhost(shape, cell) {
+    function buildGhost(shape, cell, color) {
       if (ghost) ghost.remove();
       const { rows, cols } = dims(shape);
       ghost = document.createElement('div');
       ghost.className = 'encaixa-ghost';
+      ghost.style.setProperty('--cell-color', color);
       ghost.style.gridTemplateColumns = `repeat(${cols}, ${cell}px)`;
       const filled = new Set(shape.map(([r, c]) => r * cols + c));
       for (let r = 0; r < rows; r++) {
@@ -310,6 +334,33 @@ export default {
         el.classList.add(fits ? 'prev-ok' : 'prev-bad');
         prevCells.push([rr, cc]);
       });
+      // Si en aquesta posició es completaria alguna fila/columna, ressalta-la
+      // sencera amb una animació perquè es vegi abans de deixar anar la peça.
+      if (fits) {
+        completingCells(drag.shape, r, c).forEach(([rr, cc]) => {
+          state.cellEls[rr][cc].classList.add('line-hint');
+          hintCells.push([rr, cc]);
+        });
+      }
+    }
+
+    // Caselles de les files/columnes que quedarien completes si es col·loca
+    // la forma a (originR, originC). Buit si no se'n completa cap.
+    function completingCells(shape, originR, originC) {
+      const placed = new Set(shape.map(([dr, dc]) => (originR + dr) * SIZE + (originC + dc)));
+      const filled = (r, c) => state.grid[r][c] || placed.has(r * SIZE + c);
+      const cells = [];
+      for (let r = 0; r < SIZE; r++) {
+        let full = true;
+        for (let c = 0; c < SIZE; c++) if (!filled(r, c)) { full = false; break; }
+        if (full) for (let c = 0; c < SIZE; c++) cells.push([r, c]);
+      }
+      for (let c = 0; c < SIZE; c++) {
+        let full = true;
+        for (let r = 0; r < SIZE; r++) if (!filled(r, c)) { full = false; break; }
+        if (full) for (let r = 0; r < SIZE; r++) cells.push([r, c]);
+      }
+      return cells;
     }
 
     function clearPreview() {
@@ -317,7 +368,12 @@ export default {
         const el = state.cellEls[r] && state.cellEls[r][c];
         if (el) el.classList.remove('prev-ok', 'prev-bad');
       });
+      hintCells.forEach(([r, c]) => {
+        const el = state.cellEls[r] && state.cellEls[r][c];
+        if (el) el.classList.remove('line-hint');
+      });
       prevCells = [];
+      hintCells = [];
     }
 
     // ---------- lògica del tauler ----------
@@ -330,8 +386,8 @@ export default {
       return true;
     }
 
-    function placeShape(shape, originR, originC) {
-      for (const [dr, dc] of shape) state.grid[originR + dr][originC + dc] = 1;
+    function placeShape(shape, originR, originC, color) {
+      for (const [dr, dc] of shape) state.grid[originR + dr][originC + dc] = color;
     }
 
     function canPlaceSomewhere(shape) {
@@ -382,7 +438,7 @@ export default {
     function finishMove() {
       if (state.tray.every(s => !s)) state.tray = newTray();
       renderTray();
-      const alive = state.tray.some(s => s && canPlaceSomewhere(s));
+      const alive = state.tray.some(s => s && canPlaceSomewhere(s.shape));
       if (!alive) finish();
     }
 
