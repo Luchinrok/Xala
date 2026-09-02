@@ -983,6 +983,77 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .ttt-cell.win { background: var(--accent); color: var(--paper); }  /* línia guanyadora */
 
 /* ============================================================
+   Connecta 4 (7×6 vertical)
+   ============================================================ */
+.c4-turn {
+  text-align: center; min-height: 1.5em; margin: 4px 0 8px;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(16px, 4.8vw, 22px); color: var(--ink);
+}
+.c4-turn .p1 { color: var(--accent); }   /* jugador 1 en corall */
+.c4-turn .p2 { color: #2E6DB4; }         /* jugador 2 / màquina en blau */
+
+/* Amplada limitada per l'alçada perquè el tauler (7:6) càpiga sense scroll. */
+.c4 { width: min(94vw, calc((100dvh - 260px) * 7 / 6), 460px); margin: 4px auto 0; }
+/* fletxes alineades amb les columnes */
+.c4-arrows { display: grid; grid-template-columns: repeat(7, 1fr); }
+.c4-arrow {
+  background: none; border: 0; padding: 2px 0; cursor: pointer;
+  font-size: clamp(14px, 3.4vw, 20px); line-height: 1;
+  color: var(--accent);
+  transition: transform .1s ease, opacity .1s ease;
+}
+.c4-arrow.p1 { color: var(--accent); }
+.c4-arrow.p2 { color: #2E6DB4; }
+.c4-arrow:not(:disabled):active { transform: translateY(2px); }
+.c4-arrow:disabled { opacity: .22; cursor: default; }
+
+.c4-board {
+  width: 100%; aspect-ratio: 7 / 6;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  background: var(--paper-2);
+  border-radius: 8px;
+  box-shadow: 0 0 0 3px var(--ink);
+  overflow: hidden;
+  touch-action: manipulation;
+}
+.c4-cell {
+  position: relative; min-width: 0; min-height: 0; cursor: pointer;
+}
+/* forat buit: cercle en beix clar retallat al tauler */
+.c4-cell::before {
+  content: ''; position: absolute; inset: 11%;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .06);
+}
+/* fitxa: ocupa tota la casella (per a la caiguda); el disc és el ::after */
+.c4-piece { position: absolute; inset: 0; z-index: 1; }
+.c4-piece::after {
+  content: ''; position: absolute; inset: 10%;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .16), inset 0 3px 0 rgba(255, 255, 255, .22);
+}
+.c4-piece.p1 { color: var(--accent); }
+.c4-piece.p2 { color: #2E6DB4; }
+/* caiguda: comença (r+1) caselles per damunt i baixa fins al seu lloc */
+.c4-piece.drop { animation: c4drop .43s cubic-bezier(.33, .05, .45, 1); }
+@keyframes c4drop {
+  from { transform: translateY(calc(var(--drop, 6) * -100%)); }
+  to   { transform: translateY(0); }
+}
+/* fitxes guanyadores: anella en tinta i pulsació */
+.c4-piece.win { z-index: 2; }
+.c4-piece.win::after {
+  box-shadow: 0 0 0 3px var(--ink), inset 0 0 0 3px rgba(255, 255, 255, .5);
+  animation: c4win .6s ease-in-out infinite alternate;
+}
+@keyframes c4win { from { filter: brightness(1); } to { filter: brightness(1.4); } }
+
+/* ============================================================
    2048
    ============================================================ */
 .g2048-head { display: flex; justify-content: space-between; align-items: center; margin: 2px 2px 6px; }
