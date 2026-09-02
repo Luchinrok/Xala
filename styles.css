@@ -547,6 +547,36 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .dot { position: absolute; z-index: 1; width: 26%; height: 26%; border-radius: 50%; background: var(--ink); opacity: .4; }
 /* anella de jugada legal (captura) */
 .dot--cap { width: 82%; height: 82%; background: transparent; border: 3px solid var(--ink); opacity: .4; }
+/* creueta: on aniria la peça però et deixaria en escac (no clicable) */
+.cross { position: absolute; z-index: 2; color: #d21f1f; opacity: .8; font-weight: 800;
+  font-size: 66%; line-height: 1; pointer-events: none; }
+
+/* capçalera del tauler: enrere a l'esquerra, marcador a la dreta */
+.chess-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.chess-top .back { margin-bottom: 18px; align-self: center; }
+/* marcador d'avantatge de material (estil Duolingo: pastilla SENSE vores) */
+.chess-score {
+  font-family: var(--font-display); font-weight: 800; font-size: 15px;
+  color: var(--ink); background: var(--paper-2); border: 0; border-radius: 999px;
+  padding: 7px 14px; line-height: 1; white-space: nowrap; box-shadow: none;
+}
+.chess-score:empty { display: none; }
+
+/* rei en escac: la casella parpelleja en vermell i la peça fa una sacsejada */
+.sq--check::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  animation: chessCheck .55s ease-in-out 0s 6 alternate;
+}
+.sq--check .piece { animation: chessShake .42s ease-in-out 0s 3; }
+@keyframes chessCheck {
+  from { background: rgba(210, 31, 31, 0); box-shadow: inset 0 0 0 3px rgba(210, 31, 31, 0); }
+  to   { background: rgba(210, 31, 31, .5); box-shadow: inset 0 0 0 4px rgba(210, 31, 31, .95); }
+}
+@keyframes chessShake {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-3px) rotate(-7deg); }
+  75% { transform: translateX(3px) rotate(7deg); }
+}
 
 /* ============================================================
    Memory (parelles)

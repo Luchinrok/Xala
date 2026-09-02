@@ -24,6 +24,19 @@ const GLYPH = {
 const VAL = { P: 100, N: 320, B: 330, R: 500, Q: 900, K: 20000 };
 const MATE = 1000000;
 
+// Valors "clàssics" per al marcador d'avantatge de material (estil Duolingo).
+const SCORE_VAL = { P: 1, N: 3, B: 3, R: 5, Q: 9, K: 0 };
+// Diferència de material: >0 avantatge blanques, <0 avantatge negres.
+function materialDiff(board) {
+  let d = 0;
+  for (let r = 0; r < 8; r++)
+    for (let c = 0; c < 8; c++) {
+      const x = board[r][c];
+      if (x) d += (x.c === 'w' ? 1 : -1) * SCORE_VAL[x.t];
+    }
+  return d;
+}
+
 // Taules indexades [r][c] amb r=0 a dalt (fila 8) i r=7 a baix (fila 1).
 // Per a una peça negra es fa servir la taula reflectida: PST[t][7-r][c].
 const PST = {
@@ -370,6 +383,7 @@ export default {
     let pos = null;
     let selected = null;      // [r,c] de la peça triada
     let legalForSel = [];     // jugades legals de la peça triada
+    let crossForSel = [];     // jugades que deixarien el rei en escac (× no clicables)
     let allLegal = [];        // totes les jugades legals del torn
     let gameOver = false;
     let animating = false;    // bloqueja l'entrada mentre llisca una peça
@@ -414,6 +428,7 @@ export default {
       pos = initialPos();
       selected = null;
       legalForSel = [];
+      crossForSel = [];
       gameOver = false;
       animating = false;
       screenBoard();
@@ -423,7 +438,10 @@ export default {
     // ---------- 2) tauler ----------
     function screenBoard() {
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <div class="chess-top">
+          <button class="back" id="back">‹ Enrere</button>
+          <div id="score" class="chess-score"></div>
+        </div>
         <p class="kicker center" id="status">El teu torn — blanques</p>
         <div class="chess-board" id="board"></div>
         <div id="controls" class="center" style="margin-top:12px"></div>
@@ -442,7 +460,10 @@ export default {
 
     function renderBoard() {
       const boardEl = root.querySelector('#board');
-      if (!boardEl) return;
+      if (!boardEl) { updateScore(); return; }
+      // Rei en escac: es marca la seva casella perquè parpellegi en vermell.
+      const check = inCheck(pos, pos.turn);
+      const kingPos = check ? findKing(pos.board, pos.turn) : null;
       let html = '';
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
@@ -450,13 +471,28 @@ export default {
           const piece = pos.board[r][c];
           const sel = selected && selected[0] === r && selected[1] === c;
           const target = legalForSel.some(m => m.to[0] === r && m.to[1] === c);
+          const cross = crossForSel.some(m => m.to[0] === r && m.to[1] === c);
+          const kingCheck = kingPos && kingPos[0] === r && kingPos[1] === c;
           let inner = '';
           if (piece) inner += `<span class="piece">${GLYPH[piece.c][piece.t]}</span>`;
           if (target) inner += piece ? '<span class="dot dot--cap"></span>' : '<span class="dot"></span>';
-          html += `<button class="sq ${light ? 'sq--light' : 'sq--dark'}${sel ? ' sq--sel' : ''}" data-r="${r}" data-c="${c}">${inner}</button>`;
+          else if (cross) inner += '<span class="cross">✕</span>';
+          let cls = light ? 'sq--light' : 'sq--dark';
+          if (sel) cls += ' sq--sel';
+          if (kingCheck) cls += ' sq--check';
+          html += `<button class="sq ${cls}" data-r="${r}" data-c="${c}">${inner}</button>`;
         }
       }
       boardEl.innerHTML = html;
+      updateScore();
+    }
+
+    // Marcador d'avantatge de material (dalt a la dreta). Buit si estan iguals.
+    function updateScore() {
+      const el = root.querySelector('#score');
+      if (!el || !pos) return;
+      const d = materialDiff(pos.board);
+      el.textContent = d === 0 ? '' : `${d > 0 ? 'Blanques' : 'Negres'} +${Math.abs(d)}`;
     }
 
     // ---------- rendir-se ----------
@@ -494,18 +530,36 @@ export default {
       if (mode === 'cpu' && pos.turn === 'b') return; // torn de la IA
       const cell = pos.board[r][c];
       if (selected) {
+        // Tornar a tocar la peça seleccionada: la deselecciona.
+        if (selected[0] === r && selected[1] === c) { deselect(); return; }
         const mv = legalForSel.find(m => m.to[0] === r && m.to[1] === c);
         if (mv) { playMove(mv); return; }
+        // Les caselles amb creueta (×) no són clicables: no s'hi pot moure.
+        if (crossForSel.some(m => m.to[0] === r && m.to[1] === c)) return;
         if (cell && cell.c === pos.turn) selectAt(r, c);
-        else { selected = null; legalForSel = []; renderBoard(); }
+        else deselect();
       } else if (cell && cell.c === pos.turn) {
         selectAt(r, c);
       }
     }
 
+    function deselect() {
+      selected = null;
+      legalForSel = [];
+      crossForSel = [];
+      renderBoard();
+    }
+
     function selectAt(r, c) {
       selected = [r, c];
       legalForSel = allLegal.filter(m => m.fr[0] === r && m.fr[1] === c);
+      // Si estàs en escac, marca amb × on aniria la peça però la deixaria el
+      // rei en escac (moviments pseudolegals que NO són legals).
+      crossForSel = [];
+      if (inCheck(pos, pos.turn)) {
+        const pseudo = genPseudo(pos).filter(m => m.fr[0] === r && m.fr[1] === c);
+        crossForSel = pseudo.filter(pm => !legalForSel.some(lm => lm.to[0] === pm.to[0] && lm.to[1] === pm.to[1]));
+      }
       renderBoard();
     }
 
@@ -518,16 +572,16 @@ export default {
     // cosmètica i no bloqueja mai l'avenç de la partida.
     function makeMove(mv) {
       const mover = pos.turn;
-      const from = mv.fr, to = mv.to, type = mv.t;
       pos = applyMove(pos, mv);
       selected = null;
       legalForSel = [];
+      crossForSel = [];
       renderBoard();
       // L'animació és NOMÉS cosmètica i va aïllada en un try/catch: passi el
       // que passi, mai no ha de poder impedir que s'executi la lògica del torn.
       animating = true;
       try {
-        animateMove(from, to, type, mover, () => { animating = false; });
+        animateMove(mv, mover, () => { animating = false; });
       } catch (e) {
         animating = false;
       }
@@ -562,19 +616,36 @@ export default {
       }
     }
 
-    // Animació cosmètica: llisca la peça de l'origen al destí. El cavall fa
-    // el recorregut en forma d'L (dos trams: primer el tram llarg, després
-    // el curt), no en diagonal recta.
-    function animateMove(from, to, type, mover, done) {
+    // Animació cosmètica d'un moviment. Normalment és un sol "vol" (la peça
+    // que es mou), però en l'ENROC llisquen ALHORA dues peces: el rei fins a
+    // la seva casella i la torre fins al seu costat, saltant per sobre.
+    function animateMove(mv, mover, done) {
       const boardEl = root.querySelector('#board');
       const size = boardEl ? boardEl.clientWidth / 8 : 0;
       if (!boardEl || !size) { done(); return; } // sense layout: salta l'animació
+      const at = (r, c) => `translate(${c * size}px, ${r * size}px)`;
+
+      const flights = [{ from: mv.fr, to: mv.to, type: mv.t }];
+      if (mv.castle) {
+        const row = mv.fr[0];
+        if (mv.castle === 'K') flights.push({ from: [row, 7], to: [row, 5], type: 'R' });
+        else flights.push({ from: [row, 0], to: [row, 3], type: 'R' });
+      }
+
+      let pending = flights.length;
+      const oneDone = () => { if (--pending <= 0) done(); };
+      for (const f of flights) animateFlight(boardEl, size, at, f.from, f.to, f.type, mover, oneDone);
+    }
+
+    // Llisca UNA peça de l'origen al destí. El cavall fa el recorregut en
+    // forma d'L (dos trams: primer el tram llarg, després el curt), no en
+    // diagonal recta.
+    function animateFlight(boardEl, size, at, from, to, type, mover, done) {
       // amaga la peça real al destí mentre llisca el clon
       const destCell = boardEl.children[to[0] * 8 + to[1]];
       const destPiece = destCell && destCell.querySelector('.piece');
       if (destPiece) destPiece.style.visibility = 'hidden';
 
-      const at = (r, c) => `translate(${c * size}px, ${r * size}px)`;
       const fly = document.createElement('div');
       fly.className = 'anim-piece';
       fly.textContent = GLYPH[mover][type];
