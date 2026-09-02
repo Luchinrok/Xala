@@ -84,6 +84,34 @@ function dims(shape) {
   return { rows: r + 1, cols: c + 1 };
 }
 
+// ---------- desat de la partida en curs (localStorage) ----------
+// Guarda graella, safata i puntuació perquè es pugui continuar més tard.
+const SAVE_KEY = 'xala_encaixa_save';
+
+function saveGame(state) {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ grid: state.grid, tray: state.tray, score: state.score }));
+  } catch (e) { /* sense persistència: continuem igualment */ }
+}
+function clearGame() {
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* */ }
+}
+// Retorna { grid, tray, score } si hi ha un desat vàlid, o null. Mai llança.
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || typeof s.score !== 'number') return null;
+    if (!Array.isArray(s.grid) || s.grid.length !== SIZE) return null;
+    if (s.grid.some(row => !Array.isArray(row) || row.length !== SIZE)) return null;
+    if (!Array.isArray(s.tray) || s.tray.length !== 3) return null;
+    if (s.tray.some(p => p && (!Array.isArray(p.shape) || typeof p.color !== 'string'))) return null;
+    return s;
+  } catch (e) { return null; }
+}
+const hasSavedGame = () => loadGame() != null;
+
 export default {
   id: 'encaixa',
   title: 'Encaixa!',
@@ -121,6 +149,11 @@ export default {
     // ---------- 1) configuració ----------
     function screenConfig() {
       cleanup();
+      const saved = hasSavedGame();
+      const buttons = saved
+        ? `<button class="btn btn--accent" id="continue" style="margin-top:24px">Continuar partida</button>
+           <button class="btn btn--outline" id="new" style="margin-top:12px">Nova partida</button>`
+        : `<button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>`;
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Encaixa!</p>
@@ -128,11 +161,16 @@ export default {
         <p class="muted" style="margin-bottom:6px">Arrossega les peces a la graella i omple files o columnes senceres per netejar-les. S'acaba quan cap peça hi cap.</p>
         <button class="btn btn--outline" id="record" style="margin-top:16px">Rècord</button>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>
+        ${buttons}
       `;
       root.querySelector('#back').onclick = leave;
       root.querySelector('#record').onclick = screenRecord;
-      root.querySelector('#start').onclick = beginGame;
+      if (saved) {
+        root.querySelector('#continue').onclick = continueGame;
+        root.querySelector('#new').onclick = beginGame;
+      } else {
+        root.querySelector('#start').onclick = beginGame;
+      }
     }
 
     // ---------- rècord ----------
@@ -152,12 +190,25 @@ export default {
       root.querySelector('#back').onclick = screenConfig;
     }
 
-    // ---------- arrenca la partida ----------
+    // ---------- arrenca una partida NOVA (esborra el desat) ----------
     function beginGame() {
       cleanup();
+      clearGame();
       state.grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
       state.tray = newTray();
       state.score = 0;
+      state.over = false;
+      screenGame();
+    }
+
+    // ---------- continua la partida desada ----------
+    function continueGame() {
+      cleanup();
+      const s = loadGame();
+      if (!s) { beginGame(); return; } // desat invàlid: comença de nou
+      state.grid = s.grid;
+      state.tray = s.tray;
+      state.score = s.score;
       state.over = false;
       screenGame();
     }
@@ -178,6 +229,7 @@ export default {
       renderBoard();
       renderTray();
       paintScore();
+      saveGame(state); // desa l'estat en entrar (partida nova o continuada)
     }
 
     function renderBoard() {
@@ -439,13 +491,15 @@ export default {
       if (state.tray.every(s => !s)) state.tray = newTray();
       renderTray();
       const alive = state.tray.some(s => s && canPlaceSomewhere(s.shape));
-      if (!alive) finish();
+      if (!alive) { finish(); return; }
+      saveGame(state); // desa l'estat (settled) després de cada jugada
     }
 
     // ---------- 3) fi ----------
     function finish() {
       state.over = true;
       cleanup();
+      clearGame(); // partida acabada: esborra el desat
       const prev = getRecord('encaixa');
       const isRecord = prev == null || state.score > prev;
       if (isRecord) setRecord('encaixa', state.score);
