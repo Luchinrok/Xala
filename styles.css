@@ -1073,6 +1073,51 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 @keyframes c4win { from { filter: brightness(1); } to { filter: brightness(1.4); } }
 
 /* ============================================================
+   Dames (draughts)
+   ============================================================ */
+.dm-turn {
+  text-align: center; min-height: 1.5em; margin: 4px 0 8px;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(16px, 4.8vw, 22px); color: var(--ink);
+}
+.dm-turn .p1 { color: var(--accent); }   /* jugador 1 en corall */
+.dm-turn .p2 { color: var(--ok); }        /* jugador 2 / màquina en verd */
+
+/* tauler 8×8 quadrat, limitat per l'alçada perquè càpiga sense scroll */
+.dm-board {
+  width: min(94vw, calc(100dvh - 250px), 460px);
+  aspect-ratio: 1 / 1; margin: 4px auto 0;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  border-radius: 8px; box-shadow: 0 0 0 3px var(--ink); overflow: hidden;
+  touch-action: manipulation;
+}
+.dm-cell { position: relative; min-width: 0; min-height: 0; }
+.dm-cell.light { background: var(--paper-2); } /* caselles clares (no es juga) */
+.dm-cell.dark  { background: var(--accent); }  /* caselles fosques (de joc) */
+.dm-cell.can, .dm-cell.sel { cursor: pointer; }
+
+/* fitxa: disc amb anell crema perquè es distingeixi de la casella */
+.dm-piece {
+  position: absolute; inset: 12%; border-radius: 50%; z-index: 1;
+  box-shadow: inset 0 0 0 3px var(--paper), inset 0 0 0 4px rgba(0, 0, 0, .12), 0 2px 3px rgba(0, 0, 0, .28);
+}
+.dm-piece.p1 { background: var(--accent); }
+.dm-piece.p2 { background: var(--ok); }
+/* dama: anell interior crema (corona) */
+.dm-piece.king::after {
+  content: ''; position: absolute; inset: 26%; border-radius: 50%; border: 3px solid var(--paper);
+}
+/* fitxa triable / triada: anell en tinta */
+.dm-cell.can .dm-piece { box-shadow: inset 0 0 0 3px var(--paper), 0 0 0 3px var(--ink), 0 2px 3px rgba(0, 0, 0, .28); }
+.dm-cell.sel .dm-piece { box-shadow: inset 0 0 0 3px var(--paper), 0 0 0 4px var(--ink), 0 2px 4px rgba(0, 0, 0, .3); }
+
+/* destinacions: punt (moviment) o anella discontínua (captura) */
+.dm-dot { position: absolute; inset: 34%; border-radius: 50%; background: rgba(255, 255, 255, .8); z-index: 2; pointer-events: none; }
+.dm-cap { position: absolute; inset: 14%; border-radius: 50%; border: 3px dashed var(--paper); z-index: 2; pointer-events: none; }
+
+/* ============================================================
    2048
    ============================================================ */
 .g2048-head { display: flex; justify-content: space-between; align-items: center; margin: 2px 2px 6px; }
