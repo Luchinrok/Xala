@@ -217,8 +217,29 @@ function loadGame() {
 }
 const hasSavedGame = () => loadGame() != null;
 
+// Primers moviments de PISTA: per a cada peça encara a la safata, totes les
+// posicions on col·locar-la de manera que la RESTA de peces encara es puguin
+// posar totes (mateixa comprovació per simulació que garanteix el trio). Cada
+// moviment retornat forma part d'una solució sencera, així seguir pistes mai
+// porta a perdre. Retorna [{ trayIndex, r, c, shape }].
+function hintFirstMoves(grid, tray) {
+  const occ = occFromGrid(grid);
+  const rem = [];
+  tray.forEach((p, i) => { if (p) rem.push({ shape: p.shape, i }); });
+  const shapes = rem.map(x => x.shape);
+  const moves = [];
+  for (let k = 0; k < rem.length; k++) {
+    const shape = rem[k].shape;
+    const others = shapes.slice(0, k).concat(shapes.slice(k + 1));
+    for (const [r, c] of validPositions(occ, shape)) {
+      if (canPlaceAll(placeAndClear(occ, shape, r, c), others)) moves.push({ trayIndex: rem[k].i, r, c, shape });
+    }
+  }
+  return moves;
+}
+
 // Exports nominals (per a proves; el navegador només usa el default).
-export { initialGrid, solvableTray, canPlaceAll, occFromGrid, buildSolvableShapes, anyFullLine };
+export { initialGrid, solvableTray, canPlaceAll, occFromGrid, buildSolvableShapes, anyFullLine, hintFirstMoves };
 
 export default {
   id: 'encaixa',
@@ -248,9 +269,12 @@ export default {
     let drag = null;     // { index, shape, color, cell, rect } durant l'arrossegament
     let prevCells = [];  // caselles ressaltades en la previsualització
     let hintCells = [];  // caselles de fila/columna que es completaria (animades)
+    let hintMarked = []; // caselles marcades per la PISTA
+    let hintIdx = 0;     // índex per anar mostrant pistes diferents
 
     function cleanup() {
       endDrag();
+      hintMarked = []; hintIdx = 0;
     }
     function leave() { cleanup(); goHome(); }
 
@@ -326,18 +350,50 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <div class="encaixa-head">
-          <span class="kicker">Punts</span>
-          <span class="encaixa-score" id="score">0</span>
+          <span><span class="kicker">Punts</span> <span class="encaixa-score" id="score">0</span></span>
+          <button class="btn btn--outline" id="hint" style="width:auto;padding:9px 18px;font-size:16px;box-shadow:none">Pista</button>
         </div>
         <div class="encaixa-board" id="board"></div>
         <div class="encaixa-tray" id="tray"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
+      root.querySelector('#hint').onclick = showHint;
       board = root.querySelector('#board');
       renderBoard();
       renderTray();
       paintScore();
       saveGame(state); // desa l'estat en entrar (partida nova o continuada)
+    }
+
+    // ---------- pista ----------
+    // Marca una col·locació vàlida (que forma part d'una solució sencera) i
+    // destaca la peça corresponent. No col·loca res; l'arrossegues tu. Prémer
+    // repetidament va mostrant altres col·locacions vàlides.
+    function showHint() {
+      if (state.over) return;
+      const moves = hintFirstMoves(state.grid, state.tray);
+      clearHint();
+      if (!moves.length) return; // cap pista segura disponible
+      const mv = moves[hintIdx % moves.length];
+      hintIdx = (hintIdx + 1) % moves.length;
+      mv.shape.forEach(([dr, dc]) => {
+        const rr = mv.r + dr, cc = mv.c + dc;
+        const el = state.cellEls[rr] && state.cellEls[rr][cc];
+        if (el) { el.classList.add('hint'); hintMarked.push([rr, cc]); }
+      });
+      const tray = root.querySelector('#tray');
+      const slot = tray && tray.children[mv.trayIndex];
+      if (slot) slot.classList.add('hint');
+    }
+
+    function clearHint() {
+      hintMarked.forEach(([r, c]) => {
+        const el = state.cellEls[r] && state.cellEls[r][c];
+        if (el) el.classList.remove('hint');
+      });
+      hintMarked = [];
+      const tray = root.querySelector('#tray');
+      if (tray) tray.querySelectorAll('.encaixa-slot.hint').forEach(s => s.classList.remove('hint'));
     }
 
     function renderBoard() {
@@ -396,6 +452,7 @@ export default {
     function startDrag(e, index) {
       if (state.over || !state.tray[index]) return;
       e.preventDefault();
+      clearHint(); // treu la pista en començar a arrossegar
       const piece = state.tray[index];
       const shape = piece.shape;
       const rect = board.getBoundingClientRect();
@@ -573,6 +630,7 @@ export default {
 
     // Després de col·locar: puntua, neteja línies (animat) i comprova el final.
     function afterPlace(placedCells) {
+      hintMarked = []; hintIdx = 0; // la pista deixa de ser vàlida en col·locar
       state.score += placedCells; // +1 per bloc col·locat
       const { rows, cols } = fullLines();
       const lines = rows.length + cols.length;

@@ -857,6 +857,16 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   0%, 100% { box-shadow: inset 0 0 0 1px rgba(255, 213, 74, .6); filter: brightness(1); }
   50%      { box-shadow: inset 0 0 0 3px #ffd54a; filter: brightness(1.25); }
 }
+/* PISTA: caselles on aniria la peça suggerida; parpelleja entre verd i corall */
+.encaixa-cell.hint { animation: encaixa-hint .7s ease-in-out infinite; z-index: 2; }
+@keyframes encaixa-hint {
+  0%, 100% { background: rgba(31, 138, 112, .4); box-shadow: inset 0 0 0 2px var(--ok); }
+  50%      { background: rgba(228, 87, 46, .5); box-shadow: inset 0 0 0 3px var(--accent); }
+}
+/* PISTA: la peça destacada a la safata pulsa */
+.encaixa-slot.hint .encaixa-piece { animation: encaixa-hintpiece .7s ease-in-out infinite; }
+@keyframes encaixa-hintpiece { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
 /* neteja de línia */
 .encaixa-cell.clearing { animation: encaixa-clear .2s ease forwards; }
 @keyframes encaixa-clear { from { transform: scale(1); opacity: 1; } to { transform: scale(.2); opacity: 0; } }
