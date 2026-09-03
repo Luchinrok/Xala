@@ -7,7 +7,7 @@
 // IA (jugador 2): minimax amb poda alfa-beta i avaluació per finestres de 4;
 // prioritza guanyar i bloquejar el rival.
 //
-// Jugador 1 = corall (--accent); Jugador 2 / màquina = blau. Forats i tauler
+// Jugador 1 = corall (--accent); Jugador 2 / màquina = verd. Forats i tauler
 // en beix, marc en tinta. Cap negre.
 // ============================================================
 
@@ -143,7 +143,7 @@ export default {
 
   instructions: [
     'Toca una columna: la fitxa cau fins a baix de tot.',
-    'Per torns, jugador 1 (corall) i jugador 2 o màquina (blau).',
+    'Per torns, jugador 1 (corall) i jugador 2 o màquina (verd).',
     'Fes 4 fitxes seguides en horitzontal, vertical o diagonal.',
     'Si s\'omple el tauler sense 4 en línia, és empat.',
   ],
@@ -152,7 +152,7 @@ export default {
     const state = {
       mode: '2p',            // 'cpu' | '2p' (per defecte 2 jugadors)
       grid: emptyBoard(),
-      turn: 1,               // 1 = corall, 2 = blau/màquina
+      turn: 1,               // 1 = corall, 2 = verd/màquina
       over: false,
       winCells: null,
       draw: false,
@@ -194,8 +194,8 @@ export default {
       const info = () => {
         const el = root.querySelector('#modeinfo');
         if (el) el.textContent = isCpu()
-          ? 'Tu jugues amb les fitxes corall; la màquina, amb les blaves.'
-          : 'Jugador 1 amb les fitxes corall i jugador 2 amb les blaves.';
+          ? 'Tu jugues amb les fitxes corall; la màquina, amb les verdes.'
+          : 'Jugador 1 amb les fitxes corall i jugador 2 amb les verdes.';
       };
       info();
       root.querySelector('#back').onclick = leave;

@@ -9,7 +9,7 @@
 // 2 jugadors al mateix mòbil o 1 jugador contra la màquina (heurística:
 // guanya si pot, bloqueja les amenaces i, si no, juga posicional).
 //
-// X = jugador 1 (corall), O = jugador 2 / màquina (tinta).
+// X = jugador 1 (corall), O = jugador 2 / màquina (blau).
 // ============================================================
 
 // Les 8 línies guanyadores (índexs 0..8 del tauler en fila).

@@ -952,7 +952,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   font-size: clamp(16px, 4.8vw, 22px); color: var(--ink);
 }
 .ttt-turn .x, .ttt-cell.x { color: var(--accent); }   /* X en corall */
-.ttt-turn .o, .ttt-cell.o { color: var(--ink); }      /* O en tinta */
+.ttt-turn .o, .ttt-cell.o { color: #2E6DB4; }         /* O en blau */
 
 /* Tauler 3×3 quadrat, limitat per amplada I alçada perquè càpiga sense
    scroll. El marc i les línies són box-shadow (no canvien la mida). */
@@ -991,7 +991,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   font-size: clamp(16px, 4.8vw, 22px); color: var(--ink);
 }
 .c4-turn .p1 { color: var(--accent); }   /* jugador 1 en corall */
-.c4-turn .p2 { color: #2E6DB4; }         /* jugador 2 / màquina en blau */
+.c4-turn .p2 { color: var(--ok); }       /* jugador 2 / màquina en verd */
 
 /* Amplada limitada per l'alçada perquè el tauler (7:6) càpiga sense scroll. */
 .c4 { width: min(94vw, calc((100dvh - 260px) * 7 / 6), 460px); margin: 4px auto 0; }
@@ -1004,7 +1004,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   transition: transform .1s ease, opacity .1s ease;
 }
 .c4-arrow.p1 { color: var(--accent); }
-.c4-arrow.p2 { color: #2E6DB4; }
+.c4-arrow.p2 { color: var(--ok); }
 .c4-arrow:not(:disabled):active { transform: translateY(2px); }
 .c4-arrow:disabled { opacity: .22; cursor: default; }
 
@@ -1038,7 +1038,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .16), inset 0 3px 0 rgba(255, 255, 255, .22);
 }
 .c4-piece.p1 { color: var(--accent); }
-.c4-piece.p2 { color: #2E6DB4; }
+.c4-piece.p2 { color: var(--ok); }
 /* caiguda: comença (r+1) caselles per damunt i baixa fins al seu lloc */
 .c4-piece.drop { animation: c4drop .43s cubic-bezier(.33, .05, .45, 1); }
 @keyframes c4drop {
