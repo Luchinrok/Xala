@@ -263,6 +263,7 @@ export default {
       cellEls: [],       // SIZE×SIZE elements
       score: 0,
       over: false,
+      newRecord: false,  // s'ha superat el rècord en aquesta partida
     };
     let board = null;
     let ghost = null;
@@ -270,12 +271,13 @@ export default {
     let prevCells = [];  // caselles ressaltades en la previsualització
     let hintCells = [];  // caselles de fila/columna que es completaria (animades)
     let hintMarked = []; // caselles marcades per la PISTA
-    let hintIdx = 0;     // índex per anar mostrant pistes diferents
     let hintPick = false; // mode "tria una peça per a la pista"
+    let hintPiece = null; // índex de la peça de la pista actual (per rotar)
+    let hintRot = 0;      // quina col·locació d'aquella peça es mostra
 
     function cleanup() {
       endDrag();
-      hintMarked = []; hintIdx = 0; hintPick = false;
+      hintMarked = []; hintPick = false; hintPiece = null; hintRot = 0;
     }
     function leave() { cleanup(); goHome(); }
 
@@ -331,6 +333,7 @@ export default {
       state.tray = solvableTray(state.grid); // trio sempre col·locable
       state.score = 0;
       state.over = false;
+      state.newRecord = false;
       screenGame();
     }
 
@@ -343,6 +346,7 @@ export default {
       state.tray = s.tray;
       state.score = s.score;
       state.over = false;
+      state.newRecord = false;
       screenGame();
     }
 
@@ -351,7 +355,10 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <div class="encaixa-head">
-          <span><span class="kicker">Punts</span> <span class="encaixa-score" id="score">0</span></span>
+          <div class="encaixa-stats">
+            <span><span class="kicker">Punts</span> <span class="encaixa-score" id="score">0</span></span>
+            <span><span class="kicker">Rècord</span> <span class="encaixa-best" id="best">—</span></span>
+          </div>
           <button class="btn btn--outline" id="hint" style="width:auto;padding:9px 18px;font-size:16px;box-shadow:none">Pista</button>
         </div>
         <div class="encaixa-board" id="board"></div>
@@ -372,9 +379,10 @@ export default {
     // posar totes (part d'una solució sencera), així seguir-la no fa perdre.
     function toggleHintPick() {
       if (state.over) return;
-      if (hintPick) { exitHintPick(); return; } // segona pulsació: cancel·la
+      if (hintPick) { exitHintPick(); return; } // segona pulsació: surt del mode pista
       clearHintMarks();
       hintPick = true;
+      hintPiece = null; hintRot = 0;
       const tray = root.querySelector('#tray');
       if (tray) Array.from(tray.children).forEach((slot, i) => { if (state.tray[i]) slot.classList.add('pickable'); });
       const btn = root.querySelector('#hint');
@@ -383,21 +391,25 @@ export default {
 
     function exitHintPick() {
       hintPick = false;
+      hintPiece = null; hintRot = 0;
+      clearHintMarks();
       const tray = root.querySelector('#tray');
       if (tray) tray.querySelectorAll('.encaixa-slot.pickable').forEach(s => s.classList.remove('pickable'));
       const btn = root.querySelector('#hint');
       if (btn) { btn.textContent = 'Pista'; btn.classList.remove('btn--accent'); btn.classList.add('btn--outline'); }
     }
 
-    // Peça `index` triada per a la pista: mostra'n una col·locació segura. Si
-    // no en té cap (no forma part de cap solució ara), es queda en mode tria.
+    // Toc sobre la peça `index` estant en mode pista. Mostra UNA col·locació
+    // vàlida (part d'una solució sencera). Si és la MATEIXA peça, rota a la
+    // següent col·locació (i torna a començar en acabar); si és una ALTRA peça,
+    // comença per la seva primera. Es queda en mode pista.
     function chooseHintPiece(index) {
       const moves = hintFirstMoves(state.grid, state.tray).filter(m => m.trayIndex === index);
       if (!moves.length) return; // aquesta peça no encaixa en cap solució: tria'n una altra
-      exitHintPick();
+      if (hintPiece === index) hintRot = (hintRot + 1) % moves.length; // mateixa peça: rota
+      else { hintPiece = index; hintRot = 0; }                          // peça nova: primera
       clearHintMarks();
-      const mv = moves[hintIdx % moves.length];
-      hintIdx++; // si tornes a demanar la mateixa peça, alterna col·locació
+      const mv = moves[hintRot % moves.length];
       mv.shape.forEach(([dr, dc]) => {
         const rr = mv.r + dr, cc = mv.c + dc;
         const el = state.cellEls[rr] && state.cellEls[rr][cc];
@@ -468,23 +480,32 @@ export default {
     function paintScore() {
       const el = root.querySelector('#score');
       if (el) el.textContent = state.score;
+      // Rècord en viu: si superes el millor desat, s'actualitza i queda desat.
+      if (state.score > 0) {
+        const rec = getRecord('encaixa');
+        if (rec == null || state.score > rec) { setRecord('encaixa', state.score); state.newRecord = true; }
+      }
+      const b = root.querySelector('#best');
+      if (b) { const rec = getRecord('encaixa'); b.textContent = rec != null ? rec : '—'; }
     }
 
     // ---------- arrossegament (tàctil + ratolí) ----------
     function startDrag(e, index) {
       if (state.over || !state.tray[index]) return;
       e.preventDefault();
-      // En mode pista, tocar una peça la TRIA per a la pista (no l'arrossega).
-      if (hintPick) { chooseHintPiece(index); return; }
-      clearHintMarks(); // treu la pista en començar a arrossegar
       const piece = state.tray[index];
       const shape = piece.shape;
       const rect = board.getBoundingClientRect();
       const cell = rect.width / SIZE;           // mida exacta de casella (sense vores)
-      drag = { index, shape, color: piece.color, cell, rect };
-      buildGhost(shape, cell, piece.color);
-      positionGhost(e.clientX, e.clientY);
-      updatePreview(e.clientX, e.clientY);
+      // pickMode: en mode pista NO arrenca el ghost; esperem a veure si és un
+      // TOC (tria la pista) o un ARROSSEGAMENT (col·loca i surt del mode pista).
+      drag = { index, shape, color: piece.color, cell, rect, startX: e.clientX, startY: e.clientY, moved: false, pickMode: hintPick };
+      if (!hintPick) {
+        clearHintMarks(); // arrossegament normal: treu la pista mostrada
+        buildGhost(shape, cell, piece.color);
+        positionGhost(e.clientX, e.clientY);
+        updatePreview(e.clientX, e.clientY);
+      }
       window.addEventListener('pointermove', onMove, { passive: false });
       window.addEventListener('pointerup', onEnd);
       window.addEventListener('pointercancel', onEnd);
@@ -493,6 +514,14 @@ export default {
     function onMove(e) {
       if (!drag) return;
       e.preventDefault();
+      // En mode pista, cal moure's un mínim perquè es consideri arrossegament.
+      if (drag.pickMode && !drag.moved) {
+        if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 8) return;
+        drag.pickMode = false;   // s'ha convertit en arrossegament
+        exitHintPick();          // surt del mode pista
+        buildGhost(drag.shape, drag.cell, drag.color);
+      }
+      drag.moved = true;
       positionGhost(e.clientX, e.clientY);
       updatePreview(e.clientX, e.clientY);
     }
@@ -501,6 +530,8 @@ export default {
       if (!drag) return;
       e.preventDefault();
       const { shape, index, color } = drag;
+      // Toc en mode pista (sense arrossegar): tria/rota la pista d'aquesta peça.
+      if (drag.pickMode && !drag.moved) { endDrag(); chooseHintPiece(index); return; }
       const p = placementAt(e.clientX, e.clientY);
       endDrag();
       if (p.fits) {
@@ -654,7 +685,7 @@ export default {
 
     // Després de col·locar: puntua, neteja línies (animat) i comprova el final.
     function afterPlace(placedCells) {
-      hintMarked = []; hintIdx = 0; hintPick = false; // la pista deixa de ser vàlida en col·locar
+      hintMarked = []; hintPick = false; hintPiece = null; hintRot = 0; // la pista deixa de ser vàlida en col·locar
       state.score += placedCells; // +1 per bloc col·locat
       const { rows, cols } = fullLines();
       const lines = rows.length + cols.length;
@@ -690,9 +721,8 @@ export default {
       state.over = true;
       cleanup();
       clearGame(); // partida acabada: esborra el desat
-      const prev = getRecord('encaixa');
-      const isRecord = prev == null || state.score > prev;
-      if (isRecord) setRecord('encaixa', state.score);
+      const isRecord = state.newRecord; // el rècord ja s'ha desat en viu a paintScore
+      const best = getRecord('encaixa');
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker center">Fi del joc</p>
@@ -700,7 +730,7 @@ export default {
           <h2 style="font-size:30px">No hi cap cap peça més</h2>
           <p class="muted">Puntuació</p>
           <h2 style="font-size:44px;color:var(--accent)">${state.score}</h2>
-          ${isRecord ? '<p class="kicker" style="color:var(--accent)">Nou rècord!</p>' : `<p class="muted">Rècord: ${prev}</p>`}
+          ${isRecord ? '<p class="kicker" style="color:var(--accent)">Nou rècord!</p>' : `<p class="muted">Rècord: ${best != null ? best : '—'}</p>`}
         </div>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:20px">
