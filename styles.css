@@ -817,8 +817,10 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* ============================================================
    Encaixa! (block puzzle)
    ============================================================ */
-.encaixa-head { display: flex; justify-content: space-between; align-items: center; margin: 2px 2px 4px; }
-.encaixa-stats { display: flex; gap: 18px; align-items: baseline; }
+.encaixa-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 2px 2px 4px; }
+/* el rècord ocupa l'espai central entre "Punts" i "Pista", centrat */
+.encaixa-record { flex: 1; text-align: center; }
+.encaixa-record .kicker { color: var(--ink); }   /* etiqueta "Rècord" en tinta */
 .encaixa-score { font-family: var(--font-display); font-weight: 800; color: var(--accent); font-size: clamp(22px, 6vw, 32px); }
 .encaixa-best { font-family: var(--font-display); font-weight: 800; color: var(--ink); font-size: clamp(18px, 5vw, 26px); }
 

@@ -355,10 +355,8 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <div class="encaixa-head">
-          <div class="encaixa-stats">
-            <span><span class="kicker">Punts</span> <span class="encaixa-score" id="score">0</span></span>
-            <span><span class="kicker">Rècord</span> <span class="encaixa-best" id="best">—</span></span>
-          </div>
+          <span><span class="kicker">Punts</span> <span class="encaixa-score" id="score">0</span></span>
+          <span class="encaixa-record"><span class="kicker">Rècord</span> <span class="encaixa-best" id="best">—</span></span>
           <button class="btn btn--outline" id="hint" style="width:auto;padding:9px 18px;font-size:16px;box-shadow:none">Pista</button>
         </div>
         <div class="encaixa-board" id="board"></div>

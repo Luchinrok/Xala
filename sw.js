@@ -2,7 +2,7 @@
 // Quan afegeixis fitxers nous (jocs, dades), inclou-los a ASSETS
 // i puja la versió de CACHE per forçar l'actualització.
 
-const CACHE = 'xala-v89';
+const CACHE = 'xala-v90';
 const ASSETS = [
   './',
   './index.html',
