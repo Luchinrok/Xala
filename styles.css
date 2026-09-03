@@ -866,6 +866,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* PISTA: la peça destacada a la safata pulsa */
 .encaixa-slot.hint .encaixa-piece { animation: encaixa-hintpiece .7s ease-in-out infinite; }
 @keyframes encaixa-hintpiece { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+/* PISTA: mode "tria una peça" — les 3 peces conviden a triar-les */
+.encaixa-slot.pickable { cursor: pointer; }
+.encaixa-slot.pickable .encaixa-piece { animation: encaixa-hintpiece .8s ease-in-out infinite; }
 
 /* neteja de línia */
 .encaixa-cell.clearing { animation: encaixa-clear .2s ease forwards; }

@@ -271,10 +271,11 @@ export default {
     let hintCells = [];  // caselles de fila/columna que es completaria (animades)
     let hintMarked = []; // caselles marcades per la PISTA
     let hintIdx = 0;     // índex per anar mostrant pistes diferents
+    let hintPick = false; // mode "tria una peça per a la pista"
 
     function cleanup() {
       endDrag();
-      hintMarked = []; hintIdx = 0;
+      hintMarked = []; hintIdx = 0; hintPick = false;
     }
     function leave() { cleanup(); goHome(); }
 
@@ -357,7 +358,7 @@ export default {
         <div class="encaixa-tray" id="tray"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
-      root.querySelector('#hint').onclick = showHint;
+      root.querySelector('#hint').onclick = toggleHintPick;
       board = root.querySelector('#board');
       renderBoard();
       renderTray();
@@ -366,16 +367,37 @@ export default {
     }
 
     // ---------- pista ----------
-    // Marca una col·locació vàlida (que forma part d'una solució sencera) i
-    // destaca la peça corresponent. No col·loca res; l'arrossegues tu. Prémer
-    // repetidament va mostrant altres col·locacions vàlides.
-    function showHint() {
+    // "Pista" NO tria per tu: entra en mode "tria una peça". En seleccionar-ne
+    // una, es marca on col·locar-la de manera que la RESTA encara es puguin
+    // posar totes (part d'una solució sencera), així seguir-la no fa perdre.
+    function toggleHintPick() {
       if (state.over) return;
-      const moves = hintFirstMoves(state.grid, state.tray);
-      clearHint();
-      if (!moves.length) return; // cap pista segura disponible
+      if (hintPick) { exitHintPick(); return; } // segona pulsació: cancel·la
+      clearHintMarks();
+      hintPick = true;
+      const tray = root.querySelector('#tray');
+      if (tray) Array.from(tray.children).forEach((slot, i) => { if (state.tray[i]) slot.classList.add('pickable'); });
+      const btn = root.querySelector('#hint');
+      if (btn) { btn.textContent = 'Tria una peça…'; btn.classList.remove('btn--outline'); btn.classList.add('btn--accent'); }
+    }
+
+    function exitHintPick() {
+      hintPick = false;
+      const tray = root.querySelector('#tray');
+      if (tray) tray.querySelectorAll('.encaixa-slot.pickable').forEach(s => s.classList.remove('pickable'));
+      const btn = root.querySelector('#hint');
+      if (btn) { btn.textContent = 'Pista'; btn.classList.remove('btn--accent'); btn.classList.add('btn--outline'); }
+    }
+
+    // Peça `index` triada per a la pista: mostra'n una col·locació segura. Si
+    // no en té cap (no forma part de cap solució ara), es queda en mode tria.
+    function chooseHintPiece(index) {
+      const moves = hintFirstMoves(state.grid, state.tray).filter(m => m.trayIndex === index);
+      if (!moves.length) return; // aquesta peça no encaixa en cap solució: tria'n una altra
+      exitHintPick();
+      clearHintMarks();
       const mv = moves[hintIdx % moves.length];
-      hintIdx = (hintIdx + 1) % moves.length;
+      hintIdx++; // si tornes a demanar la mateixa peça, alterna col·locació
       mv.shape.forEach(([dr, dc]) => {
         const rr = mv.r + dr, cc = mv.c + dc;
         const el = state.cellEls[rr] && state.cellEls[rr][cc];
@@ -386,7 +408,7 @@ export default {
       if (slot) slot.classList.add('hint');
     }
 
-    function clearHint() {
+    function clearHintMarks() {
       hintMarked.forEach(([r, c]) => {
         const el = state.cellEls[r] && state.cellEls[r][c];
         if (el) el.classList.remove('hint');
@@ -452,7 +474,9 @@ export default {
     function startDrag(e, index) {
       if (state.over || !state.tray[index]) return;
       e.preventDefault();
-      clearHint(); // treu la pista en començar a arrossegar
+      // En mode pista, tocar una peça la TRIA per a la pista (no l'arrossega).
+      if (hintPick) { chooseHintPiece(index); return; }
+      clearHintMarks(); // treu la pista en començar a arrossegar
       const piece = state.tray[index];
       const shape = piece.shape;
       const rect = board.getBoundingClientRect();
@@ -630,7 +654,7 @@ export default {
 
     // Després de col·locar: puntua, neteja línies (animat) i comprova el final.
     function afterPlace(placedCells) {
-      hintMarked = []; hintIdx = 0; // la pista deixa de ser vàlida en col·locar
+      hintMarked = []; hintIdx = 0; hintPick = false; // la pista deixa de ser vàlida en col·locar
       state.score += placedCells; // +1 per bloc col·locat
       const { rows, cols } = fullLines();
       const lines = rows.length + cols.length;
