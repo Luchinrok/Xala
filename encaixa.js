@@ -48,15 +48,23 @@ const SHAPES = [
   [[0, 1], [1, 1], [2, 1], [2, 0]],
   [[0, 0], [0, 1], [0, 2], [1, 0]],
   [[0, 0], [0, 1], [0, 2], [1, 2]],
-  // T de 4
+  // T de 4 en 4 orientacions
   [[0, 0], [0, 1], [0, 2], [1, 1]],
   [[0, 1], [1, 0], [1, 1], [2, 1]],
+  [[0, 1], [1, 0], [1, 1], [1, 2]],
+  [[0, 0], [1, 0], [1, 1], [2, 0]],
   // S / Z de 4
   [[0, 1], [0, 2], [1, 0], [1, 1]],
   [[0, 0], [0, 1], [1, 1], [1, 2]],
+  [[0, 0], [1, 0], [1, 1], [2, 1]],
+  [[0, 1], [1, 0], [1, 1], [2, 0]],
+  // rectangles 2×3 i 3×2
+  [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]],
+  [[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]],
+  // L / J grans de 4 (les altres dues orientacions)
+  [[0, 0], [0, 1], [1, 0], [2, 0]],
+  [[0, 0], [0, 1], [1, 1], [2, 1]],
 ];
-
-const randShape = () => SHAPES[Math.floor(Math.random() * SHAPES.length)];
 
 // Paleta de colors ben distingibles i llegibles sobre la graella beix.
 // corall, verd, groc mostassa, blau, lila, un to fosc i un de clar.
@@ -70,11 +78,108 @@ function pickColors(n) {
   return out;
 }
 
-// Safata de 3 peces; cada peça és { shape, color } i les 3 tenen colors
-// diferents entre elles.
-function newTray() {
+const rnd = (n) => Math.floor(Math.random() * n);
+
+// ---------- utilitats d'ocupació (0 buit / 1 ple) per a la simulació ----------
+const emptyOcc = () => Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+const occFromGrid = (grid) => grid.map(row => row.map(v => (v ? 1 : 0)));
+
+function fitsOcc(occ, shape, r, c) {
+  for (const [dr, dc] of shape) {
+    const rr = r + dr, cc = c + dc;
+    if (rr < 0 || rr >= SIZE || cc < 0 || cc >= SIZE) return false;
+    if (occ[rr][cc]) return false;
+  }
+  return true;
+}
+function validPositions(occ, shape) {
+  const pos = [];
+  for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (fitsOcc(occ, shape, r, c)) pos.push([r, c]);
+  return pos;
+}
+const fitsSomewhere = (occ, shape) => validPositions(occ, shape).length > 0;
+
+// Aplica la forma i neteja files/columnes completes; retorna un occ NOU.
+function placeAndClear(occ, shape, r, c) {
+  const n = occ.map(row => row.slice());
+  for (const [dr, dc] of shape) n[r + dr][c + dc] = 1;
+  const fullRows = [], fullCols = [];
+  for (let i = 0; i < SIZE; i++) if (n[i].every(v => v)) fullRows.push(i);
+  for (let j = 0; j < SIZE; j++) { let f = true; for (let i = 0; i < SIZE; i++) if (!n[i][j]) { f = false; break; } if (f) fullCols.push(j); }
+  fullRows.forEach(i => { for (let j = 0; j < SIZE; j++) n[i][j] = 0; });
+  fullCols.forEach(j => { for (let i = 0; i < SIZE; i++) n[i][j] = 0; });
+  return n;
+}
+const anyFullLine = (occ) => {
+  for (let i = 0; i < SIZE; i++) if (occ[i].every(v => v)) return true;
+  for (let j = 0; j < SIZE; j++) { let f = true; for (let i = 0; i < SIZE; i++) if (!occ[i][j]) { f = false; break; } if (f) return true; }
+  return false;
+};
+
+// Construeix 3 formes col·locables TOTES TRES en algun ordre sobre `occ`
+// (aplicant les netejes entremig): a cada pas tria una forma que hi cap i la
+// posa en una posició vàlida. Així el trio resultant és sempre resoluble.
+function buildSolvableShapes(occ) {
+  let cur = occ.map(row => row.slice());
+  const shapes = [];
+  for (let k = 0; k < 3; k++) {
+    const fitting = SHAPES.filter(s => fitsSomewhere(cur, s));
+    const shape = fitting.length ? fitting[rnd(fitting.length)] : [[0, 0]];
+    shapes.push(shape);
+    const pos = validPositions(cur, shape);
+    if (pos.length) { const [r, c] = pos[rnd(pos.length)]; cur = placeAndClear(cur, shape, r, c); }
+  }
+  return shapes;
+}
+
+// Comprova per força bruta que EXISTEIX un ordre i unes posicions per
+// col·locar TOTES les formes (amb netejes entremig). Xarxa de seguretat.
+function canPlaceAll(occ, shapes) {
+  if (shapes.length === 0) return true;
+  for (let i = 0; i < shapes.length; i++) {
+    const shape = shapes[i];
+    const rest = shapes.slice(0, i).concat(shapes.slice(i + 1));
+    for (const [r, c] of validPositions(occ, shape)) {
+      if (canPlaceAll(placeAndClear(occ, shape, r, c), rest)) return true;
+    }
+  }
+  return false;
+}
+
+// Safata solucionable per a la graella actual: 3 peces (colors distints) que
+// segur que es poden col·locar totes tres en algun ordre.
+function solvableTray(grid) {
+  const occ = occFromGrid(grid);
+  let shapes = buildSolvableShapes(occ);
+  // Xarxa de seguretat: si per un atzar raríssim no fos resoluble, reintenta.
+  let guard = 0;
+  while (!canPlaceAll(occ, shapes) && guard++ < 20) shapes = buildSolvableShapes(occ);
+  // ordre de presentació aleatori
+  for (let i = shapes.length - 1; i > 0; i--) { const j = rnd(i + 1); [shapes[i], shapes[j]] = [shapes[j], shapes[i]]; }
   const cols = pickColors(3);
-  return [randShape(), randShape(), randShape()].map((shape, i) => ({ shape, color: cols[i] }));
+  return shapes.map((shape, i) => ({ shape, color: cols[i] }));
+}
+
+// Graella inicial amb ALGUNS blocs ja posats (patró parcial aleatori), sense
+// completar cap línia d'entrada. Estil Block Blast.
+function initialGrid() {
+  const grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+  const occ = emptyOcc();
+  const target = 4 + rnd(3); // 4..6 grups
+  let placed = 0, tries = 0;
+  while (placed < target && tries < 300) {
+    tries++;
+    const shape = SHAPES[rnd(SHAPES.length)];
+    const pos = validPositions(occ, shape);
+    if (!pos.length) continue;
+    const [r, c] = pos[rnd(pos.length)];
+    for (const [dr, dc] of shape) occ[r + dr][c + dc] = 1;      // temptativa
+    if (anyFullLine(occ)) { for (const [dr, dc] of shape) occ[r + dr][c + dc] = 0; continue; } // no completis línies
+    const color = COLORS[rnd(COLORS.length)];
+    for (const [dr, dc] of shape) grid[r + dr][c + dc] = color;
+    placed++;
+  }
+  return grid;
 }
 
 // Dimensions (files, columnes) de la caixa contenidora d'una forma.
@@ -111,6 +216,9 @@ function loadGame() {
   } catch (e) { return null; }
 }
 const hasSavedGame = () => loadGame() != null;
+
+// Exports nominals (per a proves; el navegador només usa el default).
+export { initialGrid, solvableTray, canPlaceAll, occFromGrid, buildSolvableShapes, anyFullLine };
 
 export default {
   id: 'encaixa',
@@ -194,8 +302,8 @@ export default {
     function beginGame() {
       cleanup();
       clearGame();
-      state.grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
-      state.tray = newTray();
+      state.grid = initialGrid();          // comença amb alguns blocs ja posats
+      state.tray = solvableTray(state.grid); // trio sempre col·locable
       state.score = 0;
       state.over = false;
       screenGame();
@@ -488,7 +596,7 @@ export default {
 
     // Refà la safata si cal i comprova el fi del joc.
     function finishMove() {
-      if (state.tray.every(s => !s)) state.tray = newTray();
+      if (state.tray.every(s => !s)) state.tray = solvableTray(state.grid);
       renderTray();
       const alive = state.tray.some(s => s && canPlaceSomewhere(s.shape));
       if (!alive) { finish(); return; }
