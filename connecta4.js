@@ -157,6 +157,7 @@ export default {
       winCells: null,
       draw: false,
       animating: false,
+      confirming: false,     // mostra la confirmació de rendir-se
     };
     let aiTimer = null;
     const DROP_MS = 430;     // durada de la caiguda
@@ -220,6 +221,7 @@ export default {
       state.winCells = null;
       state.draw = false;
       state.animating = false;
+      state.confirming = false;
       screenGame();
     }
 
@@ -233,6 +235,7 @@ export default {
           <div class="c4-arrows" id="arrows"></div>
           <div class="c4-board" id="board"></div>
         </div>
+        <div id="controls" class="center" style="margin-top:12px"></div>
         <div id="result"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
@@ -244,6 +247,37 @@ export default {
       renderArrows();
       renderBoard(null);
       paintTurn();
+      resetControls();
+    }
+
+    // ---------- rendir-se ----------
+    function resetControls() {
+      const ctl = root.querySelector('#controls');
+      if (!ctl) return;
+      ctl.innerHTML = `<button class="btn btn--outline" id="resign">Rendir-se</button>`;
+      ctl.querySelector('#resign').onclick = askResign;
+    }
+    function askResign() {
+      if (state.over) return;
+      state.confirming = true;
+      renderArrows(); // deshabilita les fletxes mentre es confirma
+      const ctl = root.querySelector('#controls');
+      if (!ctl) return;
+      ctl.innerHTML = `
+        <div class="panel center stack" style="margin-top:4px;--stack-gap:12px">
+          <p style="font-weight:700">Segur que et vols rendir?</p>
+          <div class="btn-row">
+            <button class="btn btn--accent" id="ryes">Sí</button>
+            <button class="btn btn--outline" id="rno">No</button>
+          </div>
+        </div>`;
+      ctl.querySelector('#ryes').onclick = () => { state.confirming = false; doResign(); };
+      ctl.querySelector('#rno').onclick = () => { state.confirming = false; resetControls(); renderArrows(); };
+    }
+    function doResign() {
+      if (state.over) return;
+      const loser = isCpu() ? 1 : state.turn; // a 1 jugador es rendeix l'humà (1)
+      finish(other(loser), 'resign');
     }
 
     function renderArrows() {
@@ -302,7 +336,7 @@ export default {
 
     // Pot jugar ara mateix un humà? (no acabat, no animant, i no és torn IA)
     function canHumanPlay() {
-      if (state.over || state.animating) return false;
+      if (state.over || state.animating || state.confirming) return false;
       if (isCpu() && state.turn === 2) return false;
       return true;
     }
@@ -349,12 +383,16 @@ export default {
     }
 
     // ---------- 3) final ----------
-    function finish(winner) {
+    function finish(winner, reason) {
       clearAiTimer();
+      state.over = true;
+      const ctl = root.querySelector('#controls');
+      if (ctl) ctl.innerHTML = '';
+      renderArrows(); // deshabilita les fletxes en acabar
       let title, sub;
       if (winner == null) { title = 'Empat!'; sub = 'Tauler ple sense 4 en línia.'; }
-      else if (isCpu()) { title = winner === 1 ? 'Has guanyat!' : 'Has perdut!'; sub = '4 en línia.'; }
-      else { title = `Guanya el ${playerName(winner)}!`; sub = '4 en línia.'; }
+      else if (isCpu()) { title = winner === 1 ? 'Has guanyat!' : 'Has perdut!'; sub = reason === 'resign' ? 'T\'has rendit.' : '4 en línia.'; }
+      else { title = `Guanya el ${playerName(winner)}!`; sub = reason === 'resign' ? `El ${playerName(other(winner))} s'ha rendit.` : '4 en línia.'; }
 
       const el = root.querySelector('#turn');
       if (el) el.innerHTML = winner == null

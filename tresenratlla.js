@@ -129,6 +129,7 @@ export default {
       selected: null,       // índex de la fitxa triada (fase de moviment)
       over: false,
       winLine: null,
+      confirming: false,    // mostra la confirmació de rendir-se
     };
     let aiTimer = null;
 
@@ -189,6 +190,7 @@ export default {
       state.selected = null;
       state.over = false;
       state.winLine = null;
+      state.confirming = false;
       screenGame();
     }
 
@@ -199,10 +201,45 @@ export default {
         <p class="kicker">Tres en ratlla</p>
         <p class="ttt-turn" id="turn"></p>
         <div class="ttt-board" id="board"></div>
+        <div id="controls" class="center" style="margin-top:14px"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
       renderBoard();
       paintTurn();
+      resetControls();
+    }
+
+    // ---------- rendir-se ----------
+    function resetControls() {
+      const ctl = root.querySelector('#controls');
+      if (!ctl) return;
+      ctl.innerHTML = `<button class="btn btn--outline" id="resign">Rendir-se</button>`;
+      ctl.querySelector('#resign').onclick = askResign;
+    }
+    function askResign() {
+      if (state.over) return;
+      state.confirming = true;
+      const ctl = root.querySelector('#controls');
+      if (!ctl) return;
+      ctl.innerHTML = `
+        <div class="panel center stack" style="margin-top:4px;--stack-gap:12px">
+          <p style="font-weight:700">Segur que et vols rendir?</p>
+          <div class="btn-row">
+            <button class="btn btn--accent" id="ryes">Sí</button>
+            <button class="btn btn--outline" id="rno">No</button>
+          </div>
+        </div>`;
+      ctl.querySelector('#ryes').onclick = () => { state.confirming = false; doResign(); };
+      ctl.querySelector('#rno').onclick = () => { state.confirming = false; resetControls(); };
+    }
+    function doResign() {
+      if (state.over) return;
+      const loser = isCpu() ? 'X' : state.turn; // a 1 jugador es rendeix l'humà (X)
+      const winner = other(loser);
+      state.over = true;
+      state.selected = null;
+      renderBoard();
+      finish(winner, 'resign');
     }
 
     function paintTurn() {
@@ -245,7 +282,7 @@ export default {
     }
 
     function humanPlay(i) {
-      if (state.over) return;
+      if (state.over || state.confirming) return;
       if (isCpu() && state.turn !== 'X') return; // espera la màquina
       const moving = pieceCount(state.board, state.turn) >= 3;
       if (!moving) {
@@ -287,13 +324,18 @@ export default {
     }
 
     // ---------- 3) final (sempre hi ha guanyador) ----------
-    function finish(winner) {
+    function finish(winner, reason) {
       clearAiTimer();
+      const ctl = root.querySelector('#controls');
+      if (ctl) ctl.innerHTML = '';
       let title;
       if (isCpu()) title = winner === 'X' ? 'Has guanyat!' : 'Has perdut!';
       else title = `Guanya el ${markName(winner)}!`;
       const turnEl = root.querySelector('#turn');
       if (turnEl) turnEl.innerHTML = `<b class="${winner === 'X' ? 'x' : 'o'}">${title}</b>`;
+      const sub = reason === 'resign'
+        ? (isCpu() ? 'T\'has rendit.' : `El ${markName(other(winner))} s'ha rendit.`)
+        : `Tres en ratlla amb les ${winner}`;
       const old = root.querySelector('#result');
       if (old) old.remove();
       const wrap = document.createElement('div');
@@ -301,7 +343,7 @@ export default {
       wrap.className = 'stack';
       wrap.style.marginTop = '20px';
       wrap.innerHTML = `
-        <p class="muted center">Tres en ratlla amb les ${winner}</p>
+        <p class="muted center">${sub}</p>
         <button class="btn btn--accent" id="again">Una altra</button>
         <button class="btn btn--outline" id="home">Tornar a l'inici</button>
       `;

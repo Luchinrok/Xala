@@ -103,6 +103,7 @@ export default {
       sel: 0,               // vaixell seleccionat en col·locació
       orient: 'h',          // 'h' | 'v'
       ai: null,             // estat de la màquina (mode cpu)
+      confirming: false,    // mostra la confirmació de rendir-se
     };
 
     // recursos de l'arrossegament/preview de col·locació
@@ -117,6 +118,28 @@ export default {
       clearAiTimer();
     }
     function leave() { cleanupPlace(); goHome(); }
+
+    // ---------- rendir-se ----------
+    // Omple `container` amb el botó "Rendir-se" i la seva confirmació. En
+    // confirmar, crida onConfirm() (que acaba la partida a favor de l'altre).
+    function renderResign(container, onConfirm) {
+      if (!container) return;
+      state.confirming = false;
+      container.innerHTML = `<button class="btn btn--outline" id="resign">Rendir-se</button>`;
+      container.querySelector('#resign').onclick = () => {
+        state.confirming = true;
+        container.innerHTML = `
+          <div class="panel center stack" style="margin-top:4px;--stack-gap:12px">
+            <p style="font-weight:700">Segur que et vols rendir?</p>
+            <div class="btn-row">
+              <button class="btn btn--accent" id="ryes">Sí</button>
+              <button class="btn btn--outline" id="rno">No</button>
+            </div>
+          </div>`;
+        container.querySelector('#ryes').onclick = () => { state.confirming = false; onConfirm(); };
+        container.querySelector('#rno').onclick = () => renderResign(container, onConfirm);
+      };
+    }
 
     // Animació breu d'impacte a una casella (ona + escala del marcador).
     function animateImpact(boardEl, r, c) {
@@ -395,6 +418,7 @@ export default {
     // Tauler de seguiment de l'enemic (sense vaixells): es dispara aquí.
     function screenShoot(shooter) {
       clearAiTimer();
+      state.confirming = false;
       const opp = state.boards[1 - shooter];
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
@@ -402,10 +426,13 @@ export default {
         <p class="vx-status" id="status">Toca una casella per disparar</p>
         <div class="vx-board" id="tboard"></div>
         <div id="ctl" style="margin-top:14px"></div>
+        <div id="resignbox" class="center" style="margin-top:10px"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
       const tb = root.querySelector('#tboard');
       renderTrackBoard(tb, opp, true, (r, c) => fireHuman(shooter, r, c));
+      // Qui dispara ara és qui es rendeix; guanya l'altre.
+      renderResign(root.querySelector('#resignbox'), () => endGame(1 - shooter, 'resign'));
     }
 
     function fireHuman(shooter, r, c) {
@@ -538,6 +565,7 @@ export default {
       if (interactive && onFire) {
         let done = false; // un sol tret per torn
         const fire = (e) => {
+          if (state.confirming) return; // bloqueja mentre es confirma rendir-se
           if (done) return;
           const rc = cellFromPoint(el, e.clientX, e.clientY);
           if (!rc) return;
@@ -579,17 +607,21 @@ export default {
     // ============================================================
     // 4) final
     // ============================================================
-    function endGame(winner) {
+    function endGame(winner, reason) {
       cleanupPlace();
+      state.confirming = false;
       let title;
       if (isCpu()) title = winner === 0 ? 'Has guanyat!' : 'Has perdut!';
       else title = `Guanya el ${playerName(winner)}!`;
+      const sub = reason === 'resign'
+        ? (isCpu() ? 'T\'has rendit.' : `${playerName(1 - winner)} s'ha rendit.`)
+        : 'Flota enemiga enfonsada';
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker center">Final</p>
         <div class="panel center stack" style="margin-top:18px">
           <h2 style="font-size:36px;color:var(--accent)">${title}</h2>
-          <p class="muted">Flota enemiga enfonsada</p>
+          <p class="muted">${sub}</p>
         </div>
         <div class="spacer"></div>
         <div class="stack" style="margin-top:20px">
