@@ -101,8 +101,11 @@ function captureChains(board, r, c) {
     nb[r][c] = null;
     nb[st.cap[0]][st.cap[1]] = null;
     const sub = captureChains(nb, st.to[0], st.to[1]);
+    // s.path ja comença a st.to (la casella d'arribada d'AQUEST salt), així que
+    // s'ha de conservar sencera: [origen, st.to, ...següents arribades]. (Abans
+    // es feia slice(1) i es perdien les caselles intermèdies -> lliscava recte.)
     if (!sub.length) out.push({ path: [[r, c], st.to], caps: [st.cap], board: nb, end: st.to });
-    else for (const s of sub) out.push({ path: [[r, c], ...s.path.slice(1)], caps: [st.cap, ...s.caps], board: s.board, end: s.end });
+    else for (const s of sub) out.push({ path: [[r, c], ...s.path], caps: [st.cap, ...s.caps], board: s.board, end: s.end });
   }
   return out;
 }
