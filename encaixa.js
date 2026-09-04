@@ -66,9 +66,9 @@ const SHAPES = [
   [[0, 0], [0, 1], [1, 1], [2, 1]],
 ];
 
-// Paleta de colors ben distingibles i llegibles sobre la graella beix.
-// corall, verd, groc mostassa, blau, lila, un to fosc i un de clar.
-const COLORS = ['#E4572E', '#1F8A70', '#D4A017', '#2E6DB4', '#7E5AA2', '#33404D', '#E58FB0'];
+// Paleta lligada a l'app: verd (endevina-la), corall (--accent), negre i blanc.
+// Les blanques i negres es delimiten amb un contorn fosc/filet clar al CSS.
+const COLORS = ['#1F8A70', '#E4572E', '#1E1E1E', '#FFFFFF'];
 
 // Tria n colors DISTINTS de la paleta (sense repetir).
 function pickColors(n) {

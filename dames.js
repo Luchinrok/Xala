@@ -69,6 +69,12 @@ function simpleSteps(board, r, c) {
   return steps;
 }
 
+function countPieces(board, player) {
+  let n = 0;
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) { const pc = board[r][c]; if (pc && pc.c === player) n++; }
+  return n;
+}
+
 function playerHasCapture(board, player) {
   for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
     const pc = board[r][c];
@@ -355,6 +361,11 @@ export default {
       b[from[0]][from[1]] = null;
       if (cap) b[cap[0]][cap[1]] = null;
     }
+    function moveModel(from, to) {
+      const b = state.board;
+      b[to[0]][to[1]] = b[from[0]][from[1]];
+      b[from[0]][from[1]] = null;
+    }
 
     function performStep(to) {
       const tgt = targets.find(t => t.to[0] === to[0] && t.to[1] === to[1]);
@@ -401,11 +412,48 @@ export default {
       setTimeout(fin, dur + 90);
     }
 
+    // Llisca només la fitxa d'origen a destí (sense tocar la capturada).
+    function slidePiece(from, to, dur, done) {
+      const boardEl = root.querySelector('#dmboard');
+      if (!boardEl) { done(); return; }
+      const size = boardEl.clientWidth / 8;
+      const cell = boardEl.children[from[0] * 8 + from[1]];
+      const pieceEl = cell && cell.querySelector('.dm-piece');
+      if (!pieceEl || !size) { setTimeout(done, 30); return; }
+      pieceEl.style.zIndex = '5';
+      pieceEl.style.transition = `transform ${dur}ms ease`;
+      const dx = (to[1] - from[1]) * size, dy = (to[0] - from[0]) * size;
+      requestAnimationFrame(() => { pieceEl.style.transform = `translate(${dx}px, ${dy}px)`; });
+      let fired = false;
+      const fin = () => { if (fired) return; fired = true; done(); };
+      pieceEl.addEventListener('transitionend', fin, { once: true });
+      setTimeout(fin, dur + 80);
+    }
+
+    // Esvaeix la fitxa capturada a `pos` (perquè es vegi quina es menja).
+    function fadePiece(pos, dur, done) {
+      const boardEl = root.querySelector('#dmboard');
+      const cell = boardEl && boardEl.children[pos[0] * 8 + pos[1]];
+      const el = cell && cell.querySelector('.dm-piece');
+      if (!el) { setTimeout(done, 20); return; }
+      el.style.transition = `opacity ${dur}ms ease, transform ${dur}ms ease`;
+      el.style.opacity = '0'; el.style.transform = 'scale(.35)';
+      let fired = false;
+      const fin = () => { if (fired) return; fired = true; done(); };
+      el.addEventListener('transitionend', fin, { once: true });
+      setTimeout(fin, dur + 70);
+    }
+
     // ---------- torn / fi ----------
     function endTurn() {
       state.turn = other(state.turn);
       selected = null; targets = []; mustContinue = null;
-      if (genMoves(state.board, state.turn).length === 0) { finish(other(state.turn), 'nomoves'); return; }
+      if (genMoves(state.board, state.turn).length === 0) {
+        const loser = state.turn; // qui ha de moure i no pot
+        const reason = countPieces(state.board, loser) === 0 ? 'nopieces' : 'nomoves';
+        finish(other(loser), reason);
+        return;
+      }
       renderBoard(); paintTurn();
       if (isCpu() && state.turn === 2) { clearAiTimer(); aiTimer = setTimeout(aiPlay, AI_PAUSE); }
     }
@@ -414,32 +462,42 @@ export default {
       aiTimer = null;
       if (state.over) return;
       const move = aiBestMove(state.board, 2, state.diff);
-      if (!move) { finish(1, 'nomoves'); return; }
+      if (!move) { finish(1, countPieces(state.board, 2) === 0 ? 'nopieces' : 'nomoves'); return; }
       playAISequence(move);
     }
 
-    // Reprodueix la jugada de la màquina. En captures encadenades, cada salt
-    // és ràpid (JUMP) amb una pausa curta entremig (PAUSE) perquè es vegi bé
-    // cada captura i el recorregut, sense allargar-se.
+    // Reprodueix la jugada de la màquina SALT A SALT: la fitxa salta, s'esvaeix
+    // la fitxa menjada, una pausa curta, i llavors el salt següent, fins acabar
+    // la cadena. Així cada captura es veu individualment i clara.
     function playAISequence(move) {
       state.animating = true;
-      const JUMP = 150, PAUSE = 300;
+      const JUMP = 170, FADE = 150, PAUSE = 260;
       let i = 0;
-      const step = () => {
-        if (i >= move.path.length - 1) {
-          state.board = move.board; // resultat canònic (amb coronació)
-          selected = null; targets = []; mustContinue = null;
-          state.animating = false; renderBoard();
-          endTurn();
-          return;
-        }
-        const from = move.path[i], to = move.path[i + 1], cap = (move.caps && move.caps[i]) || null;
-        animateMove(from, to, cap ? [cap] : [], () => {
-          applyStepModel(from, to, cap); renderBoard(); i++;
-          if (i < move.path.length - 1) setTimeout(step, PAUSE); else step(); // pausa entre salts
-        }, JUMP);
+      const finalize = () => {
+        state.board = move.board; // resultat canònic (amb coronació)
+        selected = null; targets = []; mustContinue = null;
+        state.animating = false; renderBoard();
+        endTurn();
       };
-      step();
+      const nextSegment = () => {
+        if (i >= move.path.length - 1) { finalize(); return; }
+        const from = move.path[i], to = move.path[i + 1], cap = (move.caps && move.caps[i]) || null;
+        slidePiece(from, to, JUMP, () => {
+          moveModel(from, to);   // la fitxa ja és a la casella de destí
+          renderBoard();         // (la menjada encara hi és)
+          i++;
+          if (cap) {
+            fadePiece(cap, FADE, () => {           // ara desapareix la menjada
+              state.board[cap[0]][cap[1]] = null;
+              renderBoard();
+              if (i < move.path.length - 1) setTimeout(nextSegment, PAUSE); else finalize();
+            });
+          } else {
+            nextSegment(); // moviment simple (sense captura)
+          }
+        });
+      };
+      nextSegment();
     }
 
     // ---------- rendir-se ----------
@@ -484,9 +542,10 @@ export default {
       let title;
       if (isCpu()) title = winner === 1 ? 'Has guanyat!' : 'Has perdut!';
       else title = `Guanya el ${playerName(winner)}!`;
-      const sub = reason === 'resign'
-        ? (humanLoses ? 'T\'has rendit.' : `${playerName(loser)} s'ha rendit.`)
-        : (humanLoses ? 'Et quedes sense moviments.' : `${playerName(loser)} es queda sense moviments.`);
+      let sub;
+      if (reason === 'resign') sub = humanLoses ? 'T\'has rendit.' : `${playerName(loser)} s'ha rendit.`;
+      else if (reason === 'nopieces') sub = humanLoses ? 'Et quedes sense fitxes.' : `${playerName(loser)} es queda sense fitxes.`;
+      else sub = humanLoses ? 'Et quedes sense moviments.' : `${playerName(loser)} es queda sense moviments.`;
       const el = root.querySelector('#turn');
       if (el) el.innerHTML = `<b class="${colorClass(winner)}">${title}</b>`;
       const result = root.querySelector('#result');

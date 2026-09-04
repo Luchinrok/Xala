@@ -850,7 +850,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .encaixa-cell.on {
   background: var(--cell-color, var(--accent));
   border-radius: 2px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28), inset 0 0 0 2px rgba(20, 20, 20, .18);
+  /* contorn fosc (fa visibles les blanques sobre el beix) + filet clar interior
+     (delimita les negres i separa peces adjacents) */
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .34), inset 0 0 0 3px rgba(255, 255, 255, .20);
 }
 /* previsualització mentre s'arrossega: verd si encaixa, vermell si no */
 .encaixa-cell.prev-ok  { background: rgba(31, 138, 112, .55); }
@@ -888,13 +890,13 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .encaixa-slot { flex: 1; display: flex; align-items: center; justify-content: center; }
 .encaixa-piece { display: grid; gap: 3px; cursor: grab; touch-action: none; }
 .encaixa-pcell { width: var(--pc); height: var(--pc); border-radius: 3px; }
-.encaixa-pcell.on { background: var(--cell-color, var(--accent)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25); }
+.encaixa-pcell.on { background: var(--cell-color, var(--accent)); box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, .32), inset 0 0 0 2.5px rgba(255, 255, 255, .18); }
 .encaixa-pcell.off { background: transparent; }
 
 /* peça flotant que segueix el dit/ratolí */
 .encaixa-ghost { position: fixed; left: 0; top: 0; display: grid; gap: 0; pointer-events: none; z-index: 80; opacity: .9; }
 .encaixa-ghost .encaixa-pcell { border-radius: 4px; }
-.encaixa-ghost .encaixa-pcell.on { background: var(--cell-color, var(--accent)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3); }
+.encaixa-ghost .encaixa-pcell.on { background: var(--cell-color, var(--accent)); box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, .32), inset 0 0 0 2.5px rgba(255, 255, 255, .18); }
 
 /* ============================================================
    Enfonsar els vaixells
