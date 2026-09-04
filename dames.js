@@ -135,7 +135,8 @@ function evaluate(board, ai) {
   return s;
 }
 
-const AI_DEPTH = 6;
+// Profunditat de cerca segons dificultat (Fàcil fluixa, Difícil més forta).
+const DEPTHS = { easy: 2, normal: 4, hard: 7 };
 
 function minimax(board, player, ai, depth, alpha, beta) {
   const moves = genMoves(board, player);
@@ -151,18 +152,21 @@ function minimax(board, player, ai, depth, alpha, beta) {
   return best;
 }
 
-// Millor moviment de la màquina (`ai`). Empats resolts a l'atzar per varietat.
-function aiBestMove(board, ai) {
+// Millor moviment de la màquina (`ai`) segons el nivell. La profunditat i el
+// marge de tria varien: Fàcil juga sovint subòptim (marge ampli, poca cerca),
+// Difícil tria sempre la millor (marge 0, cerca profunda). Sempre respecta la
+// captura obligatòria (genMoves ja retorna només captures si n'hi ha).
+function aiBestMove(board, ai, level = 'normal') {
   const moves = genMoves(board, ai);
   if (!moves.length) return null;
   for (let i = moves.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [moves[i], moves[j]] = [moves[j], moves[i]]; }
-  let best = moves[0], bestScore = -Infinity, alpha = -Infinity;
-  for (const m of moves) {
-    const v = minimax(m.board, other(ai), ai, AI_DEPTH - 1, alpha, Infinity);
-    if (v > bestScore) { bestScore = v; best = m; }
-    if (v > alpha) alpha = v;
-  }
-  return best;
+  const depth = DEPTHS[level] || DEPTHS.normal;
+  const margin = level === 'easy' ? 120 : level === 'hard' ? 0 : 30;
+  const scored = moves.map(m => ({ m, s: minimax(m.board, other(ai), ai, depth - 1, -Infinity, Infinity) }));
+  let best = -Infinity;
+  for (const x of scored) if (x.s > best) best = x.s;
+  const pool = scored.filter(x => x.s >= best - margin);
+  return pool[Math.floor(Math.random() * pool.length)].m;
 }
 
 // Exports nominals del motor (per a proves; el navegador només usa el default).
@@ -173,7 +177,7 @@ export default {
   title: 'Dames',
   tagline: 'Menja\'t totes les fitxes',
   accent: '#E4572E',
-  color: 'var(--paper-2)',
+  color: '#E4572E',
   ready: true,
 
   instructions: [
@@ -186,6 +190,7 @@ export default {
   mount(root, { goHome }) {
     const state = {
       mode: '2p',            // 'cpu' | '2p' (per defecte 2 jugadors)
+      diff: 'normal',        // 'easy' | 'normal' | 'hard' (només mode cpu)
       board: initialBoard(),
       turn: 1,               // 1 = corall (baix), 2 = verd/màquina (dalt)
       over: false,
@@ -221,6 +226,16 @@ export default {
           <button class="btn ${state.mode === 'cpu' ? 'btn--accent' : 'btn--outline'}" data-mode="cpu">1 jugador</button>
           <button class="btn ${state.mode === '2p' ? 'btn--accent' : 'btn--outline'}" data-mode="2p">2 jugadors</button>
         </div>
+
+        <div id="diffWrap" style="${state.mode === 'cpu' ? '' : 'display:none'}">
+          <p class="label" style="margin:24px 0 12px">Dificultat</p>
+          <div class="btn-row" id="diffs">
+            <button class="btn ${state.diff === 'easy' ? 'btn--accent' : 'btn--outline'}" data-diff="easy">Fàcil</button>
+            <button class="btn ${state.diff === 'normal' ? 'btn--accent' : 'btn--outline'}" data-diff="normal">Normal</button>
+            <button class="btn ${state.diff === 'hard' ? 'btn--accent' : 'btn--outline'}" data-diff="hard">Difícil</button>
+          </div>
+        </div>
+
         <p class="muted" id="modeinfo" style="margin-top:12px"></p>
 
         <div class="spacer"></div>
@@ -234,13 +249,8 @@ export default {
       };
       info();
       root.querySelector('#back').onclick = leave;
-      root.querySelectorAll('[data-mode]').forEach(b => {
-        b.onclick = () => {
-          state.mode = b.dataset.mode;
-          root.querySelectorAll('[data-mode]').forEach(x => { x.className = 'btn ' + (x.dataset.mode === state.mode ? 'btn--accent' : 'btn--outline'); });
-          info();
-        };
-      });
+      root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { state.mode = b.dataset.mode; screenConfig(); }; });
+      root.querySelectorAll('[data-diff]').forEach(b => { b.onclick = () => { state.diff = b.dataset.diff; screenConfig(); }; });
       root.querySelector('#start').onclick = beginGame;
     }
 
@@ -368,7 +378,8 @@ export default {
     }
 
     // ---------- animació ----------
-    function animateMove(from, to, caps, done) {
+    function animateMove(from, to, caps, done, dur) {
+      dur = dur || 200;
       const boardEl = root.querySelector('#dmboard');
       if (!boardEl) { done(); return; }
       const size = boardEl.clientWidth / 8;
@@ -377,17 +388,17 @@ export default {
       caps.forEach(cp => {
         const cell = boardEl.children[cp[0] * 8 + cp[1]];
         const e = cell && cell.querySelector('.dm-piece');
-        if (e) { e.style.transition = 'opacity .16s ease, transform .16s ease'; e.style.opacity = '0'; e.style.transform = 'scale(.35)'; }
+        if (e) { e.style.transition = 'opacity .14s ease, transform .14s ease'; e.style.opacity = '0'; e.style.transform = 'scale(.35)'; }
       });
       if (!pieceEl || !size) { setTimeout(done, 40); return; }
       pieceEl.style.zIndex = '5';
-      pieceEl.style.transition = 'transform .2s ease';
+      pieceEl.style.transition = `transform ${dur}ms ease`;
       const dx = (to[1] - from[1]) * size, dy = (to[0] - from[0]) * size;
       requestAnimationFrame(() => { pieceEl.style.transform = `translate(${dx}px, ${dy}px)`; });
       let fired = false;
       const fin = () => { if (fired) return; fired = true; done(); };
       pieceEl.addEventListener('transitionend', fin, { once: true });
-      setTimeout(fin, 300);
+      setTimeout(fin, dur + 90);
     }
 
     // ---------- torn / fi ----------
@@ -402,13 +413,17 @@ export default {
     function aiPlay() {
       aiTimer = null;
       if (state.over) return;
-      const move = aiBestMove(state.board, 2);
+      const move = aiBestMove(state.board, 2, state.diff);
       if (!move) { finish(1, 'nomoves'); return; }
       playAISequence(move);
     }
 
+    // Reprodueix la jugada de la màquina. En captures encadenades, cada salt
+    // és ràpid (JUMP) amb una pausa curta entremig (PAUSE) perquè es vegi bé
+    // cada captura i el recorregut, sense allargar-se.
     function playAISequence(move) {
       state.animating = true;
+      const JUMP = 150, PAUSE = 300;
       let i = 0;
       const step = () => {
         if (i >= move.path.length - 1) {
@@ -419,7 +434,10 @@ export default {
           return;
         }
         const from = move.path[i], to = move.path[i + 1], cap = (move.caps && move.caps[i]) || null;
-        animateMove(from, to, cap ? [cap] : [], () => { applyStepModel(from, to, cap); renderBoard(); i++; step(); });
+        animateMove(from, to, cap ? [cap] : [], () => {
+          applyStepModel(from, to, cap); renderBoard(); i++;
+          if (i < move.path.length - 1) setTimeout(step, PAUSE); else step(); // pausa entre salts
+        }, JUMP);
       };
       step();
     }
@@ -462,12 +480,13 @@ export default {
       if (ctl) ctl.innerHTML = '';
       renderBoard();
       const loser = other(winner);
+      const humanLoses = isCpu() && loser === 1; // el jugador humà (Tu) perd
       let title;
       if (isCpu()) title = winner === 1 ? 'Has guanyat!' : 'Has perdut!';
       else title = `Guanya el ${playerName(winner)}!`;
       const sub = reason === 'resign'
-        ? (isCpu() ? 'T\'has rendit.' : `El ${playerName(loser)} s'ha rendit.`)
-        : `El ${playerName(loser)} es queda sense moviments.`;
+        ? (humanLoses ? 'T\'has rendit.' : `${playerName(loser)} s'ha rendit.`)
+        : (humanLoses ? 'Et quedes sense moviments.' : `${playerName(loser)} es queda sense moviments.`);
       const el = root.querySelector('#turn');
       if (el) el.innerHTML = `<b class="${colorClass(winner)}">${title}</b>`;
       const result = root.querySelector('#result');
