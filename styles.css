@@ -54,6 +54,8 @@ body {
   background: var(--paper);
   color: var(--ink);
   line-height: 1.5;
+  /* xifres d'amplada fixa: comptadors, punts i rellotges no ballen */
+  font-variant-numeric: tabular-nums;
   /* textura subtil de punts per donar atmosfera */
   background-image: radial-gradient(var(--paper-2) 1.2px, transparent 1.2px);
   background-size: 22px 22px;
@@ -113,6 +115,17 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .btn--ghost:active { transform: none; }
 .btn--outline { background: var(--paper); color: var(--ink); border-color: var(--ink); }
 .btn:disabled { opacity: .4; box-shadow: none; cursor: default; transform: none; }
+
+/* amb ratolí: el botó s'aixeca una mica (al mòbil no hi ha hover) */
+@media (hover: hover) {
+  .btn:not(:disabled):not(.btn--ghost):hover, .back:hover, .mode-card:hover,
+  .card:not(.locked):hover, .cat-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--ink); }
+  .chip:hover, .name-del:hover, .stepper button:hover { background: var(--paper-2); }
+  .chip.on:hover { background: var(--accent); }
+  /* en prémer, guanya l'efecte d'enfonsar-se */
+  .btn:not(:disabled):not(.btn--ghost):active, .back:active, .mode-card:active,
+  .card:not(.locked):active, .cat-tile:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+}
 
 .btn-row { display: flex; gap: 12px; }
 .btn-row .btn { width: auto; flex: 1; }

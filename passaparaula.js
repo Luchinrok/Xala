@@ -498,7 +498,8 @@ export default {
           ${TIMES.map(s => `<button class="btn ${state.timeSec === s ? 'btn--accent' : 'btn--outline'}" data-time="${s}">${t('pp.timeSec', { n: s })}</button>`).join('')}
         </div>
 
-        <button class="btn btn--accent" id="start" style="margin-top:28px">${t('common.start')}</button>
+        <div class="spacer"></div>
+        <button class="btn btn--accent" id="start" style="margin-top:24px">${t('common.start')}</button>
         <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">${t('common.fillAllNames')}</p>
       `;
       root.querySelector('#back').onclick = leaveGame;

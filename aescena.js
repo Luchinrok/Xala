@@ -83,7 +83,8 @@ export default {
         <p class="label" style="margin:24px 0 12px">${t('common.categories')}</p>
         <button class="btn btn--outline" id="cats">${categoriesLabel(state.categoryIds, ALLOWED)}</button>
 
-        <button class="btn btn--accent" id="start" style="margin-top:28px">${t('common.start')}</button>
+        <div class="spacer"></div>
+        <button class="btn btn--accent" id="start" style="margin-top:24px">${t('common.start')}</button>
         <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">${t('common.fillAllNames')}</p>
       `;
       root.querySelector('#back').onclick = goHome;

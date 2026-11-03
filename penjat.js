@@ -122,6 +122,7 @@ export default {
         <button class="btn btn--outline" id="cats">${categoriesLabel(state.categoryIds)}</button>
         <button class="btn btn--outline" id="record" style="margin-top:12px">Rècord</button>
 
+        <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>
         <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">Selecciona almenys una categoria</p>
       `;

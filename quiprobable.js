@@ -153,7 +153,8 @@ export default {
         <div class="stack" id="names" style="--stack-gap:10px"></div>
         <button class="btn btn--outline" id="addp" style="margin-top:12px">${t('common.addPlayer')}</button>
 
-        <button class="btn btn--accent" id="start" style="margin-top:28px">${t('common.start')}</button>
+        <div class="spacer"></div>
+        <button class="btn btn--accent" id="start" style="margin-top:24px">${t('common.start')}</button>
         <p class="muted" id="warn" style="margin-top:10px;text-align:center;color:var(--accent);font-weight:700;display:none">${t('common.fillAllNames')}</p>
       `;
       root.querySelector('#back').onclick = goHome;
