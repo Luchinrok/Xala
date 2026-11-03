@@ -1,6 +1,6 @@
 # Xala!
 
-«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`…). Parla amb l'usuari en català.
+«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`, `mat2.js`…). Parla amb l'usuari en català.
 
 ## On viu i com es publica
 
@@ -11,8 +11,8 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 03-11-2026 és `xala-v95`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
-- **Proves:** `npm test` (motor d'escacs) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 03-11-2026, a la branca `mat-en-2`, és `xala-v96`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Proves:** `npm test` (motor d'escacs i els 450 problemes de Mat en 2) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
 - **Marca:** corall `#E4572E` sobre crema, estil de festa major (ombres «enfonsables», fons de punts). És el caràcter de l'app: no treure'l en nom de la sobrietat. Lletres: Bricolage (títols) i Hanken Grotesk (text); els botons han d'heretar la lletra (`font: inherit`).
@@ -24,3 +24,4 @@
 
 - 03-11-2026: branca `millores-disseny` fusionada i publicada (lletra Arial corregida, taulers dins del marge, text de la portada sense retallar, zoom permès, focus de teclat, moviment reduït, `aria-pressed`, botó «Comença» a baix a tots els jocs).
 - Pendent (deixat expressament): teclat als taulers de Dames, Vaixells, Sopa i Encaixa!; el «‹» d'Enrere és petit; el Penjat comença amb 0 categories triades.
+- 03-11-2026 (branca `mat-en-2`, sense publicar): joc «Mat en 2» a Un sol jugador. 450 problemes de Lichess (CC0) verificats amb el motor (`mat2-problemes.js` és generat), problema del dia amb ratxa, pista i solució, botó «Repta» que comparteix una imatge, i enllaç `#mat-N` que obre el problema.

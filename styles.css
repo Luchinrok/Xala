@@ -1222,3 +1222,35 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   .encaixa-cell.hint { background: rgba(228, 87, 46, .5); box-shadow: inset 0 0 0 3px var(--accent); }
   .encaixa-slot.hint .encaixa-piece, .encaixa-slot.pickable .encaixa-piece { transform: scale(1.12); }
 }
+
+/* ============================================================
+   Mat en 2 (problemes d'escacs): reaprofita el tauler d'Escacs
+   ============================================================ */
+/* última jugada: groc de festa per sota de la peça */
+.sq--last::before { content: ''; position: absolute; inset: 0; z-index: 0; background: rgba(255, 200, 40, .55); }
+/* pista: anella de tinta que batega */
+.sq--hint::after { content: ''; position: absolute; inset: 3px; z-index: 3; border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--ink); animation: mat2Hint 1s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes mat2Hint { from { opacity: .35; } to { opacity: 1; } }
+/* jugada dolenta: la casella s'enfosqueix en vermell un moment */
+.sq--wrong::before { content: ''; position: absolute; inset: 0; z-index: 0; background: rgba(210, 31, 31, .55); }
+.sq--wrong .piece { animation: chessShake .42s ease-in-out 0s 2; }
+/* coordenades petites a la vora (a-h, 1-8) */
+.coord { position: absolute; z-index: 1; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(9px, 2.4vw, 12px); line-height: 1; opacity: .55; pointer-events: none; }
+.coord--rank { top: 3px; left: 3px; }
+.coord--file { bottom: 3px; right: 4px; }
+/* targeta del problema del dia */
+.mat2-daily {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px; width: 100%;
+  text-align: left; cursor: pointer; font: inherit; color: var(--ink);
+  background: var(--accent); border: 2px solid var(--ink); border-radius: var(--r-md);
+  box-shadow: var(--shadow); padding: 20px 22px; transition: transform .1s, box-shadow .1s;
+}
+.mat2-daily:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+.mat2-daily__k { font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+.mat2-daily__t { font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1.1; }
+.mat2-daily__s { font-size: 15px; }
+@media (hover: hover) { .mat2-daily:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--ink); } }
+@media (prefers-reduced-motion: reduce) { .sq--hint::after { animation: none; } .sq--wrong .piece { animation: none; } }
+.mat2-status { min-height: 2.6em; display: flex; align-items: center; justify-content: center; margin-top: 4px; }

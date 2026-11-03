@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node escacs.test.mjs"
+    "test": "node escacs.test.mjs && node mat2.test.mjs"
   }
 }
