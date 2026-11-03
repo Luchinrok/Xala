@@ -47,8 +47,8 @@ export function openCategoryScreen(root, { categoryIds, kicker = '', onBack, all
       <button class="btn btn--outline" id="cs-all" style="margin-bottom:16px">${t('cat.all')}</button>
       <div class="cat-grid" id="cs-grid">
         ${list.map(c => `
-          <button class="cat-tile ${categoryIds.includes(c.id) ? 'on' : ''}" data-cat="${c.id}">
-            <span class="cat-tile__icon">${CATEGORY_ICONS[c.id] || ''}</span>
+          <button class="cat-tile ${categoryIds.includes(c.id) ? 'on' : ''}" data-cat="${c.id}" aria-pressed="${categoryIds.includes(c.id)}">
+            <span class="cat-tile__icon" aria-hidden="true">${CATEGORY_ICONS[c.id] || ''}</span>
             <span class="cat-tile__name">${c.name}</span>
           </button>`).join('')}
       </div>
@@ -70,9 +70,11 @@ export function openCategoryScreen(root, { categoryIds, kicker = '', onBack, all
           // es poden desseleccionar totes; el joc avisa si no n'hi ha cap
           categoryIds.splice(i, 1);
           b.classList.remove('on');
+          b.setAttribute('aria-pressed', 'false');
         } else {
           categoryIds.push(id);
           b.classList.add('on');
+          b.setAttribute('aria-pressed', 'true');
         }
         syncAllBtn();
       };

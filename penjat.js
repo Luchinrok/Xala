@@ -200,7 +200,7 @@ export default {
     function screenGame() {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
-        <p class="kicker center" id="status"></p>
+        <p aria-live="polite" class="kicker center" id="status"></p>
         <div class="hang-stage" id="gallows"></div>
         <div class="hang-word" id="word"></div>
         <div class="hang-keys" id="keys"></div>

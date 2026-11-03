@@ -112,6 +112,28 @@ function setAccent(color) {
 
 function clear() { app.innerHTML = ''; }
 
+// ---------- accessibilitat compartida per tots els jocs ----------
+// Les targetes "toca per veure" són <div role="button">: amb el teclat,
+// Enter o Espai fan el mateix que tocar-les.
+app.addEventListener('keydown', (e) => {
+  const el = e.target;
+  if (!(el instanceof HTMLElement) || el.tagName === 'BUTTON' || el.getAttribute('role') !== 'button') return;
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+});
+
+// Els botons d'opció (mode, dificultat, nivell, durada...) marquen la tria
+// amb la classe btn--accent; aquí en sincronitzem aria-pressed perquè els
+// lectors de pantalla també sàpiguen quina està triada.
+const OPTION_BTN = '.btn[data-mode], .btn[data-diff], .btn[data-level], .btn[data-size], .btn[data-range], .btn[data-dur], .btn[data-perp], .btn[data-time]';
+function syncPressed(root) {
+  root.querySelectorAll(OPTION_BTN).forEach((b) => {
+    const on = String(b.classList.contains('btn--accent'));
+    if (b.getAttribute('aria-pressed') !== on) b.setAttribute('aria-pressed', on);
+  });
+}
+new MutationObserver(() => syncPressed(app))
+  .observe(app, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+
 function glyph(id) {
   const g = {
     impostor:   '<circle cx="20" cy="14" r="8"/><path d="M6 38c0-8 6-13 14-13s14 5 14 13" fill="none" stroke-width="3"/><path d="M14 13l4 3M26 13l-4 3" stroke-width="3"/>',
@@ -144,7 +166,7 @@ function glyph(id) {
     // joc d'un sol jugador (block-puzzle): tres blocs en L
     encaixa:    '<rect x="10" y="9" width="9" height="9" rx="1.5" stroke-width="3"/><rect x="10" y="20" width="9" height="9" rx="1.5" stroke-width="3"/><rect x="20" y="20" width="9" height="9" rx="1.5" stroke-width="3"/>',
   }[id] || '<circle cx="20" cy="20" r="12" fill="none" stroke-width="3"/>';
-  return `<svg class="glyph" viewBox="0 0 40 40" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">${g}</svg>`;
+  return `<svg class="glyph" aria-hidden="true" viewBox="0 0 40 40" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">${g}</svg>`;
 }
 
 // ---------- pantalla inicial: tria de mode ----------
@@ -156,7 +178,7 @@ function goLanding() {
   wrap.className = 'screen home';
   wrap.innerHTML = `
     <header class="home__head">
-      <div class="brand">Xala<span>!</span></div>
+      <h1 class="brand">Xala<span>!</span></h1>
       <p class="tagline">Tria com vols jugar.</p>
     </header>
     <div class="modes">

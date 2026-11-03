@@ -280,7 +280,7 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Dames</p>
-        <p class="dm-turn" id="turn"></p>
+        <p aria-live="polite" class="dm-turn" id="turn"></p>
         <div class="dm-board" id="dmboard"></div>
         <div id="controls" class="center" style="margin-top:12px"></div>
         <div id="result"></div>

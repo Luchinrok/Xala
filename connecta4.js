@@ -230,7 +230,7 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Connecta 4</p>
-        <p class="c4-turn" id="turn"></p>
+        <p aria-live="polite" class="c4-turn" id="turn"></p>
         <div class="c4">
           <div class="c4-arrows" id="arrows"></div>
           <div class="c4-board" id="board"></div>
@@ -289,6 +289,7 @@ export default {
         const btn = document.createElement('button');
         btn.className = 'c4-arrow ' + colorClass(state.turn);
         btn.textContent = '▼';
+        btn.setAttribute('aria-label', `Columna ${c + 1}`);
         const full = dropRow(state.grid, c) === -1;
         btn.disabled = !interactive || full;
         btn.onclick = () => tryDrop(c);

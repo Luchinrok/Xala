@@ -100,9 +100,9 @@ export default {
         <div class="panel">
           <p class="label">${t('impostor.count')}</p>
           <div class="stepper" style="margin-top:10px">
-            <button id="imp-dec">–</button>
+            <button id="imp-dec" aria-label="${t('common.lessAria')}">–</button>
             <span class="val" id="vimp">${state.impostors}</span>
-            <button id="imp-inc">+</button>
+            <button id="imp-inc" aria-label="${t('common.moreAria')}">+</button>
           </div>
           <div class="switch-row" style="margin-top:22px">
             <span class="switch-label">${t('impostor.hintSwitch')}</span>
@@ -177,7 +177,7 @@ export default {
       const canDelete = count() > 3;
       box.innerHTML = state.names.map((nm, i) => `
         <div class="name-row">
-          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
+          <input class="input" id="name-${i}" type="text" autocomplete="off" aria-label="${t('common.playerN', { n: i + 1 })}" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
           ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="${t('common.removeAria')}">×</button>` : ''}
         </div>
       `).join('');
@@ -233,7 +233,7 @@ export default {
       root.innerHTML = `
         <p class="kicker">${t('impostor.passKicker')}</p>
         <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${name}</h2>
-        <div class="reveal-card tap-hint" id="card">
+        <div class="reveal-card tap-hint" id="card" role="button" tabindex="0">
           <div class="word" style="font-size:28px">${t('impostor.tapSeeRole')}</div>
         </div>
         <div class="spacer"></div>

@@ -199,7 +199,7 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Tres en ratlla</p>
-        <p class="ttt-turn" id="turn"></p>
+        <p aria-live="polite" class="ttt-turn" id="turn"></p>
         <div class="ttt-board" id="board"></div>
         <div id="controls" class="center" style="margin-top:14px"></div>
       `;

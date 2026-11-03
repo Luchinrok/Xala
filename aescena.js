@@ -142,7 +142,7 @@ export default {
       const canDelete = count() > 2; // mínim 2 jugadors
       box.innerHTML = state.names.map((nm, i) => `
         <div class="name-row">
-          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
+          <input class="input" id="name-${i}" type="text" autocomplete="off" aria-label="${t('common.playerN', { n: i + 1 })}" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
           ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="${t('common.removeAria')}">×</button>` : ''}
         </div>
       `).join('');
@@ -219,7 +219,7 @@ export default {
         <button class="back" id="home">${t('nav.home')}</button>
         <p class="kicker">${t('aescena.turnXofY', { x: state.turn + 1, y: state.order.length })}</p>
         <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${getName(actor())}</h2>
-        <div class="reveal-card tap-hint" id="card">
+        <div class="reveal-card tap-hint" id="card" role="button" tabindex="0">
           <div class="word" style="font-size:28px">${t('aescena.tapSeeWord')}</div>
         </div>
         <div class="spacer"></div>

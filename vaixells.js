@@ -423,7 +423,7 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">${playerName(shooter)} dispara</p>
-        <p class="vx-status" id="status">Toca una casella per disparar</p>
+        <p class="vx-status" id="status" aria-live="polite">Toca una casella per disparar</p>
         <div class="vx-board" id="tboard"></div>
         <div id="ctl" style="margin-top:14px"></div>
         <div id="resignbox" class="center" style="margin-top:10px"></div>
@@ -469,7 +469,7 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Torn de la màquina</p>
-        <p class="vx-status" id="status">La màquina apunta…</p>
+        <p class="vx-status" id="status" aria-live="polite">La màquina apunta…</p>
         <div class="vx-board" id="oboard"></div>
         <div id="ctl" style="margin-top:14px"></div>
       `;

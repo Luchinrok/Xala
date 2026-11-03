@@ -101,16 +101,16 @@ function shuffle(a) {
 
 export default {
   id: 'quiprobable',
-  title: 'Qui és més probable...',
+  title: 'Qui és més probable…',
   tagline: 'Vota qui de vosaltres ho faria',
   accent: '#E4572E',
   color: '#E4572E',
   ready: true,
 
   instructions: [
-    'Surt un repte: "Qui és més probable que...".',
+    'Surt un repte: "Qui és més probable que…".',
     'Passeu-vos el mòbil: cadascú vota en secret la persona que millor hi encaixa.',
-    'Es revela el més votat de la ronda... i a riure.',
+    'Es revela el més votat de la ronda… i a riure.',
     'Els vots sumen punts i hi ha una classificació acumulada.',
   ],
 
@@ -194,7 +194,7 @@ export default {
       const canDelete = count() > 3;
       box.innerHTML = state.names.map((nm, i) => `
         <div class="name-row">
-          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
+          <input class="input" id="name-${i}" type="text" autocomplete="off" aria-label="${t('common.playerN', { n: i + 1 })}" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
           ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="${t('common.removeAria')}">×</button>` : ''}
         </div>
       `).join('');
@@ -254,7 +254,7 @@ export default {
       root.innerHTML = `
         <p class="kicker">${t('quiprobable.secretVote')}</p>
         <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${name}</h2>
-        <div class="reveal-card tap-hint" id="card">
+        <div class="reveal-card tap-hint" id="card" role="button" tabindex="0">
           <div class="word" style="font-size:28px">${t('quiprobable.tapToVote')}</div>
         </div>
         <div class="spacer"></div>

@@ -444,7 +444,7 @@ export default {
           <button class="back" id="back">‹ Enrere</button>
           <div id="score" class="chess-score"></div>
         </div>
-        <p class="kicker center" id="status">El teu torn — blanques</p>
+        <p aria-live="polite" class="kicker center" id="status">El teu torn — blanques</p>
         <div class="chess-board" id="board"></div>
         <div id="controls" class="center" style="margin-top:12px"></div>
         <div id="endbox"></div>

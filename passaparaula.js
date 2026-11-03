@@ -547,7 +547,7 @@ export default {
       const canDelete = count() > 2; // mínim 2 jugadors
       box.innerHTML = state.names.map((nm, i) => `
         <div class="name-row">
-          <input class="input" id="name-${i}" type="text" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
+          <input class="input" id="name-${i}" type="text" autocomplete="off" aria-label="${t('common.playerN', { n: i + 1 })}" maxlength="16" placeholder="${t('common.namePlaceholder')}" value="${(nm || '').replace(/"/g, '&quot;')}">
           ${canDelete ? `<button class="name-del" data-del="${i}" aria-label="${t('common.removeAria')}">×</button>` : ''}
         </div>
       `).join('');
@@ -632,7 +632,7 @@ export default {
         <button class="back" id="home">${t('nav.home')}</button>
         <p class="kicker center">${t('pp.hitsAlive', { ok: okCount(), alive: aliveCount() })}</p>
         <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${getName(state.curPlayer)}</h2>
-        <div class="reveal-card tap-hint" id="card">
+        <div class="reveal-card tap-hint" id="card" role="button" tabindex="0">
           <div class="word" style="font-size:26px">${t('pp.tapReady')}</div>
         </div>
         <div class="spacer"></div>
@@ -693,7 +693,7 @@ export default {
     function answerHTML() {
       return `
         <input class="input" id="pp-input" type="text" maxlength="24" autocomplete="off"
-          autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${t('pp.writeWord')}"
+          autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="${t('pp.writeWord')}" placeholder="${t('pp.writeWord')}"
           style="margin-top:14px;text-align:center;font-family:var(--font-display);font-weight:700;font-size:18px">
         <div class="btn-row" style="margin-top:12px">
           <button class="btn btn--accent" id="check">${t('pp.check')}</button>
