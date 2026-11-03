@@ -31,6 +31,10 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+/* els botons i camps no hereten la lletra per defecte (sortia Arial a les
+   targetes i a les fletxes del Connecta 4) */
+button, input, select, textarea { font-family: inherit; }
+
 html, body { height: 100%; }
 
 body {
@@ -117,18 +121,18 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* ---------- portada: que càpiga tot sense scroll ---------- */
 /* a la portada, fixem l'alçada al viewport perquè la graella s'ajusti
    i no calgui desplaçar (la resta de pantalles continuen creixent) */
-#app:has(.home) { height: 100dvh; }
-.home { height: 100%; }
+/* Si no hi cap (mòbils baixets, 360×640), la pàgina fa scroll en lloc de
+   retallar el text de les targetes. */
+#app:has(.home) { min-height: 100dvh; }
 
 /* pantalla inicial: modes grans que es reparteixen l'alçada disponible */
 .modes {
   display: grid;
   grid-template-columns: 1fr;
-  grid-auto-rows: 1fr;
+  grid-auto-rows: auto; align-content: stretch; /* files = contingut + part igual de l'espai lliure (no retalla) */
   gap: 14px;
   margin-top: 18px;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 1 0; /* omple l'alçada; mai per sota del que necessita el text */
 }
 .mode-card {
   position: relative;
@@ -162,11 +166,10 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-auto-rows: 1fr;
+  grid-auto-rows: auto; align-content: stretch; /* files = contingut + part igual de l'espai lliure (no retalla) */
   gap: 12px;
   margin-top: 16px;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 1 0; /* omple l'alçada; mai per sota del que necessita el text */
 }
 
 .card {
@@ -184,12 +187,16 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   overflow: hidden;
   display: flex; flex-direction: column; justify-content: center;
   gap: clamp(4px, 1vh, 10px);
+  container-type: inline-size;
 }
 .card:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
 .card.locked { cursor: default; }
 .card.locked:active { transform: none; box-shadow: var(--shadow); }
+.card > span, .mode-card > span { display: block; line-height: 0; } /* sense l'espai de línia sota la icona */
 .card .glyph { width: clamp(30px, 5vh, 40px); height: clamp(30px, 5vh, 40px); }
-.card h3 { font-size: clamp(16px, 3.2vh, 28px); margin-top: 0; line-height: 1.12; overflow-wrap: anywhere; hyphens: auto; }
+/* --fit (el posa app.js segons la paraula més llarga del títol) fa que
+   "Passaparaula" càpiga sencera sense partir-se a mitja paraula */
+.card h3 { font-size: clamp(15px, min(3.2vh, var(--fit, 100cqi)), 28px); margin-top: 0; line-height: 1.12; overflow-wrap: anywhere; hyphens: auto; }
 .card p { font-size: clamp(11px, 1.7vh, 13px); font-weight: 500; color: var(--ink); opacity: .8; margin-top: 4px; line-height: 1.25; }
 
 /* targetes amb fons fosc: text, icona i tagline en beix per llegir-les */
@@ -509,7 +516,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
    ============================================================ */
 .chess-board {
   position: relative;
-  width: min(92vw, 440px);
+  width: min(100%, 440px);
   margin: 14px auto 0;
   aspect-ratio: 1 / 1;
   display: grid;
@@ -1015,7 +1022,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .c4-turn .p2 { color: var(--ok); }       /* jugador 2 / màquina en verd */
 
 /* Amplada limitada per l'alçada perquè el tauler (7:6) càpiga sense scroll. */
-.c4 { width: min(94vw, calc((100dvh - 260px) * 7 / 6), 460px); margin: 4px auto 0; }
+.c4 { width: min(100%, calc((100dvh - 260px) * 7 / 6), 460px); margin: 4px auto 0; }
 /* fletxes alineades amb les columnes */
 .c4-arrows { display: grid; grid-template-columns: repeat(7, 1fr); }
 .c4-arrow {
@@ -1087,7 +1094,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 
 /* tauler 8×8 quadrat, limitat per l'alçada perquè càpiga sense scroll */
 .dm-board {
-  width: min(94vw, calc(100dvh - 250px), 460px);
+  width: min(100%, calc(100dvh - 250px), 460px);
   aspect-ratio: 1 / 1; margin: 4px auto 0;
   display: grid;
   grid-template-columns: repeat(8, 1fr);

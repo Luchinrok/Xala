@@ -135,7 +135,7 @@ export { emptyBoard, dropRow, winFrom, isFull, aiBestMove, evaluate };
 
 export default {
   id: 'connecta4',
-  title: 'Connecta 4',
+  title: 'Connecta 4', // espai fix: el 4 no queda sol a la línia
   tagline: 'Alinea quatre fitxes',
   accent: '#E4572E',
   color: 'var(--paper-2)',

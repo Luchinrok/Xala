@@ -254,6 +254,10 @@ function renderGameGrid(grid, games, back) {
     const dark = cardColor === 'var(--ink)';
     card.className = 'card' + (game.ready ? '' : ' locked') + (dark ? ' card--dark' : '');
     card.style.setProperty('--c', cardColor);
+    // mida del títol limitada per l'amplada de la targeta: la paraula més
+    // llarga hi ha de cabre sencera (unes 0,56 em per lletra en Bricolage)
+    const longest = Math.max(...gameTitle(game).split(/ +/).map(w => w.length));
+    card.style.setProperty('--fit', (100 / (longest * 0.56)).toFixed(1) + 'cqi');
     card.innerHTML = `
       ${game.ready ? '' : `<span class="badge">${t('soon')}</span>`}
       <span>${glyph(game.id)}</span>
