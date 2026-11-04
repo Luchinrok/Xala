@@ -41,7 +41,7 @@ export default {
     const state = {
       names: initialNames,
       perPlayer: 5,
-      categoryIds: [],   // cap per defecte; cal triar-ne almenys una
+      categoryIds: ALLOWED.slice(),   // totes les d'aquest joc: es pot jugar de seguida
       word: null,
       catLabel: null,
       mode: null,

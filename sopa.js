@@ -126,7 +126,7 @@ export default {
 
   mount(root, { goHome }) {
     const state = {
-      categoryIds: [],     // cap categoria per defecte
+      categoryIds: CATEGORIES.map(c => c.id),   // totes d'entrada: es pot jugar de seguida
       level: 'normal',
       N: 11,
       grid: [],            // N×N lletres

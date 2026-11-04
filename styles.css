@@ -128,7 +128,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 }
 
 .btn-row { display: flex; gap: 12px; }
-.btn-row .btn { width: auto; flex: 1; }
+/* min-width: 0 perquè tots facin igual d'ample i la fila no surti del marge */
+.btn-row .btn { width: auto; flex: 1; min-width: 0; padding-inline: 8px; }
 
 .back {
   align-self: flex-start;

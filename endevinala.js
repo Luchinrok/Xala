@@ -75,7 +75,7 @@ export default {
 
   mount(root, { goHome }) {
     const state = {
-      categoryIds: [],
+      categoryIds: CATEGORIES.map(c => c.id),   // totes d'entrada: es pot jugar de seguida
       duration: 60,
       mode: 'sensor',
       current: null,   // paraula que es mostra ara

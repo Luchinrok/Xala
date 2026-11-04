@@ -23,6 +23,5 @@
 ## Historial de millores
 
 - 03-11-2026: branca `millores-disseny` fusionada i publicada (lletra Arial corregida, taulers dins del marge, text de la portada sense retallar, zoom permès, focus de teclat, moviment reduït, `aria-pressed`, botó «Comença» a baix a tots els jocs).
-- Pendent: Sopa, Impostor, Endevina-la i A escena! encara comencen amb 0 categories triades.
 - 03-11-2026 (publicat): joc «Mat en 2» a Un sol jugador. 450 problemes de Lichess (CC0) verificats amb el motor (`mat2-problemes.js` és generat), problema del dia amb ratxa, pista i solució, botó «Repta» que comparteix una imatge, i enllaç `#mat-N` que obre el problema.
-- 04-11-2026 (branca `pendents`, sense publicar): teclat a Dames, Vaixells, Sopa i Encaixa! (`board-keys.js`: el focus és al tauler, amb un cursor), fletxa d'Enrere dibuixada amb CSS i Penjat amb totes les categories d'entrada.
+- 04-11-2026 (branca `pendents`, sense publicar): teclat a Dames, Vaixells, Sopa i Encaixa! (`board-keys.js`: el focus és al tauler, amb un cursor), fletxa d'Enrere dibuixada amb CSS, tots els jocs amb totes les categories d'entrada i `.btn-row` sense desbordar a pantalles petites.

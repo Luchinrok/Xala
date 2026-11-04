@@ -59,7 +59,7 @@ export default {
     const state = {
       names: initialNames,
       impostors: 1,
-      categoryIds: [],
+      categoryIds: CATEGORIES.map(c => c.id),   // totes d'entrada: es pot jugar de seguida
       hint: false,
       word: null,
       wordHint: null,
