@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 03-11-2026, a la branca `mat-en-2`, és `xala-v96`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 04-11-2026, a la branca `pendents`, és `xala-v97`; a `main`, `xala-v96`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs i els 450 problemes de Mat en 2) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -23,5 +23,6 @@
 ## Historial de millores
 
 - 03-11-2026: branca `millores-disseny` fusionada i publicada (lletra Arial corregida, taulers dins del marge, text de la portada sense retallar, zoom permès, focus de teclat, moviment reduït, `aria-pressed`, botó «Comença» a baix a tots els jocs).
-- Pendent (deixat expressament): teclat als taulers de Dames, Vaixells, Sopa i Encaixa!; el «‹» d'Enrere és petit; el Penjat comença amb 0 categories triades.
-- 03-11-2026 (branca `mat-en-2`, sense publicar): joc «Mat en 2» a Un sol jugador. 450 problemes de Lichess (CC0) verificats amb el motor (`mat2-problemes.js` és generat), problema del dia amb ratxa, pista i solució, botó «Repta» que comparteix una imatge, i enllaç `#mat-N` que obre el problema.
+- Pendent: Sopa, Impostor, Endevina-la i A escena! encara comencen amb 0 categories triades.
+- 03-11-2026 (publicat): joc «Mat en 2» a Un sol jugador. 450 problemes de Lichess (CC0) verificats amb el motor (`mat2-problemes.js` és generat), problema del dia amb ratxa, pista i solució, botó «Repta» que comparteix una imatge, i enllaç `#mat-N` que obre el problema.
+- 04-11-2026 (branca `pendents`, sense publicar): teclat a Dames, Vaixells, Sopa i Encaixa! (`board-keys.js`: el focus és al tauler, amb un cursor), fletxa d'Enrere dibuixada amb CSS i Penjat amb totes les categories d'entrada.

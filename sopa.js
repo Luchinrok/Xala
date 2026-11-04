@@ -18,6 +18,7 @@
 import { CATEGORIES } from './impostor-paraules.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
 import { getRecord, setRecord } from './records.js';
+import { keyboardGrid } from './board-keys.js';
 
 // Dificultat: mida de la graella i nombre de paraules.
 const LEVELS = {
@@ -120,6 +121,7 @@ export default {
     'Busca a la graella les paraules de la llista.',
     'Poden estar en horitzontal, vertical o diagonal, i del dret o del revés.',
     'Llisca el dit de la primera a l\'última lletra per marcar-les.',
+    'Amb teclat: Enter a la primera lletra, fletxes fins a l\'última i Enter. Esc ho cancel·la.',
   ],
 
   mount(root, { goHome }) {
@@ -277,6 +279,7 @@ export default {
       renderBoard();
       renderWords();
       wirePointer();
+      wireKeyboard();
 
       startTimer();
     }
@@ -345,6 +348,39 @@ export default {
       clearSel();
       cells.forEach(([r, c]) => state.cellEls[r][c].classList.add('sel'));
       state.selCells = cells;
+    }
+
+    // Teclat: Enter marca la primera lletra, les fletxes estenen la línia
+    // i un altre Enter la comprova (com aixecar el dit).
+    function wireKeyboard() {
+      let kbStart = null;
+      const grid = keyboardGrid(board, {
+        rows: state.N, cols: state.N,
+        label: 'Sopa de lletres. Enter a la primera lletra, fletxes fins a l\'última i Enter.',
+        describe: (r, c) => `Fila ${r + 1}, columna ${c + 1}: ${state.grid[r][c]}${kbStart ? `. Marcat: ${state.selCells.map(([a, b]) => state.grid[a][b]).join('')}` : ''}`,
+        move: (r, c) => { if (kbStart) showSel(lineCells(kbStart, [r, c])); },
+        activate: (r, c) => {
+          if (!kbStart) {
+            kbStart = [r, c];
+            showSel([kbStart]);
+            grid.announce(`Comences a ${state.grid[r][c]}. Mou-te fins a l'última lletra i prem Enter.`);
+            return;
+          }
+          const found = state.placed.filter(w => w.found).length;
+          showSel(lineCells(kbStart, [r, c]));
+          kbStart = null;
+          checkSelection();
+          clearSel();
+          grid.announce(state.placed.filter(w => w.found).length > found ? 'Paraula trobada!' : 'Aquí no hi ha cap paraula.');
+        },
+        leave: () => { kbStart = null; clearSel(); },
+        key: (e) => {
+          if (e.key !== 'Escape' || !kbStart) return false;
+          kbStart = null;
+          clearSel();
+          return true;
+        },
+      });
     }
 
     function wirePointer() {

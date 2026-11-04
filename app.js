@@ -132,6 +132,21 @@ function syncPressed(root) {
     if (b.getAttribute('aria-pressed') !== on) b.setAttribute('aria-pressed', on);
   });
 }
+// La fletxa dels botons «‹ Enrere» és un caràcter minúscul a la lletra: es
+// canvia per una de dibuixada amb CSS, sigui quin sigui el joc o l'idioma.
+function growBackChevrons(root) {
+  root.querySelectorAll('.back').forEach((b) => {
+    const first = b.firstChild;
+    if (!first || first.nodeType !== 3 || !first.nodeValue.startsWith('‹')) return;
+    first.nodeValue = first.nodeValue.slice(1).trimStart();
+    const chev = document.createElement('span');
+    chev.className = 'back__chev';
+    chev.setAttribute('aria-hidden', 'true');
+    b.insertBefore(chev, first);
+  });
+}
+new MutationObserver(() => growBackChevrons(app))
+  .observe(app, { childList: true, subtree: true });
 new MutationObserver(() => syncPressed(app))
   .observe(app, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 

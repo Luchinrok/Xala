@@ -14,6 +14,7 @@
 // ============================================================
 
 import { getRecord, setRecord } from './records.js';
+import { keyboardGrid } from './board-keys.js';
 
 const SIZE = 8;       // graella 8×8
 const LIFT = 12;      // px que la peça s'eleva per damunt del dit en arrossegar
@@ -254,6 +255,7 @@ export default {
     'Es col·loquen si caben en caselles buides; no es poden girar.',
     'En completar una fila o columna sencera, s\'esborra i sumes punts.',
     'S\'acaba quan cap de les peces disponibles cap enlloc.',
+    'Amb teclat: 1, 2 o 3 per triar la peça, fletxes per moure-la i Enter per deixar-la. Esc la deixa anar.',
   ],
 
   mount(root, { goHome }) {
@@ -274,9 +276,12 @@ export default {
     let hintPick = false; // mode "tria una peça per a la pista"
     let hintPiece = null; // índex de la peça de la pista actual (per rotar)
     let hintRot = 0;      // quina col·locació d'aquella peça es mostra
+    let kbPiece = null;   // peça triada amb el teclat (índex de la safata)
+    let kbGrid = null;
 
     function cleanup() {
       endDrag();
+      kbPiece = null;
       hintMarked = []; hintPick = false; hintPiece = null; hintRot = 0;
     }
     function leave() { cleanup(); goHome(); }
@@ -368,7 +373,75 @@ export default {
       renderBoard();
       renderTray();
       paintScore();
+      wireKeyboard();
       saveGame(state); // desa l'estat en entrar (partida nova o continuada)
+    }
+
+    // ---------- teclat ----------
+    // Es tria una peça (tecles 1-3, o Enter sobre la safata), les fletxes
+    // mouen la seva cantonada superior esquerra i Enter la deixa.
+    function wireKeyboard() {
+      kbPiece = null;
+      kbGrid = keyboardGrid(board, {
+        rows: SIZE, cols: SIZE,
+        label: 'Graella. Tecles 1, 2 o 3 per triar la peça, fletxes per moure-la, Enter per deixar-la.',
+        start: [3, 3],
+        move: (r, c) => previewKb(r, c),
+        leave: clearPreview,
+        describe: (r, c) => {
+          const free = state.grid[r][c] ? 'plena' : 'buida';
+          if (kbPiece == null) return `Fila ${r + 1}, columna ${c + 1}, ${free}`;
+          return `Fila ${r + 1}, columna ${c + 1}: la peça ${fitsAt(state.tray[kbPiece].shape, r, c) ? 'hi cap' : 'no hi cap'}`;
+        },
+        activate: dropKb,
+        key: (e) => {
+          if (e.key === 'Escape' && kbPiece != null) { pickKb(null); clearPreview(); return true; }
+          if (!['1', '2', '3'].includes(e.key)) return false;
+          pressPiece(+e.key - 1);
+          return true;
+        },
+      });
+    }
+
+    // Marca a la safata la peça triada amb el teclat (null: cap).
+    function pickKb(index) {
+      kbPiece = index;
+      const tray = root.querySelector('#tray');
+      if (tray) [...tray.children].forEach((s, i) => s.classList.toggle('kb-picked', i === index));
+    }
+
+    // Tecla sobre una peça: tria-la, o demana'n la pista si s'està en mode pista.
+    function pressPiece(index) {
+      if (state.over || !state.tray[index]) return;
+      if (hintPick) { chooseHintPiece(index); return; }
+      pickKb(index);
+      board.focus();
+      const [r, c] = kbGrid.cursor();
+      previewKb(r, c);
+      kbGrid.announce(`Peça ${index + 1} triada, de ${state.tray[index].shape.length} blocs.`);
+    }
+
+    function previewKb(r, c) {
+      clearPreview();
+      if (kbPiece != null && state.tray[kbPiece]) paintPreview(state.tray[kbPiece].shape, r, c);
+    }
+
+    function dropKb(r, c) {
+      if (state.over || board.querySelector('.clearing')) return;
+      if (kbPiece == null) { // Enter sense peça: agafa la primera que quedi
+        const first = state.tray.findIndex(Boolean);
+        if (first >= 0) pressPiece(first);
+        return;
+      }
+      const { shape, color } = state.tray[kbPiece];
+      if (!fitsAt(shape, r, c)) { kbGrid.announce('Aquí no hi cap.'); return; }
+      clearPreview();
+      placeShape(shape, r, c, color);
+      state.tray[kbPiece] = null;
+      pickKb(null);
+      renderBoard();
+      afterPlace(shape.length);
+      kbGrid.announce('Peça col·locada.');
     }
 
     // ---------- pista ----------
@@ -452,6 +525,7 @@ export default {
         const slot = document.createElement('div');
         slot.className = 'encaixa-slot';
         if (piece) slot.appendChild(buildPiece(piece.shape, i, piece.color));
+        if (i === kbPiece) slot.classList.add('kb-picked');
         tray.appendChild(slot);
       });
     }
@@ -472,6 +546,14 @@ export default {
         }
       }
       el.addEventListener('pointerdown', (e) => startDrag(e, index));
+      el.tabIndex = 0;
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', `Peça ${index + 1}, de ${shape.length} ${shape.length === 1 ? 'bloc' : 'blocs'}`);
+      el.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        pressPiece(index);
+      });
       return el;
     }
 
@@ -491,6 +573,7 @@ export default {
     function startDrag(e, index) {
       if (state.over || !state.tray[index]) return;
       e.preventDefault();
+      pickKb(null); // el ratolí o el dit passen davant del teclat
       const piece = state.tray[index];
       const shape = piece.shape;
       const rect = board.getBoundingClientRect();
@@ -596,8 +679,13 @@ export default {
 
     function updatePreview(x, y) {
       clearPreview();
-      const { r, c, fits } = placementAt(x, y);
-      drag.shape.forEach(([dr, dc]) => {
+      const { r, c } = placementAt(x, y);
+      paintPreview(drag.shape, r, c);
+    }
+
+    function paintPreview(shape, r, c) {
+      const fits = fitsAt(shape, r, c);
+      shape.forEach(([dr, dc]) => {
         const rr = r + dr, cc = c + dc;
         if (rr < 0 || rr >= SIZE || cc < 0 || cc >= SIZE) return; // fora: no es pinta
         const el = state.cellEls[rr][cc];
@@ -607,7 +695,7 @@ export default {
       // Si en aquesta posició es completaria alguna fila/columna, ressalta-la
       // sencera amb una animació perquè es vegi abans de deixar anar la peça.
       if (fits) {
-        completingCells(drag.shape, r, c).forEach(([rr, cc]) => {
+        completingCells(shape, r, c).forEach(([rr, cc]) => {
           state.cellEls[rr][cc].classList.add('line-hint');
           hintCells.push([rr, cc]);
         });

@@ -11,6 +11,8 @@
 // fallada amb un punt de tinta. Cap negre. Els taulers caben sense scroll.
 // ============================================================
 
+import { keyboardGrid, focusIfKeyboard } from './board-keys.js';
+
 const N = 10;
 
 // Flota de cada jugador: nom i eslora (caselles).
@@ -93,6 +95,7 @@ export default {
     'Per torns, dispareu a una casella del rival passant-vos el mòbil.',
     '"Aigua" si falles, "Tocat!" o "Enfonsat!" si encertes.',
     'Guanya qui enfonsa primer tota la flota enemiga.',
+    'Amb teclat: fletxes per apuntar, Enter per col·locar o disparar, R per girar el vaixell.',
   ],
 
   mount(root, { goHome }) {
@@ -313,6 +316,7 @@ export default {
           renderPlaceBoard(board);
           renderShipList(board);
           syncReady(board);
+          focusIfKeyboard(placeBoardEl);
         };
       });
     }
@@ -365,30 +369,64 @@ export default {
         placeBoardEl.setPointerCapture && placeBoardEl.setPointerCapture(e.pointerId);
         move(e);
       };
+      // Col·loca el vaixell triat a (r,c). Retorna si s'hi ha pogut posar.
+      const placeAt = (r, c) => {
+        const ship = board.ships[state.sel];
+        if (!ship || ship.cells.length > 0) return false;
+        const cells = shipCells(r, c, ship.size, state.orient);
+        if (!canPlace(board, cells)) { flashInvalid(cells); return false; }
+        placeShip(board, state.sel, cells);
+        renderPlaceBoard(board);
+        const next = firstUnplaced(board);
+        state.sel = board.ships[next].cells.length === 0 ? next : state.sel;
+        renderShipList(board);
+        syncReady(board);
+        return true;
+      };
       const up = (e) => {
         const rc = cellFromPoint(placeBoardEl, e.clientX, e.clientY) || lastRC;
         clearPreview();
         if (!rc) return;
-        const ship = board.ships[state.sel];
-        if (!ship || ship.cells.length > 0) return;
-        const cells = shipCells(rc[0], rc[1], ship.size, state.orient);
-        if (canPlace(board, cells)) {
-          placeShip(board, state.sel, cells);
-          renderPlaceBoard(board);
-          const next = firstUnplaced(board);
-          state.sel = board.ships[next].cells.length === 0 ? next : state.sel;
-          renderShipList(board);
-          syncReady(board);
-        } else {
-          flashInvalid(cells);
-        }
+        placeAt(rc[0], rc[1]);
         e.preventDefault();
       };
       placeBoardEl.addEventListener('pointerdown', down);
       placeBoardEl.addEventListener('pointermove', move);
       placeBoardEl.addEventListener('pointerup', up);
       placeBoardEl.addEventListener('pointercancel', () => clearPreview());
+
+      const grid = keyboardGrid(placeBoardEl, {
+        rows: N, cols: N,
+        label: 'La teva graella. Fletxes per moure el vaixell, Enter per col·locar-lo, R per girar-lo.',
+        start: () => placeCursor,
+        move: (r, c) => { placeCursor = [r, c]; showPreview(board, r, c); },
+        leave: clearPreview,
+        describe: (r, c) => {
+          const ship = board.ships[state.sel];
+          const where = cellName(r, c);
+          return ship && ship.cells.length === 0 ? `${where}: ${ship.name}, ${ship.size} caselles` : where;
+        },
+        activate: (r, c) => {
+          const ship = board.ships[state.sel];
+          const ok = placeAt(r, c);
+          if (ok) {
+            grid.announce(`${ship.name} col·locat a ${cellName(r, c)}.`);
+            if (fleetDone(board)) { focusIfKeyboard(root.querySelector('#ready')); return; }
+            showPreview(board, r, c);
+          } else if (ship && ship.cells.length === 0) {
+            grid.announce(`${ship.name} no hi cap.`);
+          }
+        },
+        key: (e) => {
+          if (e.key !== 'r' && e.key !== 'R') return false;
+          root.querySelector('#rotate').click(); // refà la pantalla i torna al tauler
+          return true;
+        },
+      });
     }
+
+    let placeCursor = [0, 0]; // on és el cursor del teclat en col·locar (sobreviu a girar)
+    const cellName = (r, c) => `${'ABCDEFGHIJ'[c]}${r + 1}`;
 
     function flashInvalid(cells) {
       cells.forEach(([r, c]) => {
@@ -452,6 +490,7 @@ export default {
         ctl.innerHTML = `<button class="btn btn--accent" id="cont">Passa el torn</button>`;
         ctl.querySelector('#cont').onclick = () => { state.current = 1 - shooter; nextTurn(); };
       }
+      focusIfKeyboard(ctl.querySelector('#cont'));
     }
 
     function setStatus(res) {
@@ -499,6 +538,7 @@ export default {
           if (!ctl) return;
           ctl.innerHTML = `<button class="btn btn--accent" id="cont">Continua</button>`;
           ctl.querySelector('#cont').onclick = () => screenShoot(0);
+          focusIfKeyboard(ctl.querySelector('#cont'));
         }, 550);
       }, 850);
     }
@@ -564,18 +604,32 @@ export default {
       }
       if (interactive && onFire) {
         let done = false; // un sol tret per torn
-        const fire = (e) => {
-          if (state.confirming) return; // bloqueja mentre es confirma rendir-se
-          if (done) return;
-          const rc = cellFromPoint(el, e.clientX, e.clientY);
-          if (!rc) return;
-          if (board.shots[rc[0]][rc[1]] != null) return; // no es repeteix casella
-          e.preventDefault();
+        // Dispara a (r,c) si es pot. Retorna si el tret ha sortit.
+        const shoot = (r, c) => {
+          if (state.confirming || done) return false; // bloqueja mentre es confirma rendir-se
+          if (board.shots[r][c] != null) return false; // no es repeteix casella
           done = true;
           el.removeEventListener('pointerup', fire); // bloqueja més trets fins al torn següent
-          onFire(rc[0], rc[1]);
+          onFire(r, c);
+          return true;
+        };
+        const fire = (e) => {
+          const rc = cellFromPoint(el, e.clientX, e.clientY);
+          if (!rc) return;
+          if (shoot(rc[0], rc[1])) e.preventDefault();
         };
         el.addEventListener('pointerup', fire);
+        const shotName = { miss: 'aigua', hit: 'tocat' };
+        const grid = keyboardGrid(el, {
+          rows: N, cols: N,
+          label: 'Graella del rival. Fletxes per apuntar, Enter per disparar.',
+          start: [Math.floor(N / 2), Math.floor(N / 2)],
+          describe: (r, c) => `${cellName(r, c)}: ${shotName[board.shots[r][c]] || 'sense disparar'}`,
+          activate: (r, c) => {
+            if (!done && board.shots[r][c] != null) grid.announce('Aquí ja hi has disparat.');
+            else shoot(r, c);
+          },
+        });
       }
     }
 

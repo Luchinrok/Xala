@@ -1254,3 +1254,22 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 @media (hover: hover) { .mat2-daily:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--ink); } }
 @media (prefers-reduced-motion: reduce) { .sq--hint::after { animation: none; } .sq--wrong .piece { animation: none; } }
 .mat2-status { min-height: 2.6em; display: flex; align-items: center; justify-content: center; margin-top: 4px; }
+
+/* ============================================================
+   Teclat als taulers (board-keys.js)
+   ============================================================ */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+/* cursor: outline i no box-shadow, perquè Vaixells posa box-shadow en línia */
+.kb-cursor { outline: 3px solid var(--ink); outline-offset: -3px; }
+.vx-cell.ship.kb-cursor, .encaixa-cell.on.kb-cursor { outline-color: var(--paper); }
+.encaixa-piece:focus-visible { outline-offset: 4px; border-radius: 4px; }
+.encaixa-slot.kb-picked { outline: 3px solid var(--ink); outline-offset: 6px; border-radius: var(--r-sm); }
+
+/* Enrere: fletxa dibuixada (app.js treu el «‹» de la lletra, que surt minúscul) */
+.back { min-height: 44px; gap: 8px; }
+.back__chev { width: .55em; height: .55em; margin-left: 3px; flex: none;
+  border-left: 3px solid currentColor; border-bottom: 3px solid currentColor;
+  border-radius: 1px; transform: rotate(45deg); }

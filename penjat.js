@@ -92,7 +92,7 @@ export default {
   mount(root, { goHome }) {
     const state = {
       level: 'normal',
-      categoryIds: [],   // cap per defecte; cal triar-ne almenys una
+      categoryIds: CATEGORIES.map(c => c.id),   // totes d'entrada: es pot jugar de seguida
       maxErrors: LEVELS.normal.errors,
       word: '',
       chars: [],

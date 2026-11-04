@@ -17,6 +17,8 @@
 // dalt). Les dames porten un anell. Cap negre.
 // ============================================================
 
+import { keyboardGrid } from './board-keys.js';
+
 const DARK = (r, c) => (r + c) % 2 === 1;
 const inB = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
 const other = (p) => (p === 1 ? 2 : 1);
@@ -194,6 +196,7 @@ export default {
     'Captura obligatòria: si pots menjar, has de fer-ho (i encadenar).',
     'Una fitxa que arriba al fons es fa dama (mou en diagonal a distància).',
     'Guanya qui deixa el rival sense fitxes o sense moviments.',
+    'Amb teclat: fletxes per moure\'t, Enter per triar i moure, Esc per deixar anar.',
   ],
 
   mount(root, { goHome }) {
@@ -294,6 +297,38 @@ export default {
       renderBoard();
       paintTurn();
       resetControls();
+      keyboardGrid(boardEl, {
+        rows: 8, cols: 8,
+        label: 'Tauler de dames. Fletxes per moure\'t, Enter per triar i moure.',
+        start: firstMovable,
+        activate: onCellClick,
+        describe: describeCell,
+        key: (e) => {
+          if (e.key !== 'Escape' || !selected || mustContinue) return false;
+          selected = null; targets = []; renderBoard();
+          return true;
+        },
+      });
+    }
+
+    // On comença el cursor del teclat: la primera fitxa que es pot moure.
+    function firstMovable() {
+      for (let r = 7; r >= 0; r--) {
+        for (let c = 0; c < 8; c++) {
+          const pc = state.board[r][c];
+          if (pc && pc.c === state.turn && stepsFor(r, c).length) return [r, c];
+        }
+      }
+      return [7, 0];
+    }
+
+    function describeCell(r, c) {
+      const pc = state.board[r][c];
+      const name = 'abcdefgh'[c] + (8 - r);
+      let txt = pc ? `${name}, ${pc.k ? 'dama' : 'fitxa'} de ${playerName(pc.c)}` : `${name}, buida`;
+      if (selected && selected[0] === r && selected[1] === c) txt += ', triada';
+      if (targets.some(t => t.to[0] === r && t.to[1] === c)) txt += ', hi pots moure';
+      return txt;
     }
 
     function interactive() {
