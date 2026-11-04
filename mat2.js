@@ -79,7 +79,7 @@ export default {
     'Juguen les blanques i poden fer escac i mat en dues jugades, facin el que facin les negres.',
     'La jugada que acaben de fer les negres surt marcada en groc.',
     'Toca una peça i després la casella on la vols moure. Si l\'encertes, les negres es defensen i et toca rematar.',
-    'Cada dia hi ha un problema nou, el mateix per a tothom. Comparteix-lo i repta els amics!',
+    'Tria un nivell i fes-ne tants com vulguis. A més, cada dia hi ha un problema nou, el mateix per a tothom: repta els amics!',
   ],
 
   mount(root, { goHome }) {
@@ -113,11 +113,11 @@ export default {
 
         <button class="mat2-daily" id="daily">
           <span class="mat2-daily__k">Problema del dia · #${dailyNum + 1}</span>
-          <span class="mat2-daily__t">${st.doneToday ? 'Fet! Torna demà' : 'Resol el d\'avui'}</span>
-          <span class="mat2-daily__s">${st.n ? `Ratxa: ${st.n} ${st.n === 1 ? 'dia' : 'dies'} seguits` : 'Fes-ne un cada dia i fes ratxa'}</span>
+          <span class="mat2-daily__t">${st.doneToday ? 'Fet! Demà, un de nou' : 'Resol el d\'avui'}</span>
+          <span class="mat2-daily__s">${st.n ? (st.n === 1 ? 'Ratxa: 1 dia' : `Ratxa: ${st.n} dies seguits`) : 'Fes-ne un cada dia i fes ratxa'}</span>
         </button>
 
-        <p class="label" style="margin:26px 0 12px">O tria el nivell</p>
+        <p class="label" style="margin:26px 0 12px">Problemes sense límit</p>
         <div class="btn-row" id="levels">
           ${LEVELS.map(l => `<button class="btn ${level === l.id ? 'btn--accent' : 'btn--outline'}" data-level="${l.id}">${l.name}</button>`).join('')}
         </div>
@@ -257,6 +257,7 @@ export default {
         if (!ok) { wrong(before, mv, 'No, així s\'escapen. Torna-hi!'); return; }
         stage = 1;
         hints = 0;
+        root.querySelector('#hint').textContent = 'Pista';
         setStatus('Bona! Les negres es defensen…');
         later(() => {
           play(bestDefence(pos), () => {
@@ -397,13 +398,13 @@ export default {
           <p class="muted">${sub}${isDaily && st.n ? ` Ratxa: ${st.n} ${st.n === 1 ? 'dia' : 'dies'}.` : ''}</p>
         </div>
         <div class="stack" style="margin-top:16px">
-          <button class="btn btn--accent" id="next">${isDaily ? 'Més problemes' : 'Següent problema'}</button>
+          <button class="btn btn--accent" id="next">Següent problema</button>
           <button class="btn btn--outline" id="share2">Repta un amic</button>
           <button class="btn btn--outline" id="home">Tornar a l'inici</button>
         </div>
       `;
       box.querySelector('#next').onclick = () => {
-        if (isDaily) { screenConfig(); return; }
+        if (isDaily) { startPuzzle(OFFSET[level] + nextIn(level), false); return; }
         const lv = levelOf(num);
         startPuzzle(OFFSET[lv] + (num - OFFSET[lv] + 1) % PROBLEMES[lv].length, false);
       };

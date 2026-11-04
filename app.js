@@ -32,7 +32,9 @@ const gameInstructions = (g) => g.instructions || [];
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
 const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs];
-const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2];
+// Escacs surt també aquí, en corall per mantenir el patró de la graella i
+// començant contra la màquina (solo).
+const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, { ...escacs, color: 'var(--accent)', solo: true }];
 
 const app = document.getElementById('app');
 
@@ -57,26 +59,41 @@ function scrollTop() {
   obs.observe(app, { childList: true, subtree: true });
 })();
 
-// ---------- botó "<" del sistema (Android/navegador) ----------
-// Navegació centralitzada i robusta. Mentre NO siguem a la pantalla
-// inicial mantenim sempre una entrada "tampó" a l'historial, de manera
-// que el "<" del sistema MAI surti de l'app: el capturem amb un únic
-// 'popstate' i fem EXACTAMENT el mateix que el botó "Enrere" (pujar un
-// nivell), funcioni o no la pantalla amb botó "Enrere" visible.
-//   - Si la pantalla té botó "Enrere" visible -> el premem.
-//   - Si no en té (sub-pantalles de joc: "Passa el mòbil", votacions,
-//     revelacions...) -> tornem a la CONFIGURACIÓ del joc re-muntant-lo.
-//   - Només a la pantalla inicial (nivell més alt) el "<" surt de l'app.
-// Cada entrada de pantalla passa per ensureArmed()/setLevel() (vegeu les
-// funcions de navegació), així queda centralitzat.
+// ---------- gest enrere / botó "<" del sistema ----------
+// Mateix model que Buyte: la portada és l'ARREL de l'historial (d:0) i cada
+// canvi de pantalla fet amb un toc hi afegeix una entrada. Cada gest en consumeix
+// una i desfà una capa, igual que el botó "Enrere" de la pantalla.
+// Les entrades s'han de crear DINS d'un toc: Chrome salta les que una pàgina
+// afegeix sense interacció, i el gest sortiria de l'app.
+//   - Si la pantalla té botó "Enrere" -> el premem.
+//   - Si no en té (sub-pantalles: "Passa el mòbil", votacions...) -> tornem a la
+//     CONFIGURACIÓ del joc re-muntant-lo.
+//   - A la portada ja no queden entrades nostres: el gest surt de l'app.
+// Poden sobrar entrades (un joc que refà la pantalla en triar una opció, un
+// "Tornar a l'inici" que salta capes): cada gest continua desfent una sola capa i
+// en arribar a la portada es consumeixen totes. MAX_DEPTH les limita.
+const MAX_DEPTH = 6;
+const LINK = /^#mat-\d+$/;
 let navCurrentGame = null;  // joc obert actual (per re-muntar-lo = anar a la seva config)
 let navCurrentBack = null;  // "enrere" del joc (cap a la llista de jocs)
-let navAtLanding = true;    // cert només a la pantalla inicial
-let navArmed = false;       // si el tampó d'historial està posat
+let navAtLanding = true;    // cert només a la portada
+let navBacking = false;     // anem enrere: aquest canvi de pantalla no afegeix entrada
+let navNoopPops = 0;        // popstates que venen de buidar l'historial, no d'un gest
+let navDepth = 0;           // última profunditat coneguda
 
-function ensureArmed() {
-  if (navArmed) return;
-  try { history.pushState({ xala: true }, ''); navArmed = true; } catch (e) {}
+const readDepth = () => (history.state && Number.isInteger(history.state.d) ? history.state.d : navDepth);
+
+function pushEntry() {
+  const d = readDepth();
+  if (d >= MAX_DEPTH) return;
+  try { history.pushState({ d: d + 1 }, ''); navDepth = d + 1; } catch (e) {}
+}
+
+// Marca que el canvi de pantalla que ve ara és anar enrere. Es desfà després
+// que hagi corregut l'observador de pantalles.
+function markBacking() {
+  navBacking = true;
+  setTimeout(() => { navBacking = false; }, 0);
 }
 
 // Marca el nivell actual de navegació en entrar a CADA pantalla.
@@ -84,51 +101,74 @@ function setLevel({ landing = false, game = null, back = null } = {}) {
   navAtLanding = landing;
   navCurrentGame = game;
   navCurrentBack = back;
-  if (!landing) ensureArmed();
+  if (landing) {
+    // A la portada es consumeix tot el que quedi, perquè el proper gest surti.
+    const d = readDepth();
+    if (d > 0) {
+      navNoopPops++;
+      navDepth = 0;
+      try { history.go(-d); } catch (e) { navNoopPops--; }
+    }
+  }
 }
 
 // Enllaç de repte (#mat-N) amb l'app ja oberta: el navegador només canvia el
-// final de l'adreça i ho avisa amb 'popstate', com si fos el botó "<". Es
-// surt del joc actual (el seu "Enrere" n'atura els temporitzadors) i s'obre el
-// problema, que treu el #mat-N de l'adreça. Si quedés a l'historial, el "<"
-// tornaria a obrir-lo cada vegada.
-const LINK = /^#mat-\d+$/;
+// final de l'adreça i ho avisa amb 'popstate', com si fos un gest enrere. Se surt
+// del joc actual (el seu "Enrere" n'atura els temporitzadors) i s'obre el problema,
+// que treu el #mat-N de l'adreça.
 function openFromLink() {
   if (!LINK.test(location.hash)) return false;
+  navDepth += 1;
+  try { history.replaceState({ d: navDepth }, ''); } catch (e) {}
+  markBacking();
   const back = app.querySelector('.back');
-  if (back) back.click();
+  if (navCurrentGame && back) back.click();
   openGame(mat2, goSingle);
   return true;
 }
 window.addEventListener('hashchange', openFromLink);
 
 window.addEventListener('popstate', () => {
+  if (navNoopPops > 0) { navNoopPops--; navDepth = readDepth(); return; }
   if (openFromLink()) return;
-  navArmed = false; // el sistema acaba de consumir el nostre tampó
-  if (navAtLanding) {
-    // a l'inici (nivell més alt): deixa sortir de l'app
-    try { history.back(); } catch (e) {}
-    return;
-  }
-  ensureArmed(); // re-arma: el següent "<" també s'ha de capturar
-  // mateixa acció que el botó "Enrere": puja un nivell dins l'app
+  navDepth = readDepth();
+  if (navAtLanding) return;
+  markBacking();
   const back = app.querySelector('.back');
-  if (back) { back.click(); return; }
-  // sub-pantalla de joc sense botó "Enrere": torna a la configuració del
-  // joc (re-muntant-lo); si no hi ha joc, a la pantalla inicial
-  if (navCurrentGame) { openGame(navCurrentGame, navCurrentBack); return; }
-  goLanding();
+  if (back) back.click();
+  else if (navCurrentGame) openGame(navCurrentGame, navCurrentBack);
+  else goLanding();
+  // Encara som dins de l'app però sense entrades a sota: en deixem una perquè el
+  // proper gest no en surti.
+  if (!navAtLanding && readDepth() === 0) pushEntry();
 });
-// Tampó inicial. Si s'entra per un enllaç, el #mat-N queda només a l'entrada de
-// dalt (la que neteja el problema en obrir-se), no a la de sota.
-if (LINK.test(location.hash)) {
-  const link = location.hash;
-  history.replaceState(history.state, '', location.pathname + location.search);
-  ensureArmed();
-  history.replaceState(history.state, '', location.pathname + location.search + link);
-} else {
-  ensureArmed();
+
+// Cada canvi de pantalla fet amb un toc afegeix una entrada.
+(function watchForward() {
+  const isScreen = (n) => n && n.nodeType === 1 && n.classList && n.classList.contains('screen');
+  const obs = new MutationObserver((muts) => {
+    if (navBacking || navAtLanding) return;
+    const ua = navigator.userActivation;
+    if (ua && !ua.isActive) return; // temporitzadors del joc: no és una acció de l'usuari
+    const changed = muts.some(m => m.type === 'childList' && m.addedNodes.length > 0 &&
+      (isScreen(m.target) || Array.prototype.some.call(m.addedNodes, isScreen)));
+    if (changed) pushEntry();
+  });
+  obs.observe(app, { childList: true, subtree: true });
+})();
+
+document.addEventListener('click', (e) => {
+  // L'"Enrere" de la pantalla: tira enrere sense afegir cap entrada.
+  if (e.target instanceof Element && e.target.closest('.back')) { markBacking(); return; }
+  // Entrant per un enllaç no hi ha entrades: el primer toc en crea una.
+  if (!navAtLanding && readDepth() === 0) pushEntry();
+}, true);
+
+// Arrel de l'historial. Sense URL: no es toca l'adreça (ni el #mat-N d'un enllaç).
+if (!history.state || !Number.isInteger(history.state.d)) {
+  try { history.replaceState({ d: 0 }, ''); } catch (e) {}
 }
+navDepth = readDepth();
 
 function setAccent(color) {
   document.documentElement.style.setProperty('--accent', color || 'var(--coral)');
@@ -235,7 +275,7 @@ function goLanding() {
       </button>
       <button class="mode-card" id="mode-sp" style="--c:var(--paper-2)">
         <span>${glyph('solo')}</span>
-        <div><h3>Un sol jugador</h3><p>7 jocs per a tu sol, quan vulguis.</p></div>
+        <div><h3>Un sol jugador</h3><p>8 jocs per a tu sol, quan vulguis.</p></div>
       </button>
     </div>
   `;
@@ -340,7 +380,7 @@ function openGame(game, back) {
   const root = document.createElement('div');
   root.className = 'screen';
   app.appendChild(root);
-  game.mount(root, { goHome: back || goMultiplayer });
+  game.mount(root, { goHome: back || goMultiplayer, solo: !!game.solo });
 }
 
 // ---------- ajuda: "Com es juga?" (per a un catàleg de jocs) ----------
