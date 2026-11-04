@@ -87,7 +87,23 @@ function setLevel({ landing = false, game = null, back = null } = {}) {
   if (!landing) ensureArmed();
 }
 
+// Enllaç de repte (#mat-N) amb l'app ja oberta: el navegador només canvia el
+// final de l'adreça i ho avisa amb 'popstate', com si fos el botó "<". Es
+// surt del joc actual (el seu "Enrere" n'atura els temporitzadors) i s'obre el
+// problema, que treu el #mat-N de l'adreça. Si quedés a l'historial, el "<"
+// tornaria a obrir-lo cada vegada.
+const LINK = /^#mat-\d+$/;
+function openFromLink() {
+  if (!LINK.test(location.hash)) return false;
+  const back = app.querySelector('.back');
+  if (back) back.click();
+  openGame(mat2, goSingle);
+  return true;
+}
+window.addEventListener('hashchange', openFromLink);
+
 window.addEventListener('popstate', () => {
+  if (openFromLink()) return;
   navArmed = false; // el sistema acaba de consumir el nostre tampó
   if (navAtLanding) {
     // a l'inici (nivell més alt): deixa sortir de l'app
@@ -103,7 +119,16 @@ window.addEventListener('popstate', () => {
   if (navCurrentGame) { openGame(navCurrentGame, navCurrentBack); return; }
   goLanding();
 });
-ensureArmed(); // tampó inicial
+// Tampó inicial. Si s'entra per un enllaç, el #mat-N queda només a l'entrada de
+// dalt (la que neteja el problema en obrir-se), no a la de sota.
+if (LINK.test(location.hash)) {
+  const link = location.hash;
+  history.replaceState(history.state, '', location.pathname + location.search);
+  ensureArmed();
+  history.replaceState(history.state, '', location.pathname + location.search + link);
+} else {
+  ensureArmed();
+}
 
 function setAccent(color) {
   document.documentElement.style.setProperty('--accent', color || 'var(--coral)');
@@ -367,7 +392,7 @@ function helpDetail(game, games, back) {
 // arrenca
 goLanding();
 // enllaç compartit d'un problema (#mat-N): obre «Mat en 2» directament
-if (/^#mat-\d+$/.test(location.hash)) openGame(mat2, goSingle);
+if (LINK.test(location.hash)) openGame(mat2, goSingle);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
