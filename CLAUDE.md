@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 04-11-2026, a la branca `la-traca`, és `xala-v99`; a `main`, `xala-v98`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 04-11-2026 és `xala-v99`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs i els 450 problemes de Mat en 2) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -26,4 +26,4 @@
 - 03-11-2026 (publicat): joc «Mat en 2» a Un sol jugador. 450 problemes de Lichess (CC0) verificats amb el motor (`mat2-problemes.js` és generat), problema del dia amb ratxa, pista i solució, botó «Repta» que comparteix una imatge, i enllaç `#mat-N` que obre el problema.
 - 04-11-2026 (publicat): teclat a Dames, Vaixells, Sopa i Encaixa! (`board-keys.js`: el focus és al tauler, amb un cursor), fletxa d'Enrere dibuixada amb CSS, tots els jocs amb totes les categories d'entrada i `.btn-row` sense desbordar a pantalles petites.
 - 04-11-2026 (publicat): icones PNG (Android feia una «L» amb la primera lletra de l'adreça), Escacs també a Un sol jugador, Mat en 2 deixa clar que no té límit. Gest enrere refet amb el model de Buyte: cada canvi de pantalla fet amb un toc afegeix una entrada a l'historial (mai sense toc, Chrome se les salta). L'enllaç `#mat-N` amb l'app ja oberta tancava l'app o no obria el problema. Ara l'obre i el botó enrere del mòbil funciona.
-- 04-11-2026 (branca `la-traca`, sense publicar): joc propi de paraules, inspirat en la idea de fer paraules amb lletres donades però amb nom, aspecte i regles propis (sense lletra obligatòria ni rusc). Paraules de Softcatalà (GPL/LGPL): `traca-reptes.js` és generat i porta `LLICENCIA-diccionari.txt`.
+- 04-11-2026 (publicat): La Traca, joc propi de paraules, inspirat en la idea de fer paraules amb lletres donades però amb nom, aspecte i regles propis (sense lletra obligatòria ni rusc). Paraules de Softcatalà (GPL/LGPL): `traca-reptes.js` és generat i porta `LLICENCIA-diccionari.txt`.
