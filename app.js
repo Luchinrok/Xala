@@ -23,6 +23,7 @@ import puntsicaixes from './puntsicaixes.js';
 import encaixa from './encaixa.js';
 import mat2 from './mat2.js';
 import traca from './traca.js';
+import xifra from './xifra.js';
 import { t } from './i18n.js';
 
 // Títol, tagline i instruccions surten dels camps del mòdul de cada joc.
@@ -35,7 +36,7 @@ const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passapar
 const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs];
 // Escacs surt també aquí, en corall per mantenir el patró de la graella i
 // començant contra la màquina (solo).
-const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, { ...escacs, color: 'var(--accent)', solo: true }, traca];
+const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, { ...escacs, color: 'var(--accent)', solo: true }, traca, xifra];
 
 const app = document.getElementById('app');
 
@@ -245,6 +246,8 @@ function glyph(id) {
     connecta4:  '<rect x="7" y="9" width="26" height="24" rx="3" fill="none" stroke-width="3"/><circle cx="14" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="20" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="26" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="14" cy="26" r="2.6" fill="none" stroke-width="2"/><circle cx="26" cy="26" r="2.6" fill="none" stroke-width="2"/><circle cx="20" cy="26" r="2.6" fill="currentColor" stroke="none"/>',
     dames:      '<rect x="6" y="6" width="28" height="28" rx="2" fill="none" stroke-width="3"/><path d="M15.3 6v28M24.7 6v28M6 15.3h28M6 24.7h28" stroke-width="1.6"/><circle cx="20" cy="20" r="4.6" fill="none" stroke-width="2.6"/><circle cx="20" cy="20" r="1.8" fill="none" stroke-width="2"/>',
     puntsicaixes:'<circle cx="10" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="30" r="2" fill="currentColor" stroke="none"/><path d="M10 10h10M10 20h10M10 10v10M20 10v10" fill="none" stroke-width="2.4"/>',
+    // La Xifra: una fitxa amb un signe de més i un número petit
+    xifra:      '<rect x="6" y="8" width="24" height="24" rx="4" fill="none" stroke-width="3"/><path d="M18 14v12M12 20h12" stroke-width="3"/><path d="M32 6l4 4M36 6l-4 4" stroke-width="2.2"/>',
     // La Traca: un petard amb la metxa encesa
     traca:      '<rect x="8" y="17" width="20" height="16" rx="3" fill="none" stroke-width="3" transform="rotate(-20 18 25)"/><path d="M24 13c1-4 4-5 7-5" fill="none" stroke-width="2.6"/><path d="M34 3v3M38 8h-3M37 4l-2 2" stroke-width="2.2"/>',
     // problemes d'escacs: rei amb creu i un «2»
@@ -278,7 +281,7 @@ function goLanding() {
       </button>
       <button class="mode-card" id="mode-sp" style="--c:var(--paper-2)">
         <span>${glyph('solo')}</span>
-        <div><h3>Un sol jugador</h3><p>9 jocs per a tu sol, quan vulguis.</p></div>
+        <div><h3>Un sol jugador</h3><p>10 jocs per a tu sol, quan vulguis.</p></div>
       </button>
     </div>
   `;

@@ -1309,3 +1309,30 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   .traca-petards.pop .traca-petard { animation: none; }
   .traca-fuse__burnt, .traca-fuse__spark { transition: none; }
 }
+
+/* ============================================================
+   La Xifra: objectiu, fitxes i operacions
+   ============================================================ */
+.xifra-target { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 14px;
+  background: var(--accent); border: 2px solid var(--ink); border-radius: var(--r-md); box-shadow: var(--shadow); }
+.xifra-target__k { font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+.xifra-target__n { font-family: var(--font-display); font-weight: 800; font-size: 46px; line-height: 1.05; }
+.xifra-target__s { font-size: 14px; }
+.xifra-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+.xifra-tile { height: 62px; cursor: pointer; color: var(--ink); font-family: var(--font-display); font-weight: 800; font-size: 26px;
+  background: var(--paper-2); border: 2px solid var(--ink); border-radius: var(--r-sm); box-shadow: var(--shadow);
+  transition: transform .08s ease, box-shadow .08s ease; }
+.xifra-tile:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+.xifra-tile--new { background: #FFC828; }
+.xifra-tile.on { background: var(--ink); color: var(--paper); }
+.xifra-tile:disabled { cursor: default; box-shadow: none; opacity: .75; }
+.xifra-ops { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+.xifra-op { height: 52px; cursor: pointer; color: var(--ink); font-family: var(--font-display); font-weight: 800; font-size: 28px; line-height: 1;
+  background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-sm); box-shadow: var(--shadow);
+  transition: transform .08s ease, box-shadow .08s ease; }
+.xifra-op:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+.xifra-op.on { background: var(--ink); color: var(--paper); }
+.xifra-op:disabled { cursor: default; box-shadow: none; opacity: .5; }
+.xifra-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.xifra-steps:empty { display: none; }
+.xifra-step { padding: 4px 10px; border-radius: 999px; background: var(--paper-2); font-size: 14px; }
