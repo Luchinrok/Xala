@@ -44,6 +44,7 @@ const mirrorLevel = (lv) => ({
   ropes: (lv.ropes || []).map(([x, y, w]) => [400 - x, y, w]),
   spinners: (lv.spinners || []).map(([x, y, l, d]) => [400 - x, y, l, -d]),
   doors: (lv.doors || []).map(({ button: [bx, by, bw], door: [a, b, c, d, t] }) => ({ button: [400 - bx, by, bw], door: [400 - c, d, 400 - a, b, t] })),
+  magnets: (lv.magnets || []).map(([x, y, k, r]) => [400 - x, y, k, r]),
   ...(lv.button ? { button: [400 - lv.button[0], lv.button[1], lv.button[2]] } : {}),
   nodraw: (lv.nodraw || []).map(([x, y, w, h]) => [400 - x - w, y, w, h]),
   ...(lv.cup ? { cup: [400 - lv.cup[0], lv.cup[1]] } : {}),
@@ -383,6 +384,36 @@ const TEMPLATES = {
     // traç posa el món en marxa; la pilota espera sobre la tapa fins que es prem el botó)
     return { ...r, kind: 'botorampa', par: 2, lid: btn, candidates: TEMPLATES.pesos(btn, 6).map(s => [r.candidates[0][0], s]) };
   },
+  // ---------- imant ----------
+  // Un imant en un lloc on no toqui la solució ni la pilota d'entrada.
+  // A prop del camí: un punt de la rampa desplaçat 50-90 px en una direcció a l'atzar.
+  imantPer(lv) {
+    const pts = lv.candidates[0].flat();
+    for (let k = 0; k < 30; k++) {
+      const [px, py] = pts[Math.floor(rnd() * pts.length)];
+      const a = R(0, Math.PI * 2), d = R(50, 90);
+      const x = r1(px + Math.cos(a) * d), y = r1(py + Math.sin(a) * d);
+      if (x < 30 || x > 370 || y < 120 || y > 480) continue;
+      const far = pts.every(([qx, qy]) => Math.hypot(qx - x, qy - y) > 40) && Math.hypot(lv.ball[0] - x, lv.ball[1] - y) > 90;
+      if (far) return [x, y, R(1.5, 3.5), RI(90, 140)];
+    }
+    return null;
+  },
+  iman() {
+    const r = TEMPLATES.rampa(), m = TEMPLATES.imantPer(r);
+    return m && { ...r, kind: 'iman', magnets: [m] };
+  },
+  imantoca() { const t = TEMPLATES.iman(); return t && { ...t, kind: 'imantoca', place: 'ball2', goal: { type: 'touch' } }; },
+  imanzona() { const t = TEMPLATES.iman(); return t && { ...t, kind: 'imanzona', place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } }; },
+  imanbressol() {
+    const t = TEMPLATES.aguanta();
+    const [x1, y1] = [t.walls[0][0] + 6, t.walls[0][1]], [x2, y2] = [t.walls[1][0] + 6, t.walls[1][1]];
+    // l'imant, al costat del bressol: estira la pilota cap a fora
+    const side = rnd() < 0.5 ? -1 : 1;
+    const mx = r1((side < 0 ? Math.min(x1, x2) : Math.max(x1, x2)) + side * RI(50, 80)), my = r1((y1 + y2) / 2 + RI(-10, 40));
+    if (mx < 20 || mx > 380) return null;
+    return { ...t, kind: 'imanbressol', magnets: [[mx, my, R(1, 2.2), RI(80, 120)]] };
+  },
   // Zona: porta la pilota a la lleixa marcada i que s'hi quedi.
   zona() {
     const r = TEMPLATES.rampa();
@@ -419,6 +450,10 @@ const NAMES = {
   trapatoca: ['Trapa i toca', 'Obre la trapa: a sota hi ha la vermella'],
   trapazona: ['Trapa i zona', 'Obre la trapa i que la pilota pari a la zona'],
   botorampa: ['Botó i rampa', 'Destapa el cistell amb el botó i fes-hi arribar la pilota'],
+  iman: ['Imant', "L'imant estira la pilota: aprofita-ho"],
+  imantoca: ['Imant i toca', "Amb l'ajuda de l'imant, arriba a la vermella"],
+  imanzona: ['Imant i zona', "Amb l'ajuda de l'imant, deixa la pilota a la zona"],
+  imanbressol: ['Imant i bressol', "Que no caigui en 5 segons, i que l'imant no se l'endugui"],
   pontoca: ['Pont i toca', 'Fes el pont i arriba a la vermella'],
   pontzona: ['Pont i zona', "Creua el pont i atura't a la zona"],
   molinettoca: ['Molinet i toca', 'La plataforma la llança: que toqui la vermella'],
@@ -468,6 +503,7 @@ function tryCandidate(base, solRaw) {
   const { place, ...rest } = base;
   const lv = { ...rest, solution: sol };
   const goal = lv.goal || { type: 'cup' };
+  const gtype = goal.type;
   if (place === 'ball2') {
     // la pilota vermella, quieta sobre un tac allà on passa la groga
     const yy = RI(420, 500), x = passAt(lv, sol, yy);
@@ -507,6 +543,16 @@ function tryCandidate(base, solRaw) {
   if (wins < (['empenta', 'domino'].includes(base.kind) ? 7 : 6)) return no('massa just (mà tremolosa)');
   if (DUDS.some(d => simulate(Matter, lv, [d]).state === 'won')) return no('es resol amb un gargot');
   if (PHONES.some(w => simulate(Matter, lv, sol.map(s => asPhone(s, w))).state !== 'won')) return no('falla dibuixat com al mòbil');
+  // l'imant ha de comptar: ha de desviar la pilota i, sense ell, la solució no ha de funcionar
+  if (lv.magnets && lv.magnets.length) {
+    const sense = { ...lv, magnets: [] };
+    const track = (l) => { const w = buildWorld(Matter, l); sol.forEach(s => w.addStroke(s)); const p = []; for (let f = 0; f < 600 && w.state === 'playing'; f++) { w.step(); p.push([w.ball.position.x, w.ball.position.y]); } return p; };
+    const a = track(lv), b = track(sense);
+    let dev = 0;
+    for (let i = 0; i < Math.min(a.length, b.length); i++) dev = Math.max(dev, Math.hypot(a[i][0] - b[i][0], a[i][1] - b[i][1]));
+    if (dev < 40) return no("l'imant no fa res");
+    if (gtype !== 'hold' && simulate(Matter, sense, sol).state === 'won') return no("l'imant no cal");
+  }
   // dos traços: una persona tarda una estona a fer el segon
   if (sol.length > 1 && [90, 180, 300].some(d => simulate(Matter, lv, [[0, sol[0]], [d, sol[1]]], 1500).state !== 'won')) return no('falla si el segon traç arriba tard');
   return lv;

@@ -331,6 +331,21 @@ export default {
         ctx.fillStyle = ink;
         ctx.beginPath(); ctx.arc(s.position.x * scale, s.position.y * scale, scale * 4, 0, 7); ctx.fill();
       });
+      // imants: una ferradura corall i, puntejat, fins on arriba la seva força
+      world.magnets.forEach(mg => {
+        const x = mg.position.x * scale, y = mg.position.y * scale, r = 14 * scale;
+        ctx.save();
+        ctx.setLineDash([3 * scale, 6 * scale]);
+        ctx.strokeStyle = 'rgba(228,87,46,.45)'; ctx.lineWidth = Math.max(1, scale * 1.5);
+        ctx.beginPath(); ctx.arc(x, y, mg.reach * scale, 0, 7); ctx.stroke();
+        ctx.restore();
+        ctx.lineCap = 'butt';
+        ctx.strokeStyle = ink; ctx.lineWidth = 10 * scale;
+        ctx.beginPath(); ctx.arc(x, y, r * 0.75, Math.PI, 0); ctx.lineTo(x + r * 0.75, y + r * 0.8); ctx.moveTo(x - r * 0.75, y); ctx.lineTo(x - r * 0.75, y + r * 0.8); ctx.stroke();
+        ctx.strokeStyle = coral; ctx.lineWidth = 6 * scale;
+        ctx.beginPath(); ctx.arc(x, y, r * 0.75, Math.PI, 0); ctx.lineTo(x + r * 0.75, y + r * 0.55); ctx.moveTo(x - r * 0.75, y); ctx.lineTo(x - r * 0.75, y + r * 0.55); ctx.stroke();
+        ctx.lineCap = 'round';
+      });
       // botons i portes: el botó és corall fins que es prem; la porta oberta deixa una ombra
       world.doors.forEach(d => {
         if (d.open) {

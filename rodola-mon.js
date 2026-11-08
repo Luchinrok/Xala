@@ -71,6 +71,14 @@ export function buildWorld(Matter, level) {
     return b;
   });
   Composite.add(engine.world, [...statics, ...cup, ball, ...(ball2 ? [ball2] : []), ...boxes, ...planks, ...pins, ...spinners]);
+  // imants: [x, y, força, abast]. Atreuen la pilota groga (no els traços): com més a
+  // prop, més fort. A tocar del límit de l'abast, força × gravetat de la pilota.
+  const magnets = (level.magnets || []).map(([x, y, k, r]) => {
+    const b = Bodies.circle(x, y, 14, { ...solid, label: 'magnet' });
+    b.pull = k; b.reach = r;
+    return b;
+  });
+  Composite.add(engine.world, magnets);
   // botons i portes: { button: [x, y, amplada], door: [x1, y1, x2, y2, gruix] }.
   // Quan alguna cosa que es mou (pilota, traç, caixa) toca el botó, la porta s'obre.
   const doors = (level.doors || []).map(({ button: [bx, by, bw], door }) => {
@@ -111,7 +119,7 @@ export function buildWorld(Matter, level) {
   let state = 'ready'; // ready | playing | won | lost
 
   // No es pot dibuixar sobre les parets, el cistell, la pilota ni les zones ratllades.
-  const blockers = () => [...statics, ...cup, ...boxes, ...planks, ...doors.flatMap(d => (d.open ? [d.pad] : [d.pad, d.door]))];
+  const blockers = () => [...statics, ...cup, ...boxes, ...planks, ...magnets, ...doors.flatMap(d => (d.open ? [d.pad] : [d.pad, d.door]))];
   // tot el cercle per on passa una plataforma que gira és zona prohibida
   const m = T / 2 + 2;
   function forbidden(x, y) {
@@ -204,6 +212,15 @@ export function buildWorld(Matter, level) {
   // Un pas de física (1/60 s). El món no es mou fins al primer traç.
   function step() {
     if (!started || state === 'won' || state === 'lost') return state;
+    for (const mg of magnets) {
+      const dx = mg.position.x - ball.position.x, dy = mg.position.y - ball.position.y;
+      const d = Math.hypot(dx, dy);
+      if (d < mg.reach && d > BALL_R + 12) {
+        // força que creix en apropar-se (1/d²), limitada perquè no salti
+        const f = Math.min(4, mg.pull * (mg.reach / d) ** 2 / 4) * ball.mass * 0.001;
+        Body.applyForce(ball, ball.position, { x: dx / d * f, y: dy / d * f });
+      }
+    }
     for (const s of spinners) {
       Body.rotate(s, s.spin);
       s.angularVelocity = s.spin; // perquè el que toca la plataforma s'emporti l'empenta
@@ -246,7 +263,7 @@ export function buildWorld(Matter, level) {
   }
 
   return {
-    engine, ball, ball2, goal, statics, cup, boxes, planks, spinners, ropes, doors, strokes, nodraw, ink: level.ink || 0,
+    engine, ball, ball2, goal, statics, cup, boxes, planks, spinners, ropes, doors, magnets, strokes, nodraw, ink: level.ink || 0,
     addStroke, step, forbidden,
     get state() { return state; },
     get frames() { return frames; },
