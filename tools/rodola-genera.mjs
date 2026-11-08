@@ -239,6 +239,69 @@ const TEMPLATES = {
       candidates: [[rampOver(p1, p2, 25, RI(15, 40))]],
     };
   },
+  // ---------- combinacions: una idea per nivell ----------
+  // Tomba amb la corda: un pes penja sobre una caixa alta a la vora de la taula.
+  cordatomba() {
+    const t = TEMPLATES.tomba();
+    const [bx, by, bw, bh] = t.boxes[0];
+    const s = RI(30, 40), wx = r1(bx - bw / 2 - s / 2 + RI(-4, 10)), wy = r1(by - bh / 2 - RI(70, 150));
+    const ay = wy - RI(50, 90);
+    if (ay < 20) return null;
+    const cands = [];
+    for (let i = 0; i < 8; i++) { const yc = RI(ay + 12, wy - s / 2 - 12), w = RI(14, 26); cands.push([line(wx - w, yc, wx + w, yc, 4)]); }
+    return { ...t, kind: 'cordatomba', boxes: [...t.boxes, [wx, wy, s, s]], ropes: [[wx, ay, 1]], candidates: cands };
+  },
+  // Talla i toca: la pilota penja; rampa i després talla, fins a la vermella.
+  cordatoca() {
+    const t = TEMPLATES.tallarampa();
+    return { ...t, kind: 'cordatoca', place: 'ball2', goal: { type: 'touch' } };
+  },
+  // Catapulta a la zona: el balancí llança la pilota fins a la lleixa marcada.
+  catapultazona() {
+    const t = TEMPLATES.catapulta();
+    return t && { ...t, kind: 'catapultazona', place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } };
+  },
+  // Molinet a la zona: guia la pilota que llança la plataforma fins a la zona.
+  molinetzona() {
+    const t = TEMPLATES.molinet();
+    return t && { ...t, kind: 'molinetzona', place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } };
+  },
+  // Corda sobre el molinet: talla la corda i la plataforma llança la pilota.
+  cordamolinet() {
+    const sx = RI(140, 260), sy = RI(300, 400), len = RI(100, 140);
+    const dps = (rnd() < 0.5 ? -1 : 1) * RI(50, 110);
+    const bx = sx + RI(-45, 45), by = sy - len / 2 - RI(60, 120), ay = by - RI(70, 120);
+    if (ay < 20) return null;
+    const cands = [];
+    for (let i = 0; i < 8; i++) { const yc = RI(ay + 14, by - 24), w = RI(16, 28); cands.push([line(bx - w, yc, bx + w, yc, 4)]); }
+    return { kind: 'cordamolinet', par: 1, ball: [bx, r1(by)], ropes: [[bx, r1(ay), 'ball']], spinners: [[sx, sy, len, dps]], walls: [], candidates: cands };
+  },
+  // Aguanta sobre el molinet: un bressol que no toqui la plataforma que gira.
+  aguantamolinet() {
+    const t = TEMPLATES.aguanta();
+    const [x1, y1] = [t.walls[0][0] + 6, t.walls[0][1]], [x2, y2] = [t.walls[1][0] + 6, t.walls[1][1]];
+    const len = RI(80, 120);
+    const sx = r1((x1 + x2) / 2), sy = r1(Math.max(y1, y2) + 60 + len / 2 + RI(10, 40));
+    if (sy + len / 2 > 590) return null;
+    return { ...t, kind: 'aguantamolinet', spinners: [[sx, sy, len, (rnd() < 0.5 ? -1 : 1) * RI(60, 120)]] };
+  },
+  // Dòmino doble: dues caixes en cadena fins a la pilota.
+  dominodoble() {
+    const lx = RI(60, 110), ly = RI(260, 360);
+    const b1 = lx + RI(30, 45), h1 = RI(64, 78);
+    const b2 = b1 + RI(42, 56), h2 = RI(64, 80);
+    const ballX = b2 + RI(38, 50);
+    const lw = ballX - lx + RI(8, 16);
+    if (lx + lw > 380) return null;
+    const cands = [];
+    for (let i = 0; i < 12; i++) { const s = RI(26, 40); cands.push([square(r1(b1 - s - RI(-10, 12)), r1(ly - h1 - RI(90, 200)), s)]); }
+    return { kind: 'dominodoble', par: 1, ball: [ballX, ly - 19], walls: [[lx, ly, lx + lw, ly, 12]], boxes: [[b1, r1(ly - 6 - h1 / 2), 16, h1], [b2, r1(ly - 6 - h2 / 2), 16, h2]], candidates: cands };
+  },
+  // Catapulta que toca: el balancí llança la pilota fins a la vermella.
+  catapultatoca() {
+    const t = TEMPLATES.catapulta();
+    return t && { ...t, kind: 'catapultatoca', place: 'ball2', goal: { type: 'touch' } };
+  },
   // Zona: porta la pilota a la lleixa marcada i que s'hi quedi.
   zona() {
     const r = TEMPLATES.rampa();
@@ -263,6 +326,14 @@ const NAMES = {
   tallarampa: ['Talla i rampa', 'Prepara el camí i després talla la corda'],
   catapulta: ['Catapulta', 'Talla la corda i deixa caure el pes'],
   molinet: ['Molinet', 'Compte amb la plataforma que gira'],
+  cordatomba: ['Pes i caixa', 'Talla la corda i que el pes tombi la caixa'],
+  cordatoca: ['Penja i toca', 'Rampa, talla la corda i toca la vermella'],
+  catapultazona: ['Catapulta i zona', 'Llança la pilota fins a la zona'],
+  molinetzona: ['Molinet i zona', 'Guia la pilota fins a la zona'],
+  cordamolinet: ['Corda i molinet', 'Talla la corda sobre la plataforma que gira'],
+  aguantamolinet: ['Bressol', 'Que no caigui, i compte amb el molinet'],
+  dominodoble: ['Dòmino doble', 'Tomba la primera caixa i que caigui la pilota'],
+  catapultatoca: ['Catapulta i toca', 'Llança la pilota fins a la vermella'],
 };
 // Ordre: cada tipus nou apareix aviat, i després es van barrejant.
 // (Un tipus «Tap» —aturar una pilota massa ràpida— no va funcionar: amb aquesta física
