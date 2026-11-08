@@ -41,6 +41,8 @@ const mirrorLevel = (lv) => ({
   walls: (lv.walls || []).map(([a, b, c, d, t]) => [400 - c, d, 400 - a, b, t]),
   seesaws: (lv.seesaws || []).map(([x, y, l]) => [400 - x, y, l]),
   boxes: (lv.boxes || []).map(([x, y, w, h]) => [400 - x, y, w, h]),
+  ropes: (lv.ropes || []).map(([x, y, w]) => [400 - x, y, w]),
+  spinners: (lv.spinners || []).map(([x, y, l, d]) => [400 - x, y, l, -d]),
   nodraw: (lv.nodraw || []).map(([x, y, w, h]) => [400 - x - w, y, w, h]),
   ...(lv.cup ? { cup: [400 - lv.cup[0], lv.cup[1]] } : {}),
   candidates: lv.candidates.map(c => c.map(s => s.map(([x, y]) => [400 - x, y]))),
@@ -187,6 +189,56 @@ const TEMPLATES = {
     }
     return { kind: 'aguanta', par: 1, ball: [bx, 40], goal: { type: 'hold', secs: 5 }, walls: [peg(...p1), peg(...p2)], candidates: cands };
   },
+  // ---------- corda i plataforma que gira ----------
+  // Talla: la pilota penja d'una corda sobre un tobogan; talla-la.
+  talla() {
+    const dir = rnd() < 0.5 ? 1 : -1;
+    const bx = RI(110, 290), by = RI(170, 260), ay = by - RI(80, 130);
+    const ty = by + RI(110, 180);
+    const walls = [[bx - dir * 40, ty, bx + dir * RI(120, 170), ty + RI(35, 70), 12]].map(([a, b, c, d, t]) => (a < c ? [a, b, c, d, t] : [c, d, a, b, t]));
+    const cands = [];
+    for (let i = 0; i < 8; i++) { const yc = RI(ay + 20, by - 25), w = RI(18, 34); cands.push([line(bx - w, yc, bx + w, yc + RI(-6, 6), 4)]); }
+    return { kind: 'talla', par: 1, ball: [bx, by], ropes: [[bx, ay, 'ball']], walls, candidates: cands };
+  },
+  // Talla i rampa: primer la rampa sobre els tacs, després talla la corda.
+  tallarampa() {
+    const r = TEMPLATES.rampa();
+    const [bx, by] = r.ball;
+    const ay = Math.max(20, by - RI(30, 50));
+    const ballY = by + RI(50, 90); // la pilota penja més avall del punt fix
+    const cands = [];
+    for (let i = 0; i < 6; i++) { const yc = RI(ay + 12, ballY - 22), w = RI(16, 28); cands.push([r.candidates[0][0], line(bx - w, yc, bx + w, yc, 4)]); }
+    return { ...r, kind: 'tallarampa', par: 2, ball: [bx, ballY], ropes: [[bx, ay, 'ball']], candidates: cands };
+  },
+  // Catapulta: un pes penja sobre la punta d'un balancí; talla la corda.
+  catapulta() {
+    const px = RI(150, 230), py = RI(330, 430), len = RI(170, 220);
+    const left = px - len / 2, right = px + len / 2;
+    const s = RI(34, 44), wx = r1(right - s / 2 - RI(4, 18)), wy = RI(py - 260, py - 150);
+    const ay = wy - RI(60, 100);
+    if (ay < 20) return null;
+    const cands = [];
+    for (let i = 0; i < 8; i++) { const yc = RI(ay + 14, wy - s / 2 - 14), w = RI(16, 30); cands.push([line(wx - w, yc, wx + w, yc, 4)]); }
+    return {
+      kind: 'catapulta', par: 1, ball: [r1(left + 32), py - 18], seesaws: [[px, py, len]], walls: [peg(r1(left + 6), py + 11)],
+      boxes: [[wx, wy, s, s]], ropes: [[wx, ay, 0]], candidates: cands,
+    };
+  },
+  // Molinet: una plataforma gira sota la pilota; fes-li un camí que l'esquivi.
+  molinet() {
+    const sx = RI(150, 250), sy = RI(250, 360), len = RI(100, 150);
+    const dps = (rnd() < 0.5 ? -1 : 1) * RI(50, 110);
+    const bx = sx + RI(-50, 50);
+    const p1 = [RI(30, 120), RI(140, 230)];
+    const k = Math.tan(R(12, 22) * Math.PI / 180);
+    const d = RI(140, 220);
+    const p2 = [p1[0] + d, r1(p1[1] + d * k)];
+    if (Math.hypot(p2[0] - sx, p2[1] - sy) < len / 2 + 30 || Math.hypot(p1[0] - sx, p1[1] - sy) < len / 2 + 30) return null;
+    return {
+      kind: 'molinet', par: 1, ball: [bx, 40], spinners: [[sx, sy, len, dps]], walls: [peg(...p1), peg(...p2)],
+      candidates: [[rampOver(p1, p2, 25, RI(15, 40))]],
+    };
+  },
   // Zona: porta la pilota a la lleixa marcada i que s'hi quedi.
   zona() {
     const r = TEMPLATES.rampa();
@@ -207,12 +259,18 @@ const NAMES = {
   tomba: ['Tomba', 'Fes caure la caixa de la taula'],
   aguanta: ['Aguanta', 'Que la pilota no caigui durant 5 segons'],
   zona: ['Zona', 'Deixa la pilota quieta dins la zona'],
+  talla: ['Talla', 'Talla la corda amb un traç'],
+  tallarampa: ['Talla i rampa', 'Prepara el camí i després talla la corda'],
+  catapulta: ['Catapulta', 'Talla la corda i deixa caure el pes'],
+  molinet: ['Molinet', 'Compte amb la plataforma que gira'],
 };
 // Ordre: cada tipus nou apareix aviat, i després es van barrejant.
 // (Un tipus «Tap» —aturar una pilota massa ràpida— no va funcionar: amb aquesta física
 // la pilota sempre queia sola al forat. Si es torna a provar, cal un altre plantejament.)
 // (L'«Empenta» tampoc: cap nivell aguantava la prova de dibuixar com en un mòbil.)
-const ORDER = ['toca', 'rampa', 'tomba', 'pont', 'aguanta', 'balanci', 'zona', 'domino', 'embut', 'zigazaga', 'precisio'];
+let ORDER = ['toca', 'rampa', 'tomba', 'pont', 'aguanta', 'balanci', 'zona', 'domino', 'embut', 'zigazaga', 'precisio', 'talla', 'catapulta', 'molinet', 'tallarampa'];
+// TIPUS=talla,molinet només fa aquests tipus.
+if (process.env.TIPUS) ORDER = process.env.TIPUS.split(',');
 
 const JIT = [[-8, 0], [8, 0], [0, -8], [0, 6], [-6, -6], [6, -6], [-6, 4], [6, 4]];
 // Com ho dibuixaria un mòbil: píxels enters d'un tauler de w px i sense moviments de menys de 3 px.
@@ -283,16 +341,27 @@ function tryCandidate(base, solRaw) {
 
 // Nivells massa semblants: vegeu tools/rodola-semblanca.mjs.
 
+// AFEGEIX=1: conserva els nivells generats que ja hi ha i n'afegeix de nous al
+// final (així les estrelles dels jugadors no canvien de nivell).
 const out = [];
 const seen = new Set();
 const tally = {};
+if (process.env.AFEGEIX) {
+  const prev = (await import('../rodola-generats.js?' + Date.now())).default;
+  for (const lv of prev) {
+    out.push(lv);
+    const k = Object.keys(NAMES).find(key => lv.name.startsWith(NAMES[key][0] + ' '));
+    if (k) tally[k] = Math.max(tally[k] || 0, +lv.name.split(' ').pop());
+  }
+}
+const START = out.length;
 let tries = 0;
 const LIMIT = +(process.env.INTENTS || 600); // escenaris per tipus abans de rendir-se
 let failsInRow = 0;
 let slot = 0; // posició dins l'ordre de tipus; avança quan un tipus no surt
-while (out.length < WANT && failsInRow < LIMIT * ORDER.length) {
+while (out.length - START < WANT && failsInRow < LIMIT * ORDER.length) {
   tries++;
-  const kind = ORDER[(out.length + slot) % ORDER.length];
+  const kind = ORDER[(out.length - START + slot) % ORDER.length];
   if (++failsInRow % LIMIT === 0) {
     // aquest tipus no surt ara: es passa al següent i no s'atura tot
     console.error(`(${kind}: cap en ${LIMIT} escenaris, es passa al següent tipus)`, why);
@@ -317,7 +386,7 @@ while (out.length < WANT && failsInRow < LIMIT * ORDER.length) {
   out.push({ name: `${name} ${tally[kind]}`, hint, ...clean });
   failsInRow = 0;
   for (const k in why) delete why[k];
-  process.stderr.write(`${out.length}/${WANT} ${kind} (${tries} escenaris)\n`);
+  process.stderr.write(`${out.length - START}/${WANT} ${kind} (${tries} escenaris)\n`);
 }
 
 const body = `// ============================================================

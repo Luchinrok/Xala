@@ -63,7 +63,22 @@ export function buildWorld(Matter, level) {
     planks.push(plank);
     pins.push(Constraint.create({ pointA: { x, y }, bodyB: plank, pointB: { x: 0, y: 0 }, stiffness: 1, length: 0 }));
   }
-  Composite.add(engine.world, [...statics, ...cup, ball, ...(ball2 ? [ball2] : []), ...boxes, ...planks, ...pins]);
+  // plataformes que giren soles: [x, y, llargada, graus per segon]
+  const spinners = (level.spinners || []).map(([x, y, len, dps]) => {
+    const b = Bodies.rectangle(x, y, len, 10, { ...solid, label: 'spinner' });
+    b.spin = (dps * Math.PI / 180) / 60; // radians per pas
+    b.reach = len / 2;
+    return b;
+  });
+  Composite.add(engine.world, [...statics, ...cup, ball, ...(ball2 ? [ball2] : []), ...boxes, ...planks, ...pins, ...spinners]);
+  // cordes: [ax, ay, 'ball' | índex de caixa]. Un punt fix i una corda tibant
+  // (com un pèndol). Un traç que la travessa la talla.
+  const ropes = (level.ropes || []).map(([ax, ay, what]) => {
+    const body = what === 'ball' ? ball : boxes[what];
+    const c = Constraint.create({ pointA: { x: ax, y: ay }, bodyB: body, pointB: { x: 0, y: 0 }, stiffness: 1, damping: 0.01 });
+    Composite.add(engine.world, c);
+    return { a: [ax, ay], body, c, cut: false };
+  });
 
   const nodraw = level.nodraw || [];
   const strokes = [];
@@ -74,11 +89,13 @@ export function buildWorld(Matter, level) {
 
   // No es pot dibuixar sobre les parets, el cistell, la pilota ni les zones ratllades.
   const blockers = () => [...statics, ...cup, ...boxes, ...planks];
+  // tot el cercle per on passa una plataforma que gira és zona prohibida
   const m = T / 2 + 2;
   function forbidden(x, y) {
     if (x < 0 || x > W || y < 0 || y > H) return true;
     if (Math.hypot(x - ball.position.x, y - ball.position.y) < BALL_R + m + 2) return true;
     if (ball2 && Math.hypot(x - ball2.position.x, y - ball2.position.y) < BALL_R + m + 2) return true;
+    if (spinners.some(s => Math.hypot(x - s.position.x, y - s.position.y) < s.reach + m + 2)) return true;
     if (goal.type === 'zone') { const [zx, zy, zw, zh] = goal.zone; if (x > zx && x < zx + zw && y > zy && y < zy + zh) return true; }
     if (nodraw.some(([nx, ny, nw, nh]) => x > nx && x < nx + nw && y > ny && y < ny + nh)) return true;
     const probes = [[0, 0], [m, 0], [-m, 0], [0, m], [0, -m]];
@@ -142,6 +159,18 @@ export function buildWorld(Matter, level) {
     }
     const body = parts.length === 1 ? parts[0] : Body.create({ parts, ...opts });
     body.label = 'stroke';
+    // si el traç travessa una corda, la talla
+    for (const r of ropes) {
+      if (r.cut) continue;
+      const [ax, ay] = r.a, bx = r.body.position.x, by = r.body.position.y;
+      for (let i = 1; i < pts.length; i++) {
+        if (segmentsCross(pts[i - 1], pts[i], [ax, ay], [bx, by])) {
+          Composite.remove(engine.world, r.c);
+          r.cut = true;
+          break;
+        }
+      }
+    }
     Composite.add(engine.world, body);
     strokes.push(body);
     started = true;
@@ -152,6 +181,10 @@ export function buildWorld(Matter, level) {
   // Un pas de física (1/60 s). El món no es mou fins al primer traç.
   function step() {
     if (!started || state === 'won' || state === 'lost') return state;
+    for (const s of spinners) {
+      Body.rotate(s, s.spin);
+      s.angularVelocity = s.spin; // perquè el que toca la plataforma s'emporti l'empenta
+    }
     Engine.update(engine, STEP_MS);
     frames++;
     // límit de velocitat: a més de 14 px per pas la pilota podria travessar parets
@@ -187,11 +220,17 @@ export function buildWorld(Matter, level) {
   }
 
   return {
-    engine, ball, ball2, goal, statics, cup, boxes, planks, strokes, nodraw, ink: level.ink || 0,
+    engine, ball, ball2, goal, statics, cup, boxes, planks, spinners, ropes, strokes, nodraw, ink: level.ink || 0,
     addStroke, step, forbidden,
     get state() { return state; },
     get frames() { return frames; },
   };
+}
+
+// Es creuen els segments p1-p2 i q1-q2?
+export function segmentsCross([ax, ay], [bx, by], [cx, cy], [dx, dy]) {
+  const o = (px, py, qx, qy, rx, ry) => Math.sign((qx - px) * (ry - py) - (qy - py) * (rx - px));
+  return o(ax, ay, bx, by, cx, cy) !== o(ax, ay, bx, by, dx, dy) && o(cx, cy, dx, dy, ax, ay) !== o(cx, cy, dx, dy, bx, by);
 }
 
 // Douglas–Peucker: treu els punts que no canvien la forma més de `tol` píxels.

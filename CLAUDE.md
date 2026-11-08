@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 08-11-2026 és `xala-v105`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 08-11-2026, a la branca `corda-i-gir`, és `xala-v106`; a `main`, `xala-v105`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs i els 450 problemes de Mat en 2) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -35,3 +35,4 @@
 - 08-11-2026 (publicat): Mat en 2, nivell «Poques peces» (150 problemes de 9 peces o menys, `tools/mat2-poques.mjs`), afegits al final perquè els enllaços `#mat-N` no canviïn.
 - 08-11-2026 (publicat): La Traca amb variant (central, valencià, balear): només valen les formes generals i les de la variant triada. `tools/traca-variants.mjs` marca les paraules amb «~v», «~b», «~cb»... a partir de les etiquetes del diccionari de Softcatalà (8è caràcter de l'etiqueta verbal: C central, V valencià, B/Z balear, Y central i balear, X central i valencià).
 - 08-11-2026 (publicat): Fes-la caure sense repetits: 25 nivells (5 a mà + 20 generats). Amb el criteri de l'usuari (el pont fet a mà i un pont generat «són iguals»), dels 80 només n'hi havia uns 11 de diferents: el generador fa variants d'una idea, no idees noves. La varietat ve d'objectius diferents (com fa el gènere): ara `level.goal` pot ser cup, touch (dues pilotes), off (fes caure la caixa), hold (aguanta 5 s) o zone. `tools/rodola-semblanca.mjs` mesura la semblança (llindar 110, també en mirall; objectius diferents mai són iguals) i `npm test` ho comprova. Les solucions desades queden uns píxels dins del tauler.
+- 08-11-2026 (branca `corda-i-gir`, sense publicar): Fes-la caure amb corda i plataforma que gira: `level.ropes` [ax, ay, 'ball' | índex de caixa] (un traç que la travessa la talla) i `level.spinners` [x, y, llargada, graus/s] (no s'hi pot dibuixar a dins del cercle que escombra). 12 nivells nous (Talla, Talla i rampa, Catapulta, Molinet), afegits al final amb `AFEGEIX=1 TIPUS=... node tools/rodola-genera.mjs N` perquè les estrelles dels jugadors no canviïn de nivell. 37 nivells.

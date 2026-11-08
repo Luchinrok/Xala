@@ -295,6 +295,25 @@ export default {
         ctx.strokeRect(zx * scale, zy * scale, zw * scale, zh * scale);
         ctx.restore();
       }
+      // plataformes que giren: barra corall amb el pivot, i el cercle que escombren
+      world.spinners.forEach(s => {
+        ctx.save();
+        ctx.setLineDash([4 * scale, 6 * scale]);
+        ctx.strokeStyle = 'rgba(32,24,15,.18)'; ctx.lineWidth = Math.max(1, scale * 1.5);
+        ctx.beginPath(); ctx.arc(s.position.x * scale, s.position.y * scale, s.reach * scale, 0, 7); ctx.stroke();
+        ctx.restore();
+        body(s, coral, ink);
+        ctx.fillStyle = ink;
+        ctx.beginPath(); ctx.arc(s.position.x * scale, s.position.y * scale, scale * 4, 0, 7); ctx.fill();
+      });
+      // cordes: del punt fix al que aguanten (les tallades ja no es dibuixen)
+      world.ropes.forEach(r => {
+        ctx.fillStyle = ink;
+        ctx.beginPath(); ctx.arc(r.a[0] * scale, r.a[1] * scale, scale * 4, 0, 7); ctx.fill();
+        if (r.cut) return;
+        ctx.strokeStyle = ink; ctx.lineWidth = Math.max(1.5, scale * 2);
+        ctx.beginPath(); ctx.moveTo(r.a[0] * scale, r.a[1] * scale); ctx.lineTo(r.body.position.x * scale, r.body.position.y * scale); ctx.stroke();
+      });
       // la caixa que cal tombar va en corall
       world.boxes.forEach((b, i) => body(b, goal.type === 'off' && i === (goal.box || 0) ? coral : paper2, ink));
       world.strokes.forEach(b => body(b, soft));
