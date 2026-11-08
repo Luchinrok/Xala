@@ -22,7 +22,7 @@ const poly = (...pts) => {
   return out;
 };
 
-const BASE = [
+export const BASE = [
   {
     name: 'Primer traç',
     hint: 'Recolza una rampa sobre els dos tacs',

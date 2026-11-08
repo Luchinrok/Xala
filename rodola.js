@@ -228,7 +228,8 @@ export default {
       const st = saved();
       if (!st[level] || stars > st[level]) { st[level] = stars; setRecord('rodola:stars', st); }
       const isLast = level === LEVELS.length - 1;
-      setStatus(`${isLast ? 'Ho has acabat tot!' : 'Dins!'} ${starsText(stars)} · ${used} ${used === 1 ? 'traç' : 'traços'}`);
+      const cheer = { cup: 'Dins!', touch: 'Tocada!', off: 'Avall!', hold: 'Aguantada!', zone: 'Clavada!' }[world.goal.type] || 'Fet!';
+      setStatus(`${isLast ? 'Ho has acabat tot!' : cheer} ${starsText(stars)} · ${used} ${used === 1 ? 'traç' : 'traços'}`);
       root.querySelector('#status').classList.add('rodola-status--win');
       const box = root.querySelector('#controls');
       box.innerHTML = `
@@ -282,14 +283,39 @@ export default {
         ctx.fillStyle = ink;
         ctx.beginPath(); ctx.arc(b.position.x * scale, b.position.y * scale, scale * 4, 0, 7); ctx.fill();
       });
-      world.boxes.forEach(b => body(b, paper2, ink));
+      const goal = world.goal;
+      // zona d'arribada: rectangle ratllat de corall
+      if (goal.type === 'zone') {
+        const [zx, zy, zw, zh] = goal.zone;
+        ctx.save();
+        ctx.fillStyle = 'rgba(228,87,46,.14)';
+        ctx.fillRect(zx * scale, zy * scale, zw * scale, zh * scale);
+        ctx.setLineDash([6 * scale, 5 * scale]);
+        ctx.strokeStyle = coral; ctx.lineWidth = Math.max(1.5, scale * 2);
+        ctx.strokeRect(zx * scale, zy * scale, zw * scale, zh * scale);
+        ctx.restore();
+      }
+      // la caixa que cal tombar va en corall
+      world.boxes.forEach((b, i) => body(b, goal.type === 'off' && i === (goal.box || 0) ? coral : paper2, ink));
       world.strokes.forEach(b => body(b, soft));
-      // pilota
-      const bp = world.ball.position;
-      ctx.fillStyle = '#FFC828';
-      ctx.strokeStyle = ink;
-      ctx.lineWidth = Math.max(1.5, scale * 2);
-      ctx.beginPath(); ctx.arc(bp.x * scale, bp.y * scale, world.ball.circleRadius * scale, 0, 7); ctx.fill(); ctx.stroke();
+      // pilotes: la groga és la teva; la vermella, la que has de tocar
+      const ballAt = (b, fill) => {
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = Math.max(1.5, scale * 2);
+        ctx.beginPath(); ctx.arc(b.position.x * scale, b.position.y * scale, b.circleRadius * scale, 0, 7); ctx.fill(); ctx.stroke();
+      };
+      if (world.ball2) ballAt(world.ball2, '#D21F1F');
+      ballAt(world.ball, '#FFC828');
+      // «Aguanta»: compte enrere a dalt a la dreta
+      if (goal.type === 'hold' && world.state !== 'ready') {
+        const left = Math.max(0, (goal.secs || 5) - Math.floor(world.frames / 60));
+        ctx.fillStyle = ink;
+        ctx.font = `800 ${Math.round(28 * scale)}px "Bricolage Grotesque", system-ui, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.fillText(String(left), (W - 14) * scale, 40 * scale);
+        ctx.textAlign = 'left';
+      }
       // tinta que queda (nivells amb tinta limitada)
       if (world.ink) {
         let used = 0;

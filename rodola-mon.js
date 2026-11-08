@@ -19,6 +19,14 @@ function segment(Bodies, [x1, y1, x2, y2, th = 14], opts) {
   return Bodies.rectangle((x1 + x2) / 2, (y1 + y2) / 2, len, th, { ...opts, angle: Math.atan2(y2 - y1, x2 - x1) });
 }
 
+// Objectius possibles (level.goal.type; per defecte 'cup'):
+//   cup   la pilota, quieta dins el cistell (level.cup)
+//   touch les dues pilotes es toquen (level.ball2)
+//   off   la caixa level.goal.box cau de la taula (surt per baix)
+//   hold  la pilota aguanta level.goal.secs segons sense caure
+//   zone  la pilota, quieta dins la zona level.goal.zone [x, y, w, h]
+export const goalOf = (level) => level.goal || { type: 'cup' };
+
 export function buildWorld(Matter, level) {
   const { Engine, Bodies, Body, Composite, Constraint, Vertices, Common } = Matter;
   // Els números dels cossos decideixen l'ordre en què es resolen els xocs. Es
@@ -31,8 +39,9 @@ export function buildWorld(Matter, level) {
   // fricció estàtica alta: un traç recolzat en pendent s'hi aguanta, com cartró sobre fusta
   const solid = { isStatic: true, friction: 1, frictionStatic: 10, restitution: 0.1 };
   const statics = (level.walls || []).map(s => segment(Bodies, s, { ...solid, label: 'wall' }));
-  const [cx, cy] = level.cup;
-  const cup = [
+  const goal = goalOf(level);
+  const [cx, cy] = level.cup || [-1000, -1000];
+  const cup = !level.cup ? [] : [
     // fons gruixut (cap avall) perquè una pilota ràpida no el travessi
     Bodies.rectangle(cx, cy + 8, CUP_W + T * 2, T + 16, { ...solid, label: 'cup' }),
     Bodies.rectangle(cx - CUP_W / 2 - T / 2, cy - CUP_H / 2, T, CUP_H, { ...solid, label: 'cup' }),
@@ -41,6 +50,9 @@ export function buildWorld(Matter, level) {
   const ball = Bodies.circle(level.ball[0], level.ball[1], BALL_R, {
     label: 'ball', restitution: 0.25, friction: 0.03, frictionAir: 0.002, density: 0.0015,
   });
+  const ball2 = level.ball2 ? Bodies.circle(level.ball2[0], level.ball2[1], BALL_R, {
+    label: 'ball2', restitution: 0.25, friction: 0.03, frictionAir: 0.002, density: 0.0015,
+  }) : null;
   // caixes que es poden empènyer
   const boxes = (level.boxes || []).map(([x, y, w, h]) => Bodies.rectangle(x, y, w, h, { label: 'box', friction: 0.6, density: 0.002 }));
   // balancins: una post que gira sobre un punt fix
@@ -51,7 +63,7 @@ export function buildWorld(Matter, level) {
     planks.push(plank);
     pins.push(Constraint.create({ pointA: { x, y }, bodyB: plank, pointB: { x: 0, y: 0 }, stiffness: 1, length: 0 }));
   }
-  Composite.add(engine.world, [...statics, ...cup, ball, ...boxes, ...planks, ...pins]);
+  Composite.add(engine.world, [...statics, ...cup, ball, ...(ball2 ? [ball2] : []), ...boxes, ...planks, ...pins]);
 
   const nodraw = level.nodraw || [];
   const strokes = [];
@@ -66,6 +78,8 @@ export function buildWorld(Matter, level) {
   function forbidden(x, y) {
     if (x < 0 || x > W || y < 0 || y > H) return true;
     if (Math.hypot(x - ball.position.x, y - ball.position.y) < BALL_R + m + 2) return true;
+    if (ball2 && Math.hypot(x - ball2.position.x, y - ball2.position.y) < BALL_R + m + 2) return true;
+    if (goal.type === 'zone') { const [zx, zy, zw, zh] = goal.zone; if (x > zx && x < zx + zw && y > zy && y < zy + zh) return true; }
     if (nodraw.some(([nx, ny, nw, nh]) => x > nx && x < nx + nw && y > ny && y < ny + nh)) return true;
     const probes = [[0, 0], [m, 0], [-m, 0], [0, m], [0, -m]];
     for (const b of blockers()) {
@@ -141,19 +155,39 @@ export function buildWorld(Matter, level) {
     Engine.update(engine, STEP_MS);
     frames++;
     // límit de velocitat: a més de 14 px per pas la pilota podria travessar parets
-    const sp = Math.hypot(ball.velocity.x, ball.velocity.y);
-    if (sp > 14) Body.setVelocity(ball, { x: ball.velocity.x * 14 / sp, y: ball.velocity.y * 14 / sp });
+    for (const b of ball2 ? [ball, ball2] : [ball]) {
+      const sp = Math.hypot(b.velocity.x, b.velocity.y);
+      if (sp > 14) Body.setVelocity(b, { x: b.velocity.x * 14 / sp, y: b.velocity.y * 14 / sp });
+    }
+    const out = (b) => b.position.x < -60 || b.position.x > W + 60 || b.position.y > H + 60;
     const { x, y } = ball.position;
-    if (x < -60 || x > W + 60 || y > H + 60) { state = 'lost'; return state; }
-    const inside = Math.abs(x - cx) < CUP_W / 2 && y < cy && y > cy - CUP_H - 4;
     const slow = Math.hypot(ball.velocity.x, ball.velocity.y) < 1.2;
-    inCup = inside && slow ? inCup + 1 : 0;
-    if (inCup >= 30) state = 'won';
+    if (goal.type === 'off') {
+      // l'objectiu és que la caixa caigui: la pilota pot anar on vulgui
+      const box = boxes[goal.box || 0];
+      if (box.position.y > H + 40 || box.position.x < -60 || box.position.x > W + 60) state = 'won';
+      return state;
+    }
+    if (out(ball) || (ball2 && out(ball2))) { state = 'lost'; return state; }
+    if (goal.type === 'touch') {
+      if (Math.hypot(x - ball2.position.x, y - ball2.position.y) <= BALL_R * 2 + 1.5) state = 'won';
+    } else if (goal.type === 'hold') {
+      if (frames >= (goal.secs || 5) * 60) state = 'won';
+    } else if (goal.type === 'zone') {
+      const [zx, zy, zw, zh] = goal.zone;
+      const inside = x > zx && x < zx + zw && y > zy && y < zy + zh;
+      inCup = inside && slow ? inCup + 1 : 0;
+      if (inCup >= 30) state = 'won';
+    } else {
+      const inside = Math.abs(x - cx) < CUP_W / 2 && y < cy && y > cy - CUP_H - 4;
+      inCup = inside && slow ? inCup + 1 : 0;
+      if (inCup >= 30) state = 'won';
+    }
     return state;
   }
 
   return {
-    engine, ball, statics, cup, boxes, planks, strokes, nodraw, ink: level.ink || 0,
+    engine, ball, ball2, goal, statics, cup, boxes, planks, strokes, nodraw, ink: level.ink || 0,
     addStroke, step, forbidden,
     get state() { return state; },
     get frames() { return frames; },
@@ -201,7 +235,7 @@ export function simulate(Matter, level, plan, maxFrames = 60 * 20) {
     if (w.state === 'ready' && !pending.length) break;
     // pilota quieta durant 2 s (i no dins el cistell, que ja hauria guanyat): encallada
     still = Math.hypot(w.ball.velocity.x, w.ball.velocity.y) < 0.05 ? still + 1 : 0;
-    if (still > 120 && !pending.length) break;
+    if (still > 120 && !pending.length && goalOf(level).type !== 'hold') break;
     f++;
   }
   return { state: w.state, frames: w.frames, ball: { ...w.ball.position }, strokes: w.strokes.length };

@@ -7,6 +7,7 @@
 import { createRequire } from 'node:module';
 import { simulate, simplify, buildWorld } from './rodola-mon.js';
 import { LEVELS } from './rodola-nivells.js';
+import { SIMILAR, levelDistance } from './tools/rodola-semblanca.mjs';
 
 const require = createRequire(import.meta.url);
 const Matter = require('./vendor/matter.min.js');
@@ -46,6 +47,14 @@ LEVELS.forEach((lv, i) => {
   const dud = simulate(Matter, lv, [line(10, 20, 40, 20)]);
   check(dud.state !== 'won', `${id}: un traç inútil no el resol`);
 });
+
+// cap nivell no ha de ser una repetició d'un altre (ni girat en mirall)
+for (let i = 0; i < LEVELS.length; i++) {
+  for (let j = i + 1; j < LEVELS.length; j++) {
+    const d = levelDistance(LEVELS[i], LEVELS[j]);
+    check(d >= SIMILAR, `#${i + 1} ${LEVELS[i].name} i #${j + 1} ${LEVELS[j].name} són massa semblants (${Math.round(d)})`);
+  }
+}
 
 console.log(failures ? `\n✘ FES-LA CAURE: ${failures} errors` : `  ok   ${LEVELS.length} nivells verificats\n\n✔ FES-LA CAURE: TOT BÉ`);
 process.exit(failures ? 1 : 0);

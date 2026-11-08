@@ -11,6 +11,8 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { simulate, buildWorld } from '../rodola-mon.js';
+import { BASE } from '../rodola-nivells.js';
+import { SIMILAR, levelDistance } from './rodola-semblanca.mjs';
 
 const require = createRequire(import.meta.url);
 const Matter = require('../vendor/matter.min.js');
@@ -148,6 +150,48 @@ const TEMPLATES = {
     }
     return { ...base, kind: 'precisio', walls, ink: r1(lenOf(sol) * 1.15) };
   },
+
+  // ---------- objectius diferents del cistell ----------
+  // Toca: la pilota groga ha d'arribar a la vermella, que és quieta en un tac.
+  toca() {
+    const r = TEMPLATES.rampa();
+    return { ...r, kind: 'toca', place: 'ball2', goal: { type: 'touch' } };
+  },
+  // Tomba: una caixa alta a la vora de la taula; fes-la caure.
+  tomba() {
+    const ty = RI(300, 430), tx = RI(150, 250), tw = RI(110, 160);
+    const bh = RI(70, 100), bw = RI(18, 26);
+    const bx = r1(tx + tw / 2 - bw / 2 - RI(4, 16)); // a tocar de la vora dreta
+    const cands = [];
+    for (let i = 0; i < 14; i++) {
+      const s = RI(30, 46);
+      cands.push([square(r1(bx - s - RI(-14, 8)), r1(ty - bh - RI(80, 220)), s)]);
+    }
+    return {
+      kind: 'tomba', par: 1, ball: [r1(tx - tw / 2 + 24), ty - 19], goal: { type: 'off', box: 0 },
+      walls: [[r1(tx - tw / 2), ty, r1(tx + tw / 2), ty, 12]], boxes: [[bx, r1(ty - 6 - bh / 2), bw, bh]],
+      nodraw: [[r1(tx + tw / 2 + 4), ty - 140, 400 - r1(tx + tw / 2 + 4), 600 - ty + 140]],
+      candidates: cands,
+    };
+  },
+  // Aguanta: la pilota cau del cel; fes-li un bressol sobre els tacs perquè no caigui.
+  aguanta() {
+    const bx = RI(120, 280), gap = RI(110, 170), py = RI(300, 420);
+    const p1 = [bx - r1(gap / 2) + RI(-20, 20), py + RI(-25, 25)];
+    const p2 = [p1[0] + gap, py + RI(-25, 25)];
+    const cands = [];
+    for (let i = 0; i < 8; i++) {
+      const dip = RI(30, 60), ext = RI(8, 22);
+      const mid = [r1((p1[0] + p2[0]) / 2), r1(Math.max(p1[1], p2[1]) + dip)];
+      cands.push([[...line(p1[0] - ext, p1[1] - 14, mid[0], mid[1], 6), ...line(mid[0], mid[1], p2[0] + ext, p2[1] - 14, 6).slice(1)]]);
+    }
+    return { kind: 'aguanta', par: 1, ball: [bx, 40], goal: { type: 'hold', secs: 5 }, walls: [peg(...p1), peg(...p2)], candidates: cands };
+  },
+  // Zona: porta la pilota a la lleixa marcada i que s'hi quedi.
+  zona() {
+    const r = TEMPLATES.rampa();
+    return { ...r, kind: 'zona', place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } };
+  },
 };
 
 const NAMES = {
@@ -159,11 +203,16 @@ const NAMES = {
   empenta: ['Empenta', 'Fes baixar un pes pel tobogan'],
   domino: ['Dòmino', 'Tomba la caixa cap a la pilota'],
   precisio: ['Poca tinta', 'Tinta justa: aprofita-la bé'],
+  toca: ['Toca', 'Fes que la pilota groga toqui la vermella'],
+  tomba: ['Tomba', 'Fes caure la caixa de la taula'],
+  aguanta: ['Aguanta', 'Que la pilota no caigui durant 5 segons'],
+  zona: ['Zona', 'Deixa la pilota quieta dins la zona'],
 };
 // Ordre: cada tipus nou apareix aviat, i després es van barrejant.
 // (Un tipus «Tap» —aturar una pilota massa ràpida— no va funcionar: amb aquesta física
 // la pilota sempre queia sola al forat. Si es torna a provar, cal un altre plantejament.)
-const ORDER = ['rampa', 'empenta', 'pont', 'balanci', 'domino', 'embut', 'zigazaga', 'precisio'];
+// (L'«Empenta» tampoc: cap nivell aguantava la prova de dibuixar com en un mòbil.)
+const ORDER = ['toca', 'rampa', 'tomba', 'pont', 'aguanta', 'balanci', 'zona', 'domino', 'embut', 'zigazaga', 'precisio'];
 
 const JIT = [[-8, 0], [8, 0], [0, -8], [0, 6], [-6, -6], [6, -6], [-6, 4], [6, 4]];
 // Com ho dibuixaria un mòbil: píxels enters d'un tauler de w px i sense moviments de menys de 3 px.
@@ -181,16 +230,48 @@ const DUDS = [line(10, 20, 40, 20, 3), line(370, 30, 395, 30, 3), line(180, 20, 
 
 const why = {}; // per què es descarten les candidates (per afinar les plantilles)
 const no = (k) => { why[k] = (why[k] || 0) + 1; return null; };
-function tryCandidate(base, sol) {
-  const lv = { ...base, solution: sol };
-  if (!lv.cup) {
+// On passa la pilota per y = yy amb la solució (sense objectiu que molesti).
+function passAt(lv, sol, yy) {
+  const w = buildWorld(Matter, { ...lv, cup: undefined, goal: { type: 'hold', secs: 99 } });
+  sol.forEach(s => w.addStroke(s));
+  for (let f = 0; f < 1200; f++) { w.step(); if (w.ball.position.y > yy) return w.ball.position.x; if (w.state === 'lost') return null; }
+  return null;
+}
+
+// Les solucions, uns píxels dins del tauler: ningú no comença un traç just a la vora.
+const inside = (sol) => sol.map(st => st.map(([x, y]) => [Math.min(394, Math.max(6, x)), Math.min(594, Math.max(6, y))]));
+
+function tryCandidate(base, solRaw) {
+  const sol = inside(solRaw);
+  const { place, ...rest } = base;
+  const lv = { ...rest, solution: sol };
+  const goal = lv.goal || { type: 'cup' };
+  if (place === 'ball2') {
+    // la pilota vermella, quieta sobre un tac allà on passa la groga
+    const yy = RI(420, 500), x = passAt(lv, sol, yy);
+    if (x === null) return no('la pilota no cau');
+    if (x < 40 || x > 360 || Math.abs(x - lv.ball[0]) < 70) return no('cau massa a la vora');
+    lv.ball2 = [r1(x), yy + 6];
+    lv.walls = [...lv.walls, [r1(x) - 16, yy + 25, r1(x) + 16, yy + 25, 10]];
+  } else if (place === 'zone') {
+    // una lleixa amb paret on la pilota s'atura, i la zona a sobre
+    const yy = RI(460, 520), x = passAt(lv, sol, yy - 60);
+    if (x === null) return no('la pilota no cau');
+    if (x < 60 || x > 340) return no('cau massa a la vora');
+    const dir = lv.ball[0] < x ? 1 : -1; // cap on va la pilota
+    const x0 = r1(x - dir * 50), x1 = r1(x + dir * 70);
+    lv.walls = [...lv.walls, [Math.min(x0, x1), yy, Math.max(x0, x1), yy, 12], [x1, yy - 50, x1, yy, 12]];
+    lv.goal = { type: 'zone', zone: [Math.min(x1, x1 - dir * 80), yy - 46, 80, 40] };
+  } else if (goal.type === 'cup' && !lv.cup) {
     const x = landing(lv, sol);
     if (x === null) return no('la pilota no cau');
     if (x < 48 || x > 352) return no('cau massa a la vora');
     lv.cup = [r1(x), 578];
   }
-  const [cx, cy] = lv.cup;
-  if (cy > 560) lv.nodraw = [...(lv.nodraw || []), [Math.max(0, cx - 70), 450, Math.min(140, 400 - Math.max(0, cx - 70)), 150]];
+  if (lv.cup) {
+    const [cx, cy] = lv.cup;
+    if (cy > 560) lv.nodraw = [...(lv.nodraw || []), [Math.max(0, cx - 70), 450, Math.min(140, 400 - Math.max(0, cx - 70)), 150]];
+  }
   if (simulate(Matter, lv, sol).state !== 'won') return no('la solució no guanya');
   const wins = JIT.filter(([dx, dy]) => simulate(Matter, lv, shift(sol, dx, dy)).state === 'won').length;
   // les empentes depenen de més coses: se'ls demana més marge
@@ -199,6 +280,8 @@ function tryCandidate(base, sol) {
   if (PHONES.some(w => simulate(Matter, lv, sol.map(s => asPhone(s, w))).state !== 'won')) return no('falla dibuixat com al mòbil');
   return lv;
 }
+
+// Nivells massa semblants: vegeu tools/rodola-semblanca.mjs.
 
 const out = [];
 const seen = new Set();
@@ -226,6 +309,7 @@ while (out.length < WANT && failsInRow < LIMIT * ORDER.length) {
   if (!lv) continue;
   const key = JSON.stringify([lv.ball, lv.cup, lv.walls]);
   if (seen.has(key)) continue;
+  if ([...BASE, ...out].some(o => levelDistance(o, lv) < SIMILAR)) { no('massa semblant a un altre'); continue; }
   seen.add(key);
   tally[kind] = (tally[kind] || 0) + 1;
   const [name, hint] = NAMES[kind];
