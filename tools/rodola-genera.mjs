@@ -45,6 +45,7 @@ const mirrorLevel = (lv) => ({
   spinners: (lv.spinners || []).map(([x, y, l, d]) => [400 - x, y, l, -d]),
   doors: (lv.doors || []).map(({ button: [bx, by, bw], door: [a, b, c, d, t] }) => ({ button: [400 - bx, by, bw], door: [400 - c, d, 400 - a, b, t] })),
   magnets: (lv.magnets || []).map(([x, y, k, r]) => [400 - x, y, k, r]),
+  extra: (lv.extra || []).map(([x, y]) => [400 - x, y]),
   ...(lv.button ? { button: [400 - lv.button[0], lv.button[1], lv.button[2]] } : {}),
   nodraw: (lv.nodraw || []).map(([x, y, w, h]) => [400 - x - w, y, w, h]),
   ...(lv.cup ? { cup: [400 - lv.cup[0], lv.cup[1]] } : {}),
@@ -442,6 +443,43 @@ const TEMPLATES = {
     const base = { ...t, ball: [cx, 300], cup: undefined, doors: [{ ...t.doors[0], door: [cx - 46, 318, cx + 46, 318, 10] }] };
     return TEMPLATES.ambImant(base, 'imantrapa');
   },
+  // ---------- dues pilotes ----------
+  // Dues i rampa: dues pilotes juntes i una sola rampa.
+  duesrampa() {
+    const r = TEMPLATES.rampa();
+    return { ...r, kind: 'duesrampa', extra: [[r.ball[0] + RI(30, 50), r.ball[1] + RI(-10, 10)]] };
+  },
+  // Dues rampes: una pilota a cada banda, i una rampa per a cadascuna.
+  duesrampes() {
+    const k = Math.tan(R(12, 20) * Math.PI / 180);
+    const lb = [RI(40, 90), RI(40, 80)], rb = [RI(310, 360), RI(40, 80)];
+    const l1 = [lb[0] - RI(5, 25), lb[1] + RI(150, 220)], dl = RI(90, 130), l2 = [l1[0] + dl, r1(l1[1] + dl * k)];
+    const r1p = [rb[0] + RI(5, 25), rb[1] + RI(150, 220)], dr = RI(90, 130), r2 = [r1p[0] - dr, r1(r1p[1] + dr * k)];
+    if (l2[0] > 190 || r2[0] < 210) return null;
+    return {
+      kind: 'duesrampes', par: 2, ball: lb, extra: [rb], walls: [peg(...l1), peg(...l2), peg(...r1p), peg(...r2)],
+      candidates: [[rampOver(l1, l2, 25, RI(10, 30)), rampOver(r2, r1p, RI(10, 30), 25).reverse()]],
+    };
+  },
+  // Dues i pont: totes dues rodolen per sobre del pont.
+  duespont() {
+    const t = TEMPLATES.pont();
+    return t && { ...t, kind: 'duespont', ball: [24, t.ball[1]], extra: [[58, t.ball[1] + RI(14, 22)]] };
+  },
+  // Dues i imant: l'imant les atreu totes dues.
+  duesimant() { return TEMPLATES.ambImant(TEMPLATES.duesrampa(), 'duesimant'); },
+  // Dues cordes: cada pilota penja de la seva corda; un sol traç les ha de tallar totes dues.
+  duestalla() {
+    const t = TEMPLATES.talla();
+    const [bx, by] = t.ball, ay = t.ropes[0][1];
+    const dx = rnd() < 0.5 ? -RI(32, 44) : RI(32, 44);
+    const cands = [];
+    for (let i = 0; i < 8; i++) {
+      const yc = RI(ay + 18, by - 26), a = Math.min(bx, bx + dx) - RI(14, 24), b = Math.max(bx, bx + dx) + RI(14, 24);
+      cands.push([line(a, yc, b, yc + RI(-5, 5), 6)]);
+    }
+    return { ...t, kind: 'duestalla', extra: [[bx + dx, by]], ropes: [...t.ropes, [bx + dx, ay, 'e0']], candidates: cands };
+  },
   imanbressol() {
     const t = TEMPLATES.aguanta();
     const [x1, y1] = [t.walls[0][0] + 6, t.walls[0][1]], [x2, y2] = [t.walls[1][0] + 6, t.walls[1][1]];
@@ -492,6 +530,11 @@ const NAMES = {
   imanzona: ['Imant i zona', "Amb l'ajuda de l'imant, deixa la pilota a la zona"],
   imanbressol: ['Imant i bressol', "Que no caigui en 5 segons, i que l'imant no se l'endugui"],
   imantalla: ['Talla i imant', "Talla la corda: l'imant farà la resta"],
+  duesrampa: ['Dues i rampa', 'Totes dues pilotes al cistell'],
+  duesrampes: ['Dues rampes', 'Una pilota a cada banda: totes dues al cistell'],
+  duespont: ['Dues i pont', 'Que passin totes dues pel pont'],
+  duesimant: ['Dues i imant', "L'imant les estira totes dues"],
+  duestalla: ['Dues cordes', "Talla les dues cordes d'un sol traç"],
   imanmolinet: ['Molinet i imant', "La plataforma la llança i l'imant la corba"],
   imancatapulta: ['Catapulta i imant', "Llança la pilota i deixa que l'imant l'atrapi"],
   imanpenjatoca: ['Penja, imant i toca', "Rampa, talla la corda i que l'imant la porti a la vermella"],

@@ -24,6 +24,7 @@ const mirror = (lv) => ({
   spinners: (lv.spinners || []).map(([x, y, l, d]) => [400 - x, y, l, -d]),
   doors: (lv.doors || []).map(({ button: [bx, by, bw], door: [a, b, c, d, t] }) => ({ button: [400 - bx, by, bw], door: [400 - c, d, 400 - a, b, t] })),
   magnets: (lv.magnets || []).map(([x, y, k, r]) => [400 - x, y, k, r]),
+  extra: (lv.extra || []).map(([x, y]) => [400 - x, y]),
 });
 const keyPts = (lv) => [
   ...(lv.walls || []).flatMap(([a, b, c, d]) => [[a, b], [c, d], [(a + c) / 2, (b + d) / 2]]),
@@ -33,6 +34,7 @@ const keyPts = (lv) => [
   ...(lv.spinners || []).map(([x, y]) => [x, y]),
   ...(lv.doors || []).flatMap(({ button: [bx, by], door: [a, b, c, d] }) => [[bx, by], [(a + c) / 2, (b + d) / 2]]),
   ...(lv.magnets || []).map(([x, y]) => [x, y]),
+  ...(lv.extra || []).map(([x, y]) => [x, y]),
 ];
 // distància mitjana de cada punt al més proper de l'altre conjunt (en els dos sentits)
 const cham = (A, B) => {
@@ -43,7 +45,7 @@ const cham = (A, B) => {
 const anchor = (lv) => lv.cup || lv.ball2 || (lv.goal && lv.goal.zone && [lv.goal.zone[0] + lv.goal.zone[2] / 2, lv.goal.zone[1] + lv.goal.zone[3] / 2]) || (lv.boxes && lv.boxes[0]) || lv.ball;
 const gtype = (lv) => (lv.goal && lv.goal.type) || 'cup';
 // mecanismes diferents (corda, plataforma que gira, balancí, caixes): idea diferent
-const mech = (lv) => ['ropes', 'spinners', 'seesaws', 'boxes', 'doors', 'magnets'].map(k => ((lv[k] || []).length ? 1 : 0)).join('');
+const mech = (lv) => ['ropes', 'spinners', 'seesaws', 'boxes', 'doors', 'magnets', 'extra'].map(k => ((lv[k] || []).length ? 1 : 0)).join('');
 const d1 = (a, b) => (gtype(a) !== gtype(b) ? 1000 : 0) + (mech(a) !== mech(b) ? 500 : 0)
   + (Math.hypot(a.ball[0] - b.ball[0], a.ball[1] - b.ball[1]) + Math.hypot(anchor(a)[0] - anchor(b)[0], anchor(a)[1] - anchor(b)[1])) / 2
   + cham(keyPts(a), keyPts(b));

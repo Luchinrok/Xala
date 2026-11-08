@@ -378,6 +378,7 @@ export default {
         ctx.beginPath(); ctx.arc(b.position.x * scale, b.position.y * scale, b.circleRadius * scale, 0, 7); ctx.fill(); ctx.stroke();
       };
       if (world.ball2) ballAt(world.ball2, '#D21F1F');
+      world.extra.forEach(b => ballAt(b, '#FFC828'));
       ballAt(world.ball, '#FFC828');
       // «Aguanta»: compte enrere a dalt a la dreta
       if (goal.type === 'hold' && world.state !== 'ready') {

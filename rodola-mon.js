@@ -70,7 +70,12 @@ export function buildWorld(Matter, level) {
     b.reach = len / 2;
     return b;
   });
-  Composite.add(engine.world, [...statics, ...cup, ball, ...(ball2 ? [ball2] : []), ...boxes, ...planks, ...pins, ...spinners]);
+  // més pilotes grogues (level.extra: [[x, y], ...]): totes han d'arribar a l'objectiu
+  const extra = (level.extra || []).map(([x, y]) => Bodies.circle(x, y, BALL_R, {
+    label: 'ball', restitution: 0.25, friction: 0.03, frictionAir: 0.002, density: 0.0015,
+  }));
+  const yellows = [ball, ...extra];
+  Composite.add(engine.world, [...statics, ...cup, ...yellows, ...(ball2 ? [ball2] : []), ...boxes, ...planks, ...pins, ...spinners]);
   // imants: [x, y, força, abast]. Atreuen la pilota groga (no els traços): com més a
   // prop, més fort. A tocar del límit de l'abast, força × gravetat de la pilota.
   const magnets = (level.magnets || []).map(([x, y, k, r]) => {
@@ -102,10 +107,10 @@ export function buildWorld(Matter, level) {
       }
     });
   }
-  // cordes: [ax, ay, 'ball' | índex de caixa]. Un punt fix i una corda tibant
+  // cordes: [ax, ay, 'ball' | 'e0' (pilota de més) | índex de caixa]. Un punt fix i una corda tibant
   // (com un pèndol). Un traç que la travessa la talla.
   const ropes = (level.ropes || []).map(([ax, ay, what]) => {
-    const body = what === 'ball' ? ball : boxes[what];
+    const body = what === 'ball' ? ball : typeof what === 'string' && what[0] === 'e' ? extra[+what.slice(1)] : boxes[what];
     const c = Constraint.create({ pointA: { x: ax, y: ay }, bodyB: body, pointB: { x: 0, y: 0 }, stiffness: 1, damping: 0.01 });
     Composite.add(engine.world, c);
     return { a: [ax, ay], body, c, cut: false };
@@ -124,7 +129,7 @@ export function buildWorld(Matter, level) {
   const m = T / 2 + 2;
   function forbidden(x, y) {
     if (x < 0 || x > W || y < 0 || y > H) return true;
-    if (Math.hypot(x - ball.position.x, y - ball.position.y) < BALL_R + m + 2) return true;
+    if (yellows.some(b => Math.hypot(x - b.position.x, y - b.position.y) < BALL_R + m + 2)) return true;
     if (ball2 && Math.hypot(x - ball2.position.x, y - ball2.position.y) < BALL_R + m + 2) return true;
     if (spinners.some(s => Math.hypot(x - s.position.x, y - s.position.y) < s.reach + m + 2)) return true;
     if (goal.type === 'zone') { const [zx, zy, zw, zh] = goal.zone; if (x > zx && x < zx + zw && y > zy && y < zy + zh) return true; }
@@ -213,12 +218,14 @@ export function buildWorld(Matter, level) {
   function step() {
     if (!started || state === 'won' || state === 'lost') return state;
     for (const mg of magnets) {
-      const dx = mg.position.x - ball.position.x, dy = mg.position.y - ball.position.y;
-      const d = Math.hypot(dx, dy);
-      if (d < mg.reach && d > BALL_R + 12) {
-        // força que creix en apropar-se (1/d²), limitada perquè no salti
-        const f = Math.min(4, mg.pull * (mg.reach / d) ** 2 / 4) * ball.mass * 0.001;
-        Body.applyForce(ball, ball.position, { x: dx / d * f, y: dy / d * f });
+      for (const yb of yellows) {
+        const dx = mg.position.x - yb.position.x, dy = mg.position.y - yb.position.y;
+        const d = Math.hypot(dx, dy);
+        if (d < mg.reach && d > BALL_R + 12) {
+          // força que creix en apropar-se (1/d²), limitada perquè no salti
+          const f = Math.min(4, mg.pull * (mg.reach / d) ** 2 / 4) * yb.mass * 0.001;
+          Body.applyForce(yb, yb.position, { x: dx / d * f, y: dy / d * f });
+        }
       }
     }
     for (const s of spinners) {
@@ -228,7 +235,7 @@ export function buildWorld(Matter, level) {
     Engine.update(engine, STEP_MS);
     frames++;
     // límit de velocitat: a més de 14 px per pas la pilota podria travessar parets
-    for (const b of ball2 ? [ball, ball2] : [ball]) {
+    for (const b of ball2 ? [...yellows, ball2] : yellows) {
       const sp = Math.hypot(b.velocity.x, b.velocity.y);
       if (sp > 14) Body.setVelocity(b, { x: b.velocity.x * 14 / sp, y: b.velocity.y * 14 / sp });
     }
@@ -241,29 +248,30 @@ export function buildWorld(Matter, level) {
       if (box.position.y > H + 40 || box.position.x < -60 || box.position.x > W + 60) state = 'won';
       return state;
     }
-    if (out(ball) || (ball2 && out(ball2))) { state = 'lost'; return state; }
+    if (yellows.some(out) || (ball2 && out(ball2))) { state = 'lost'; return state; }
+    const isSlow = (b) => Math.hypot(b.velocity.x, b.velocity.y) < 1.2;
     if (goal.type === 'touch') {
       if (Math.hypot(x - ball2.position.x, y - ball2.position.y) <= BALL_R * 2 + 1.5) state = 'won';
     } else if (goal.type === 'hold') {
       if (frames >= (goal.secs || 5) * 60) state = 'won';
     } else if (goal.type === 'zone') {
       const [zx, zy, zw, zh] = goal.zone;
-      const inside = x > zx && x < zx + zw && y > zy && y < zy + zh;
-      inCup = inside && slow ? inCup + 1 : 0;
+      const inZone = (b) => b.position.x > zx && b.position.x < zx + zw && b.position.y > zy && b.position.y < zy + zh;
+      inCup = yellows.every(b => inZone(b) && isSlow(b)) ? inCup + 1 : 0;
       if (inCup >= 30) state = 'won';
     } else if (doors.some(d => !d.open)) {
       // amb una porta encara tancada no es pot guanyar (la pilota pot esperar sobre la tapa)
       inCup = 0;
     } else {
-      const inside = Math.abs(x - cx) < CUP_W / 2 && y < cy && y > cy - CUP_H - 4;
-      inCup = inside && slow ? inCup + 1 : 0;
+      const inCupB = (b) => Math.abs(b.position.x - cx) < CUP_W / 2 && b.position.y < cy && b.position.y > cy - CUP_H - 4;
+      inCup = yellows.every(b => inCupB(b) && isSlow(b)) ? inCup + 1 : 0;
       if (inCup >= 30) state = 'won';
     }
     return state;
   }
 
   return {
-    engine, ball, ball2, goal, statics, cup, boxes, planks, spinners, ropes, doors, magnets, strokes, nodraw, ink: level.ink || 0,
+    engine, ball, extra, ball2, goal, statics, cup, boxes, planks, spinners, ropes, doors, magnets, strokes, nodraw, ink: level.ink || 0,
     addStroke, step, forbidden,
     get state() { return state; },
     get frames() { return frames; },
