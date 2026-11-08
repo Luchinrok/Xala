@@ -480,6 +480,51 @@ const TEMPLATES = {
     }
     return { ...t, kind: 'duestalla', extra: [[bx + dx, by]], ropes: [...t.ropes, [bx + dx, ay, 'e0']], candidates: cands };
   },
+  // ---------- tres mecanismes ----------
+  // Corda, molinet i imant.
+  cordamolinetiman() { return TEMPLATES.ambImant(TEMPLATES.cordamolinet(), 'cordamolinetiman'); },
+  // Corda, trapa i imant: talla la corda, la pilota cau sobre la trapa; prem el botó.
+  cordatrapa() {
+    const bx = RI(100, 300), by = RI(140, 200), ay = by - RI(70, 110);
+    const ly = by + RI(70, 110);
+    const btn = TEMPLATES.botoPos(bx);
+    if (!btn || ay < 20) return null;
+    const cuts = [];
+    for (let i = 0; i < 4; i++) { const yc = RI(ay + 14, by - 24), w = RI(16, 28); cuts.push(line(bx - w, yc, bx + w, yc, 4)); }
+    const pes = TEMPLATES.pesos(btn, 4);
+    const cands = cuts.flatMap(c => pes.map(p => [c, p]));
+    return { kind: 'cordatrapa', par: 2, ball: [bx, by], ropes: [[bx, ay, 'ball']], doors: [{ button: btn, door: [bx - 40, ly, bx + 40, ly, 10] }], walls: [], candidates: cands };
+  },
+  cordatrapaiman() { return TEMPLATES.ambImant(TEMPLATES.cordatrapa(), 'cordatrapaiman'); },
+  // Trapa, molinet i imant: la pilota cau de la trapa sobre la plataforma que gira.
+  trapamolinet() {
+    const bx = RI(120, 280), ly = RI(200, 260);
+    const btn = TEMPLATES.botoPos(bx);
+    if (!btn) return null;
+    const len = RI(100, 140), sy = ly + len / 2 + RI(50, 90);
+    const sx = bx + RI(-40, 40);
+    if (Math.hypot(btn[0] - sx, btn[1] - sy) < len / 2 + 40) return null;
+    return {
+      kind: 'trapamolinet', par: 1, ball: [bx, ly - 18], spinners: [[sx, r1(sy), len, (rnd() < 0.5 ? -1 : 1) * RI(50, 110)]],
+      doors: [{ button: btn, door: [bx - 40, ly, bx + 40, ly, 10] }], walls: [], candidates: TEMPLATES.pesos(btn).map(s => [s]),
+    };
+  },
+  trapamolinetiman() { return TEMPLATES.ambImant(TEMPLATES.trapamolinet(), 'trapamolinetiman'); },
+  // Dues pilotes, corda i botó: talla la corda del pes; el pes prem el botó i s'obre la trapa.
+  duestrapa() {
+    const cx = RI(90, 310), btn = TEMPLATES.botoPos(cx);
+    if (!btn) return null;
+    const [bx, by] = btn, s = RI(30, 38);
+    const wy = by - s / 2 - RI(40, 90), ay = wy - RI(50, 90);
+    if (ay < 20) return null;
+    const cands = [];
+    for (let i = 0; i < 8; i++) { const yc = RI(ay + 12, wy - s / 2 - 12), w = RI(14, 26); cands.push([line(bx - w, yc, bx + w, yc, 4)]); }
+    return {
+      kind: 'duestrapa', par: 1, ball: [cx - 15, 498], extra: [[cx + 15, 498]], cup: [cx, 578],
+      boxes: [[bx, r1(wy), s, s]], ropes: [[bx, r1(ay), 0]],
+      doors: [{ button: [bx, by, btn[2]], door: [cx - 46, 516, cx + 46, 516, 10] }], walls: [], candidates: cands,
+    };
+  },
   imanbressol() {
     const t = TEMPLATES.aguanta();
     const [x1, y1] = [t.walls[0][0] + 6, t.walls[0][1]], [x2, y2] = [t.walls[1][0] + 6, t.walls[1][1]];
@@ -535,6 +580,10 @@ const NAMES = {
   duespont: ['Dues i pont', 'Que passin totes dues pel pont'],
   duesimant: ['Dues i imant', "L'imant les estira totes dues"],
   duestalla: ['Dues cordes', "Talla les dues cordes d'un sol traç"],
+  cordamolinetiman: ['Corda, molinet i imant', "Talla la corda: el molinet la llança i l'imant la porta"],
+  cordatrapaiman: ['Corda, trapa i imant', "Talla la corda, obre la trapa i deixa fer l'imant"],
+  trapamolinetiman: ['Trapa, molinet i imant', "Obre la trapa: el molinet i l'imant faran la resta"],
+  duestrapa: ['Pes, botó i dues', 'Talla la corda del pes i que caiguin totes dues'],
   imanmolinet: ['Molinet i imant', "La plataforma la llança i l'imant la corba"],
   imancatapulta: ['Catapulta i imant', "Llança la pilota i deixa que l'imant l'atrapi"],
   imanpenjatoca: ['Penja, imant i toca', "Rampa, talla la corda i que l'imant la porti a la vermella"],
