@@ -15,6 +15,9 @@ import { buildWorld, starsFor, W, H, T, STEP_MS } from './rodola-mon.js';
 import { LEVELS } from './rodola-nivells.js';
 import { getRecord, setRecord } from './records.js';
 
+// Ordre dels nivells a la versió xala-v106, quan les estrelles es guardaven pel número.
+const ORDRE_V106 = ["Primer traç", "El pont", "El balancí", "L'embut", "Ziga-zaga", "Toca 1", "Rampa 1", "Tomba 1", "Aguanta 1", "Balancí 1", "Zona 1", "Dòmino 1", "Poca tinta 1", "Toca 2", "Rampa 2", "Tomba 2", "Aguanta 2", "Balancí 2", "Zona 2", "Dòmino 2", "Toca 3", "Tomba 3", "Aguanta 3", "Zona 3", "Poca tinta 2", "Talla 1", "Catapulta 1", "Molinet 1", "Talla i rampa 1", "Talla 2", "Catapulta 2", "Molinet 2", "Talla i rampa 2", "Catapulta 3", "Talla i rampa 3", "Catapulta 4", "Molinet 3"];
+
 let matterReady = null;
 function loadMatter() {
   if (window.Matter) return Promise.resolve(window.Matter);
@@ -61,7 +64,25 @@ export default {
     let restartTimer = null;
     let finished = false;
 
-    const saved = () => getRecord('rodola:stars') || {};
+    // Estrelles guardades pel nom del nivell ('rodola:estrelles' = { nom: estrelles }),
+    // així es poden treure o afegir nivells sense que les estrelles canviïn de lloc.
+    // Abans es guardaven pel número ('rodola:stars'): es passen al nom una sola vegada.
+    function starsByName() {
+      let m = getRecord('rodola:estrelles');
+      if (!m) {
+        m = {};
+        const old = getRecord('rodola:stars') || {};
+        for (const [i, v] of Object.entries(old)) if (ORDRE_V106[+i]) m[ORDRE_V106[+i]] = v;
+        setRecord('rodola:estrelles', m);
+      }
+      return m;
+    }
+    // { índex del nivell actual: estrelles }
+    const saved = () => {
+      const m = starsByName(), st = {};
+      LEVELS.forEach((lv, i) => { if (m[lv.name]) st[i] = m[lv.name]; });
+      return st;
+    };
     const unlocked = (i) => i === 0 || !!saved()[i - 1];
 
     function stop() {
@@ -102,7 +123,7 @@ export default {
           ${LEVELS.map((lv, i) => {
             const open = unlocked(i);
             return `<button class="rodola-level${st[i] ? ' done' : ''}" data-i="${i}" ${open ? '' : 'disabled'}
-              aria-label="Nivell ${i + 1}: ${lv.name}${st[i] ? `, ${st[i]} estrelles` : open ? '' : ', bloquejat'}">
+              aria-label="Nivell ${i + 1}: ${lv.name}${st[i] ? `, ${st[i]} ${st[i] === 1 ? 'estrella' : 'estrelles'}` : open ? '' : ', bloquejat'}">
               <span class="rodola-level__n">${i + 1}</span>
               <span class="rodola-level__s" aria-hidden="true">${st[i] ? starsText(st[i]) : ''}</span>
             </button>`;
@@ -226,7 +247,11 @@ export default {
       const used = world.strokes.length;
       const stars = starsFor(used, LEVELS[level].par);
       const st = saved();
-      if (!st[level] || stars > st[level]) { st[level] = stars; setRecord('rodola:stars', st); }
+      if (!st[level] || stars > st[level]) {
+        const m = starsByName();
+        m[LEVELS[level].name] = stars;
+        setRecord('rodola:estrelles', m);
+      }
       const isLast = level === LEVELS.length - 1;
       const cheer = { cup: 'Dins!', touch: 'Tocada!', off: 'Avall!', hold: 'Aguantada!', zone: 'Clavada!' }[world.goal.type] || 'Fet!';
       setStatus(`${isLast ? 'Ho has acabat tot!' : cheer} ${starsText(stars)} · ${used} ${used === 1 ? 'traç' : 'traços'}`);

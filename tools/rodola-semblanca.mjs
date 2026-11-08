@@ -5,9 +5,11 @@
 // també amb un dels dos girat en mirall. Objectius diferents: mai són iguals.
 // ============================================================
 
-// Per sota d'aquesta distància, es considera el mateix nivell. Calibrat amb dos
-// nivells que un jugador va trobar repetits (el pont fet a mà i un pont generat: 102).
-export const SIMILAR = 110;
+// Per sota d'aquesta distància, es considera el mateix nivell. Calibrat amb parelles
+// que un jugador va trobar repetides: el pont fet a mà i un pont generat (102) i
+// dos «Toca» generats (111). A la pràctica, dues variants d'una mateixa plantilla
+// es veuen com el mateix nivell.
+export const SIMILAR = 130;
 
 const mirror = (lv) => ({
   ...lv,
