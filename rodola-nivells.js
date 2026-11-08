@@ -66,13 +66,15 @@ export const BASE = [
   },
   {
     name: 'Ziga-zaga',
-    hint: 'Amb una rampa no n’hi ha prou',
-    ball: [330, 40],
+    hint: 'Dues rampes: tens uns segons',
+    // La pilota comença sobre una lleixa poc inclinada i tarda uns 4 s a caure:
+    // dona temps de fer les dues rampes, en qualsevol ordre.
+    ball: [380, 45],
     cup: [358, 578],
-    walls: [[340, 192, 352, 192, 10], [200, 232, 212, 232, 10], [54, 336, 66, 336, 10], [234, 386, 246, 386, 10]],
+    walls: [[230, 90, 396, 60, 12], [340, 192, 352, 192, 10], [200, 232, 212, 232, 10], [54, 336, 66, 336, 10], [234, 386, 246, 386, 10]],
     nodraw: [[280, 450, 120, 150]],
     par: 2,
-    solution: [line(375, 176, 182, 222), line(34, 316, 266, 380)],
+    solution: [line(392, 172, 182, 222), line(34, 316, 266, 380)],
   },
 ];
 
