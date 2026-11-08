@@ -13,6 +13,14 @@ const Matter = require('./vendor/matter.min.js');
 
 let failures = 0;
 const check = (cond, msg) => { if (!cond) { console.log('  FAIL ' + msg); failures++; } };
+const asPhone = (pts, w) => {
+  const k = w / 400, out = [];
+  for (const [x, y] of pts) {
+    const p = [Math.round(x * k) / k, Math.round(y * k) / k], q = out[out.length - 1];
+    if (!q || Math.hypot((p[0] - q[0]) * k, (p[1] - q[1]) * k) >= 3) out.push(p);
+  }
+  return out;
+};
 const line = (x1, y1, x2, y2, n = 3) => Array.from({ length: n + 1 }, (_, i) => [x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n]);
 
 check(simplify(line(0, 0, 100, 0, 10), 5).length === 2, 'una línia recta queda en un sol tram');
@@ -29,6 +37,11 @@ LEVELS.forEach((lv, i) => {
   const r = simulate(Matter, lv, lv.solution);
   check(r.state === 'won', `${id}: la solució guanya (${r.state})`);
   check(r.strokes <= lv.par, `${id}: la solució fa servir ${r.strokes} traços (par ${lv.par})`);
+  // dibuixat com ho faria un mòbil (píxels enters, a tres mides de pantalla) també s'ha de resoldre
+  for (const w of [283, 324, 360]) {
+    const ph = simulate(Matter, lv, lv.solution.map(s => asPhone(s, w)));
+    check(ph.state === 'won', `${id}: dibuixat en un tauler de ${w} px (${ph.state})`);
+  }
   // un gargot en un racó de dalt no ha de resoldre'l
   const dud = simulate(Matter, lv, [line(10, 20, 40, 20)]);
   check(dud.state !== 'won', `${id}: un traç inútil no el resol`);

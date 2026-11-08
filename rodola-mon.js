@@ -20,7 +20,11 @@ function segment(Bodies, [x1, y1, x2, y2, th = 14], opts) {
 }
 
 export function buildWorld(Matter, level) {
-  const { Engine, Bodies, Body, Composite, Constraint, Vertices } = Matter;
+  const { Engine, Bodies, Body, Composite, Constraint, Vertices, Common } = Matter;
+  // Els números dels cossos decideixen l'ordre en què es resolen els xocs. Es
+  // tornen a començar a cada nivell perquè la física sigui sempre igual: al
+  // mòbil, després d'haver jugat altres nivells, i al simulador de les proves.
+  Common._nextId = 0;
   const engine = Engine.create({ positionIterations: 10, velocityIterations: 8 });
   engine.gravity.y = 1;
 
@@ -79,8 +83,10 @@ export function buildWorld(Matter, level) {
 
   // Neteja un traç: punts separats. Si un punt toca una paret, el llapis hi
   // llisca per sobre (el puja una mica); si no es pot, el traç s'acaba allà.
+  // Amb tinta limitada (level.ink, en píxels del món), el traç s'acaba quan s'esgota.
   function clean(points) {
     const out = [];
+    let ink = level.ink || Infinity;
     for (const [x, y0] of points) {
       let y = y0;
       if (forbidden(x, y)) {
@@ -90,7 +96,17 @@ export function buildWorld(Matter, level) {
         y = lifted;
       }
       const last = out[out.length - 1];
-      if (!last || Math.hypot(x - last[0], y - last[1]) >= 6) out.push([x, y]);
+      if (!last || Math.hypot(x - last[0], y - last[1]) >= 6) {
+        if (last) {
+          const d = Math.hypot(x - last[0], y - last[1]);
+          if (d > ink) {
+            if (ink >= 6) out.push([last[0] + (x - last[0]) * ink / d, last[1] + (y - last[1]) * ink / d]);
+            break;
+          }
+          ink -= d;
+        }
+        out.push([x, y]);
+      }
     }
     return out;
   }
@@ -137,7 +153,7 @@ export function buildWorld(Matter, level) {
   }
 
   return {
-    engine, ball, statics, cup, boxes, planks, strokes, nodraw,
+    engine, ball, statics, cup, boxes, planks, strokes, nodraw, ink: level.ink || 0,
     addStroke, step, forbidden,
     get state() { return state; },
     get frames() { return frames; },
@@ -176,13 +192,16 @@ export function starsFor(strokes, par = 1) {
 // Cada traç es dibuixa en un fotograma: [fotograma, [[x, y], ...]].
 export function simulate(Matter, level, plan, maxFrames = 60 * 20) {
   const w = buildWorld(Matter, level);
-  let f = 0;
+  let f = 0, still = 0;
   const pending = plan.map(s => (Array.isArray(s[0]) ? [0, s] : s)).sort((a, b) => a[0] - b[0]);
   while (f < maxFrames) {
     while (pending.length && pending[0][0] <= f) w.addStroke(pending.shift()[1]);
     const st = w.step();
     if (st === 'won' || st === 'lost') break;
     if (w.state === 'ready' && !pending.length) break;
+    // pilota quieta durant 2 s (i no dins el cistell, que ja hauria guanyat): encallada
+    still = Math.hypot(w.ball.velocity.x, w.ball.velocity.y) < 0.05 ? still + 1 : 0;
+    if (still > 120 && !pending.length) break;
     f++;
   }
   return { state: w.state, frames: w.frames, ball: { ...w.ball.position }, strokes: w.strokes.length };

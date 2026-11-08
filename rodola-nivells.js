@@ -12,6 +12,8 @@
 //   solution: traços que el resolen (les proves ho comproven)
 // ============================================================
 
+import GENERATS from './rodola-generats.js';
+
 const line = (x1, y1, x2, y2, n = 12) =>
   Array.from({ length: n + 1 }, (_, i) => [x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n]);
 const poly = (...pts) => {
@@ -19,19 +21,6 @@ const poly = (...pts) => {
   for (let i = 1; i < pts.length; i++) out.push(...line(...pts[i - 1], ...pts[i], 8).slice(i > 1 ? 1 : 0));
   return out;
 };
-
-// Gira un nivell de dreta a esquerra (x -> 400 - x).
-const mirror = (lv, name, hint) => ({
-  ...lv,
-  name,
-  hint,
-  ball: [400 - lv.ball[0], lv.ball[1]],
-  cup: [400 - lv.cup[0], lv.cup[1]],
-  walls: (lv.walls || []).map(([x1, y1, x2, y2, t]) => [400 - x2, y2, 400 - x1, y1, t].filter(v => v !== undefined)),
-  seesaws: (lv.seesaws || []).map(([x, y, l]) => [400 - x, y, l]),
-  nodraw: (lv.nodraw || []).map(([x, y, w, h]) => [400 - x - w, y, w, h]),
-  solution: lv.solution.map(st => st.map(([x, y]) => [400 - x, y])),
-});
 
 const BASE = [
   {
@@ -89,8 +78,7 @@ const BASE = [
 
 export const LEVELS = [
   ...BASE,
-  mirror(BASE[1], 'El pont de tornada', 'Ara rodola cap a l’altra banda'),
-  mirror(BASE[2], 'Balancí al revés', 'El mateix truc, a l’altre costat'),
-  mirror(BASE[4], 'Ziga-zaga de tornada', 'Dues rampes, començant per la dreta'),
+  // després, els generats amb tools/rodola-genera.mjs
+  ...GENERATS,
 ];
 

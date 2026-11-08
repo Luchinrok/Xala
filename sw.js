@@ -2,7 +2,7 @@
 // Quan afegeixis fitxers nous (jocs, dades), inclou-los a ASSETS
 // i puja la versió de CACHE per forçar l'actualització.
 
-const CACHE = 'xala-v103';
+const CACHE = 'xala-v104';
 const ASSETS = [
   './',
   './index.html',
@@ -46,6 +46,7 @@ const ASSETS = [
   './rodola.js',
   './rodola-mon.js',
   './rodola-nivells.js',
+  './rodola-generats.js',
   './vendor/matter.min.js',
   './traca-reptes.js',
   './LLICENCIA-diccionari.txt',

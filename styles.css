@@ -1359,16 +1359,22 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* ============================================================
    Fes-la caure (rodola.js): tria de nivell i tauler de dibuix
    ============================================================ */
-.rodola-levels { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.rodola-level { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px; min-height: 70px;
-  cursor: pointer; color: var(--ink); text-align: left; background: var(--paper); border: 2px solid var(--ink);
-  border-radius: var(--r-sm); box-shadow: var(--shadow); transition: transform .08s ease, box-shadow .08s ease; }
+.rodola-levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.rodola-level { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px 2px; min-height: 52px;
+  cursor: pointer; color: var(--ink); background: var(--paper); border: 2px solid var(--ink);
+  border-radius: var(--r-sm); box-shadow: 0 3px 0 var(--ink); transition: transform .08s ease, box-shadow .08s ease; }
 .rodola-level:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
 .rodola-level.done { background: var(--paper-2); }
 .rodola-level:disabled { cursor: default; opacity: .45; box-shadow: none; }
-.rodola-level__n { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1; }
-.rodola-level__s { font-size: 14px; color: var(--ink-soft); }
+.rodola-level__n { font-family: var(--font-display); font-weight: 800; font-size: 20px; line-height: 1; }
+.rodola-level__s { font-size: 10px; letter-spacing: -1px; color: var(--accent); line-height: 1; }
+.rodola-level__s:empty { display: none; }
 /* touch-action: none: dibuixar no ha de fer desplaçar la pàgina */
-.rodola-board { width: min(100%, calc((100dvh - 250px) * 2 / 3)); margin: 4px auto 0; border: 3px solid var(--ink);
+/* tauler, estat i botons caben sempre sense desplaçar */
+.rodola-top .back { margin-bottom: 8px; }
+.rodola-status { min-height: 22px; margin: 2px 0 6px; text-align: center; font-weight: 700; font-size: 15px; color: var(--ink-soft); line-height: 1.3; }
+.rodola-status--win { color: var(--accent); }
+.rodola-controls { margin-top: 10px; }
+.rodola-board { width: min(100%, calc((100dvh - 215px) * 2 / 3)); margin: 0 auto; border: 3px solid var(--ink);
   border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow); touch-action: none; }
 .rodola-board canvas { display: block; cursor: crosshair; }

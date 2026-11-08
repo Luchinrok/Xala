@@ -24,11 +24,18 @@ const LEVELS = [
   { id: 'easy', name: 'Fàcil' },
   { id: 'normal', name: 'Mitjà' },
   { id: 'hard', name: 'Difícil' },
+  { id: 'few', name: 'Poques peces' }, // com els de les revistes: 9 peces o menys
 ];
 // Tots els problemes en una sola llista: el número (#) és la posició aquí.
-const ALL = [...PROBLEMES.easy, ...PROBLEMES.normal, ...PROBLEMES.hard];
-const OFFSET = { easy: 0, normal: PROBLEMES.easy.length, hard: PROBLEMES.easy.length + PROBLEMES.normal.length };
-const levelOf = (n) => (n >= OFFSET.hard ? 'hard' : n >= OFFSET.normal ? 'normal' : 'easy');
+// Els de poques peces van al final perquè els enllaços #mat-N d'abans no canviïn.
+const ALL = [...PROBLEMES.easy, ...PROBLEMES.normal, ...PROBLEMES.hard, ...PROBLEMES.few];
+const OFFSET = {
+  easy: 0,
+  normal: PROBLEMES.easy.length,
+  hard: PROBLEMES.easy.length + PROBLEMES.normal.length,
+  few: PROBLEMES.easy.length + PROBLEMES.normal.length + PROBLEMES.hard.length,
+};
+const levelOf = (n) => (n >= OFFSET.few ? 'few' : n >= OFFSET.hard ? 'hard' : n >= OFFSET.normal ? 'normal' : 'easy');
 
 const SITE = 'https://luchinrok.github.io/Xala/';
 const linkFor = (n) => `${SITE}#mat-${n + 1}`;
@@ -119,8 +126,9 @@ export default {
 
         <p class="label" style="margin:26px 0 12px">Problemes sense límit</p>
         <div class="btn-row" id="levels">
-          ${LEVELS.map(l => `<button class="btn ${level === l.id ? 'btn--accent' : 'btn--outline'}" data-level="${l.id}">${l.name}</button>`).join('')}
+          ${LEVELS.filter(l => l.id !== 'few').map(l => `<button class="btn ${level === l.id ? 'btn--accent' : 'btn--outline'}" data-level="${l.id}">${l.name}</button>`).join('')}
         </div>
+        <button class="btn ${level === 'few' ? 'btn--accent' : 'btn--outline'}" data-level="few" style="margin-top:12px">Poques peces</button>
         <p class="muted center" style="margin-top:12px">Problema ${nextIn(level) + 1} de ${PROBLEMES[level].length}</p>
 
         <div class="spacer"></div>

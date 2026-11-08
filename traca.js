@@ -67,6 +67,7 @@ export default {
     'No cal posar accents, i la C també val per a la Ç.',
     'Cada paraula fa avançar la metxa. Si fa servir les set lletres, és un esclat i val 7 punts més.',
     'Cada dia hi ha un repte nou, i en tens molts més per jugar sense límit.',
+    'Tria la teva variant (central, valencià o balear): només valen les formes generals i les de la teva variant.',
     'Amb teclat: escriu la paraula i prem Enter.',
     'Paraules del diccionari de Softcatalà.',
   ],
@@ -84,6 +85,10 @@ export default {
     let statusTimer = null;
 
     const saveKey = () => 'traca:' + num;
+    // Variant del català: només valen les formes generals i les d'aquesta variant.
+    const VARIANTS = [['c', 'Central'], ['v', 'Valencià'], ['b', 'Balear']];
+    let variant = getRecord('traca:variant');
+    if (!VARIANTS.some(([id]) => id === variant)) variant = 'c';
 
     function leave() {
       document.removeEventListener('keydown', onKey);
@@ -138,12 +143,20 @@ export default {
         <p class="label" style="margin:26px 0 12px">Reptes sense límit</p>
         <p class="muted">Repte ${nextFree() + 1} de ${REPTES.length}</p>
 
+        <p class="label" style="margin:26px 0 12px">La teva variant</p>
+        <div class="btn-row" id="variants">
+          ${VARIANTS.map(([id, name]) => `<button class="btn ${variant === id ? 'btn--accent' : 'btn--outline'}" data-mode="${id}">${name}</button>`).join('')}
+        </div>
+
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
       `;
       root.querySelector('#back').onclick = leave;
       root.querySelector('#daily').onclick = () => openPuzzle(dn, true);
       root.querySelector('#start').onclick = () => openPuzzle(nextFree(), false);
+      root.querySelectorAll('#variants [data-mode]').forEach(b => {
+        b.onclick = () => { variant = b.dataset.mode; setRecord('traca:variant', variant); screenConfig(); };
+      });
     }
 
     // ---------- 2) el repte ----------
@@ -155,11 +168,15 @@ export default {
       order = shuffled([...set]);
       words = new Map();
       goal = 0;
-      list.split(' ').forEach((w, i) => {
+      list.split(' ').forEach((entry, i) => {
+        // «paraula~v»: només val en les variants indicades (c, v, b)
+        const [w, only] = entry.split('~');
+        if (only && !only.includes(variant)) return;
         const k = norm(w);
         words.set(k, w);
         if (i < nCommon) goal += pointsFor(k, letters);
       });
+      goal = Math.max(goal, 1);
       const saved = getRecord(saveKey());
       found = Array.isArray(saved) ? saved.filter(k => words.has(k)) : [];
       current = '';

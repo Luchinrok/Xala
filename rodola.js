@@ -37,7 +37,7 @@ export default {
   title: 'Fes-la caure',
   tagline: 'Dibuixa i porta la pilota al cistell',
   accent: '#E4572E',
-  color: 'var(--accent)',
+  color: 'var(--paper-2)', // la graella d'Un sol jugador alterna colors
   ready: true,
 
   instructions: [
@@ -96,14 +96,15 @@ export default {
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Fes-la caure</p>
-        <h2 style="font-size:30px;margin:6px 0 18px">Dibuixa i porta la pilota al cistell</h2>
+        <h2 style="font-size:26px;margin:4px 0 14px">Dibuixa i porta la pilota al cistell</h2>
+        <p class="muted" style="margin:-8px 0 14px">${Object.keys(st).length} de ${LEVELS.length} nivells · ${Object.values(st).reduce((a, b) => a + b, 0)} estrelles</p>
         <div class="rodola-levels">
           ${LEVELS.map((lv, i) => {
             const open = unlocked(i);
             return `<button class="rodola-level${st[i] ? ' done' : ''}" data-i="${i}" ${open ? '' : 'disabled'}
               aria-label="Nivell ${i + 1}: ${lv.name}${st[i] ? `, ${st[i]} estrelles` : open ? '' : ', bloquejat'}">
               <span class="rodola-level__n">${i + 1}</span>
-              <span class="rodola-level__s">${st[i] ? starsText(st[i]) : open ? lv.name : 'Bloquejat'}</span>
+              <span class="rodola-level__s" aria-hidden="true">${st[i] ? starsText(st[i]) : ''}</span>
             </button>`;
           }).join('')}
         </div>
@@ -122,17 +123,15 @@ export default {
       finished = false;
       const lv = LEVELS[i];
       root.innerHTML = `
-        <div class="chess-top">
+        <div class="chess-top rodola-top">
           <button class="back" id="back">‹ Enrere</button>
-          <div class="chess-score">Nivell ${i + 1}</div>
+          <div class="chess-score">Nivell ${i + 1} de ${LEVELS.length}</div>
         </div>
-        <p class="kicker center" style="margin:0">${lv.name}</p>
-        <p class="traca-status" id="status" aria-live="polite">${lv.hint}</p>
+        <p class="rodola-status" id="status" aria-live="polite">${lv.hint}</p>
         <div class="rodola-board" id="board"><canvas id="cv" role="img" aria-label="Tauler del nivell ${i + 1}: ${lv.hint}"></canvas></div>
-        <div class="btn-row" id="controls" style="margin-top:12px">
+        <div class="btn-row rodola-controls" id="controls">
           <button class="btn btn--outline" id="retry">Torna-hi</button>
         </div>
-        <div id="endbox"></div>
       `;
       root.querySelector('#back').onclick = screenLevels;
       root.querySelector('#retry').onclick = () => play(level);
@@ -175,7 +174,14 @@ export default {
       canvas.addEventListener('pointermove', (e) => {
         if (!drawing) return;
         const p = toWorld(e), q = drawing[drawing.length - 1];
-        if (Math.hypot(p[0] - q[0], p[1] - q[1]) >= 3) drawing.push(p);
+        const d = Math.hypot(p[0] - q[0], p[1] - q[1]);
+        if (d < 3) return;
+        if (world.ink) {
+          // amb tinta limitada, el traç s'atura quan s'acaba
+          drawing.used = (drawing.used || 0) + d;
+          if (drawing.used > world.ink) return;
+        }
+        drawing.push(p);
       });
       const end = () => {
         if (!drawing) return;
@@ -221,24 +227,18 @@ export default {
       const stars = starsFor(used, LEVELS[level].par);
       const st = saved();
       if (!st[level] || stars > st[level]) { st[level] = stars; setRecord('rodola:stars', st); }
-      setStatus(starsText(stars));
-      root.querySelector('#controls').style.display = 'none';
       const isLast = level === LEVELS.length - 1;
-      const box = root.querySelector('#endbox');
+      setStatus(`${isLast ? 'Ho has acabat tot!' : 'Dins!'} ${starsText(stars)} · ${used} ${used === 1 ? 'traç' : 'traços'}`);
+      root.querySelector('#status').classList.add('rodola-status--win');
+      const box = root.querySelector('#controls');
       box.innerHTML = `
-        <div class="panel center stack" style="margin-top:12px;--stack-gap:6px">
-          <h2 style="font-size:28px;color:var(--accent)">${isLast ? 'Ho has acabat tot!' : 'Dins!'}</h2>
-          <p class="muted">${used} ${used === 1 ? 'traç' : 'traços'} · ${starsText(stars)}</p>
-        </div>
-        <div class="stack" style="margin-top:12px;--stack-gap:10px">
-          ${isLast ? '' : '<button class="btn btn--accent" id="next">Següent nivell</button>'}
-          <button class="btn btn--outline" id="again">Torna-hi</button>
-          <button class="btn btn--outline" id="levels">Tria nivell</button>
-        </div>`;
+        <button class="btn btn--outline" id="again">Torna-hi</button>
+        ${isLast ? '<button class="btn btn--accent" id="levels">Nivells</button>' : '<button class="btn btn--accent" id="next">Següent ›</button>'}`;
       const nx = box.querySelector('#next');
       if (nx) nx.onclick = () => play(level + 1);
+      const lb = box.querySelector('#levels');
+      if (lb) lb.onclick = screenLevels;
       box.querySelector('#again').onclick = () => play(level);
-      box.querySelector('#levels').onclick = screenLevels;
     }
 
     // ---------- dibuix ----------
@@ -290,6 +290,18 @@ export default {
       ctx.strokeStyle = ink;
       ctx.lineWidth = Math.max(1.5, scale * 2);
       ctx.beginPath(); ctx.arc(bp.x * scale, bp.y * scale, world.ball.circleRadius * scale, 0, 7); ctx.fill(); ctx.stroke();
+      // tinta que queda (nivells amb tinta limitada)
+      if (world.ink) {
+        let used = 0;
+        if (drawing) for (let k = 1; k < drawing.length; k++) used += Math.hypot(drawing[k][0] - drawing[k - 1][0], drawing[k][1] - drawing[k - 1][1]);
+        const left = Math.max(0, 1 - used / world.ink);
+        const bx = 12 * scale, by = 12 * scale, bw = 110 * scale, bh = 10 * scale;
+        ctx.fillStyle = paper2; ctx.fillRect(bx, by, bw, bh);
+        ctx.fillStyle = left > 0.15 ? coral : ink; ctx.fillRect(bx, by, bw * left, bh);
+        ctx.strokeStyle = ink; ctx.lineWidth = Math.max(1, scale * 1.5); ctx.strokeRect(bx, by, bw, bh);
+        ctx.fillStyle = ink; ctx.font = `700 ${Math.round(11 * scale)}px system-ui, sans-serif`;
+        ctx.fillText('Tinta', bx + bw + 6 * scale, by + bh - 1 * scale);
+      }
       // traç en curs
       if (drawing && drawing.length) {
         ctx.strokeStyle = coral;

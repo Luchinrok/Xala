@@ -20,7 +20,15 @@ REPTES.forEach(([set, nCommon, list], i) => {
   const id = `#${i + 1}`;
   check(set.length === 7 && new Set(set).size === 7, `${id} té 7 lletres diferents`);
   sets.add(set);
-  const words = list.split(' ');
+  const entries = list.split(' ');
+  // «paraula~v»: les variants han de ser c, v o b
+  check(entries.every(e => /^[^~]+(~[cvb]{1,2})?$/.test(e)), `${id}: marques de variant ben escrites`);
+  const words = entries.map(e => e.split('~')[0]);
+  // cada variant ha de tenir prou paraules comunes per jugar
+  for (const v of 'cvb') {
+    const ok = entries.slice(0, nCommon).filter(e => !e.includes('~') || e.split('~')[1].includes(v)).length;
+    check(ok >= 25, `${id}: la variant ${v} té ${ok} paraules comunes`);
+  }
   check(nCommon >= 30 && nCommon <= words.length, `${id} té prou paraules comunes`);
   const seen = new Set();
   let pangram = false;
