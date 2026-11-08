@@ -26,7 +26,7 @@ export default {
   title: 'La Xifra',
   tagline: 'Arriba al número amb poques fitxes',
   accent: '#E4572E',
-  color: 'var(--paper-2)',
+  color: 'var(--accent)',
   ready: true,
 
   instructions: [

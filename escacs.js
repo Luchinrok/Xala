@@ -376,8 +376,8 @@ export default {
     'Tria jugar contra l\'ordinador (Fàcil, Normal o Difícil) o a 2 jugadors al mateix mòbil.',
   ],
 
-  mount(root, { goHome, solo }) {
-    let mode = solo ? 'cpu' : '2p'; // 'cpu' | '2p' — des d'«Un sol jugador», contra la màquina
+  mount(root, { goHome }) {
+    let mode = '2p';      // 'cpu' | '2p' — per defecte 2 jugadors
     let diff = 'normal';  // 'easy' | 'normal' | 'hard'
 
     let pos = null;

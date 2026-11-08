@@ -34,9 +34,7 @@ const gameInstructions = (g) => g.instructions || [];
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
 const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs];
-// Escacs surt també aquí, en corall per mantenir el patró de la graella i
-// començant contra la màquina (solo).
-const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, { ...escacs, color: 'var(--accent)', solo: true }, traca, xifra];
+const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra];
 
 const app = document.getElementById('app');
 
@@ -82,6 +80,7 @@ let navAtLanding = true;    // cert només a la portada
 let navBacking = false;     // anem enrere: aquest canvi de pantalla no afegeix entrada
 let navNoopPops = 0;        // popstates que venen de buidar l'historial, no d'un gest
 let navDepth = 0;           // última profunditat coneguda
+let updateReady = false;    // hi ha una versió nova esperant la portada (vegeu més avall)
 
 const readDepth = () => (history.state && Number.isInteger(history.state.d) ? history.state.d : navDepth);
 
@@ -261,6 +260,7 @@ function glyph(id) {
 // ---------- pantalla inicial: tria de mode ----------
 function goLanding() {
   setLevel({ landing: true });
+  if (updateReady) { reloadIfUpdated(); return; }
   setAccent(null);
   clear();
   const wrap = document.createElement('div');
@@ -281,7 +281,7 @@ function goLanding() {
       </button>
       <button class="mode-card" id="mode-sp" style="--c:var(--paper-2)">
         <span>${glyph('solo')}</span>
-        <div><h3>Un sol jugador</h3><p>10 jocs per a tu sol, quan vulguis.</p></div>
+        <div><h3>Un sol jugador</h3><p>9 jocs per a tu sol, quan vulguis.</p></div>
       </button>
     </div>
   `;
@@ -386,7 +386,7 @@ function openGame(game, back) {
   const root = document.createElement('div');
   root.className = 'screen';
   app.appendChild(root);
-  game.mount(root, { goHome: back || goMultiplayer, solo: !!game.solo });
+  game.mount(root, { goHome: back || goMultiplayer });
 }
 
 // ---------- ajuda: "Com es juga?" (per a un catàleg de jocs) ----------
@@ -440,8 +440,25 @@ goLanding();
 // enllaç compartit d'un problema (#mat-N): obre «Mat en 2» directament
 if (LINK.test(location.hash)) openGame(mat2, goSingle);
 
+// ---------- versions noves ----------
+// L'app instal·lada sovint no es torna a obrir sinó que es reprèn: en tornar-hi
+// es comprova si hi ha versió nova. Quan la nova pren el control es recarrega,
+// però mai enmig d'un joc: s'espera que es torni a la portada.
+function reloadIfUpdated() {
+  if (updateReady && navAtLanding) location.reload();
+}
 if ('serviceWorker' in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || updateReady) return; // primera instal·lació: no cal recarregar
+    updateReady = true;
+    reloadIfUpdated();
+  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
+    }).catch(() => {});
   });
 }
