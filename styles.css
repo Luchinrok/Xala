@@ -1336,3 +1336,22 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .xifra-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .xifra-steps:empty { display: none; }
 .xifra-step { padding: 4px 10px; border-radius: 999px; background: var(--paper-2); font-size: 14px; }
+
+/* ============================================================
+   La Serp: tauler (canvas) i botons de direcció
+   ============================================================ */
+/* touch-action: none perquè lliscar giri la serp i no faci desplaçar la pàgina */
+.serp-board { width: min(100%, calc(100dvh - 330px)); margin: 4px auto 0; border: 3px solid var(--ink);
+  border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow); touch-action: none; }
+.serp-board canvas { display: block; }
+.serp-pad { display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(3, 48px); gap: 6px;
+  justify-content: center; margin-top: 14px; touch-action: none; }
+.serp-key { cursor: pointer; color: var(--ink); font-size: 20px; line-height: 1;
+  background: var(--paper); border: 2px solid var(--ink); border-radius: var(--r-sm); box-shadow: 0 3px 0 var(--ink);
+  user-select: none; -webkit-user-select: none; }
+.serp-key:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.serp-key--up { grid-column: 2; grid-row: 1; }
+.serp-key--left { grid-column: 1; grid-row: 2; }
+.serp-key--pause { grid-column: 2; grid-row: 2; font-size: 15px; background: var(--paper-2); }
+.serp-key--right { grid-column: 3; grid-row: 2; }
+.serp-key--down { grid-column: 2; grid-row: 3; }

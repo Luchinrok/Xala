@@ -1,6 +1,6 @@
 # Xala!
 
-«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`, `mat2.js`, `traca.js`, `xifra.js`…). Parla amb l'usuari en català.
+«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`, `mat2.js`, `traca.js`, `xifra.js`, `serp.js`…). Parla amb l'usuari en català.
 
 ## On viu i com es publica
 
@@ -11,10 +11,10 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 08-11-2026 és `xala-v101`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 08-11-2026, a la branca `la-serp`, és `xala-v102`; a `main`, `xala-v101`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs i els 450 problemes de Mat en 2) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
-- **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
+- **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
 - **Marca:** corall `#E4572E` sobre crema, estil de festa major (ombres «enfonsables», fons de punts). És el caràcter de l'app: no treure'l en nom de la sobrietat. Lletres: Bricolage (títols) i Hanken Grotesk (text); els botons han d'heretar la lletra (`font: inherit`).
 - **Disseny:** hi ha els skills `design-taste-frontend` (veure'n `references/app-screens.md`), `web-design-guidelines` i `awesome-design-md`. Adaptar les normes al to de joc, no aplicar-les a cegues.
 - **Textos:** to proper i de festa, frases curtes, que no sembli escrit per una IA.
@@ -29,3 +29,4 @@
 - 04-11-2026 (publicat): La Traca, joc propi de paraules, inspirat en la idea de fer paraules amb lletres donades però amb nom, aspecte i regles propis (sense lletra obligatòria ni rusc). Paraules de Softcatalà (GPL/LGPL): `traca-reptes.js` és generat i porta `LLICENCIA-diccionari.txt`.
 - 04-11-2026 (publicat): La Xifra, joc propi de càlcul (fitxes, objectiu, estrelles segons les fitxes usades). Els reptes es generen amb llavor a `xifra-motor.js`, iguals a tots els mòbils.
 - 08-11-2026 (publicat): actualitzacions. El service worker baixa els fitxers amb `cache: 'reload'` (abans podia guardar els antics de la memòria del navegador); en tornar a l'app es comprova si hi ha versió nova, i es recarrega en arribar a la portada, mai enmig d'un joc. Escacs tret d'Un sol jugador (ja és a Dos jugadors, amb mode contra la màquina).
+- 08-11-2026 (branca `la-serp`, sense publicar): La Serp (lliscar, botons o fletxes; tres velocitats; rècord). Pendent: joc propi de física de dibuixar (tipus de joc, no còpia de cap joc concret).
