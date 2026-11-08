@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 08-11-2026, a la branca `actualitza`, és `xala-v101`; a `main`, `xala-v100`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 08-11-2026 és `xala-v101`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs i els 450 problemes de Mat en 2) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -28,4 +28,4 @@
 - 04-11-2026 (publicat): icones PNG (Android feia una «L» amb la primera lletra de l'adreça), Mat en 2 deixa clar que no té límit. Gest enrere refet amb el model de Buyte: cada canvi de pantalla fet amb un toc afegeix una entrada a l'historial (mai sense toc, Chrome se les salta). L'enllaç `#mat-N` amb l'app ja oberta tancava l'app o no obria el problema. Ara l'obre i el botó enrere del mòbil funciona.
 - 04-11-2026 (publicat): La Traca, joc propi de paraules, inspirat en la idea de fer paraules amb lletres donades però amb nom, aspecte i regles propis (sense lletra obligatòria ni rusc). Paraules de Softcatalà (GPL/LGPL): `traca-reptes.js` és generat i porta `LLICENCIA-diccionari.txt`.
 - 04-11-2026 (publicat): La Xifra, joc propi de càlcul (fitxes, objectiu, estrelles segons les fitxes usades). Els reptes es generen amb llavor a `xifra-motor.js`, iguals a tots els mòbils.
-- 08-11-2026 (branca `actualitza`, sense publicar): actualitzacions. El service worker baixa els fitxers amb `cache: 'reload'` (abans podia guardar els antics de la memòria del navegador); en tornar a l'app es comprova si hi ha versió nova, i es recarrega en arribar a la portada, mai enmig d'un joc. Escacs tret d'Un sol jugador (ja és a Dos jugadors, amb mode contra la màquina).
+- 08-11-2026 (publicat): actualitzacions. El service worker baixa els fitxers amb `cache: 'reload'` (abans podia guardar els antics de la memòria del navegador); en tornar a l'app es comprova si hi ha versió nova, i es recarrega en arribar a la portada, mai enmig d'un joc. Escacs tret d'Un sol jugador (ja és a Dos jugadors, amb mode contra la màquina).
