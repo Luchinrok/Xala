@@ -1,5 +1,5 @@
 // ============================================================
-// rodola-mon.js — el món físic de Rodola!, sense res de pantalla.
+// rodola-mon.js — el món físic de Fes-la caure, sense res de pantalla.
 // Rep la llibreria Matter.js com a paràmetre (al navegador surt de
 // vendor/matter.min.js; a les proves, del mateix fitxer amb require).
 // Unitats: un món de 400 × 600, amb la y cap avall.

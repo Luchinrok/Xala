@@ -1,5 +1,5 @@
 // ============================================================
-// Prova de Rodola!: cada nivell es resol amb la solució desada, i no amb
+// Prova de Fes-la caure: cada nivell es resol amb la solució desada, i no amb
 // traços inútils. També comprova la simplificació dels traços.
 // Executa:  node rodola.test.mjs   (inclòs a  npm test)
 // ============================================================
@@ -34,5 +34,5 @@ LEVELS.forEach((lv, i) => {
   check(dud.state !== 'won', `${id}: un traç inútil no el resol`);
 });
 
-console.log(failures ? `\n✘ RODOLA: ${failures} errors` : `  ok   ${LEVELS.length} nivells verificats\n\n✔ RODOLA: TOT BÉ`);
+console.log(failures ? `\n✘ FES-LA CAURE: ${failures} errors` : `  ok   ${LEVELS.length} nivells verificats\n\n✔ FES-LA CAURE: TOT BÉ`);
 process.exit(failures ? 1 : 0);

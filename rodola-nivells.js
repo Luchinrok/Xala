@@ -1,5 +1,5 @@
 // ============================================================
-// rodola-nivells.js — nivells de Rodola!
+// rodola-nivells.js — nivells de Fes-la caure
 // Món de 400 × 600 (y cap avall). Els traços cauen: s'han de recolzar en
 // alguna cosa o fer servir el seu pes per empènyer.
 //   ball: [x, y] on comença la pilota

@@ -1357,7 +1357,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .serp-key--down { grid-column: 2; grid-row: 3; }
 
 /* ============================================================
-   Rodola!: tria de nivell i tauler de dibuix
+   Fes-la caure (rodola.js): tria de nivell i tauler de dibuix
    ============================================================ */
 .rodola-levels { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .rodola-level { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px; min-height: 70px;

@@ -1,5 +1,6 @@
 // ============================================================
-// Rodola! — trencaclosques de física per a un sol jugador.
+// Fes-la caure — trencaclosques de física per a un sol jugador.
+// (Els fitxers es diuen rodola*.js: era el nom provisional.)
 //
 // Dibuixes amb el dit: el traç es converteix en una peça que cau amb
 // gravetat. Has d'aconseguir que la pilota acabi dins del cistell. El món
@@ -33,7 +34,7 @@ const starsText = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 
 export default {
   id: 'rodola',
-  title: 'Rodola!',
+  title: 'Fes-la caure',
   tagline: 'Dibuixa i porta la pilota al cistell',
   accent: '#E4572E',
   color: 'var(--accent)',
@@ -94,7 +95,7 @@ export default {
       const next = LEVELS.findIndex((_, i) => !st[i]);
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
-        <p class="kicker">Rodola!</p>
+        <p class="kicker">Fes-la caure</p>
         <h2 style="font-size:30px;margin:6px 0 18px">Dibuixa i porta la pilota al cistell</h2>
         <div class="rodola-levels">
           ${LEVELS.map((lv, i) => {
