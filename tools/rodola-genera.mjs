@@ -302,6 +302,36 @@ const TEMPLATES = {
     const t = TEMPLATES.catapulta();
     return t && { ...t, kind: 'catapultatoca', place: 'ball2', goal: { type: 'touch' } };
   },
+  // ---------- segona tanda de combinacions ----------
+  // Pont i toca / pont i zona: el pont de sempre, però amb un altre objectiu.
+  pontsense() {
+    const t = TEMPLATES.pont();
+    if (!t) return null;
+    // sense cistell ni paret del fons: l'objectiu el posa la simulació
+    return { ...t, cup: undefined, walls: t.walls.slice(0, 2), nodraw: [t.nodraw[0]] };
+  },
+  pontoca() { const t = TEMPLATES.pontsense(); return t && { ...t, kind: 'pontoca', place: 'ball2', goal: { type: 'touch' } }; },
+  pontzona() { const t = TEMPLATES.pontsense(); return t && { ...t, kind: 'pontzona', place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } }; },
+  // Molinet i toca: la plataforma llança la pilota contra la vermella.
+  molinettoca() { const t = TEMPLATES.molinet(); return t && { ...t, kind: 'molinettoca', place: 'ball2', goal: { type: 'touch' } }; },
+  // Corda i zona: talla la corda i que la pilota s'aturi a la zona.
+  cordazona() { const t = TEMPLATES.talla(); return t && { ...t, kind: 'cordazona', place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } }; },
+  // Embut i toca: recull la pilota que cau i porta-la fins a la vermella.
+  embuttoca() { const t = TEMPLATES.embut(); return { ...t, kind: 'embuttoca', walls: t.walls.slice(0, 2), place: 'ball2', goal: { type: 'touch' } }; },
+  // Equilibri: la pilota és sobre un balancí que es tomba; posa-hi un contrapès.
+  equilibri() {
+    const px = RI(150, 250), py = RI(320, 440), len = RI(180, 230);
+    const left = px - len / 2, right = px + len / 2;
+    const cands = [];
+    for (let i = 0; i < 14; i++) {
+      const s = RI(30, 50);
+      cands.push([square(r1(right - s - RI(0, 50)), r1(py - 20 - s - RI(0, 40)), s)]);
+    }
+    return { kind: 'equilibri', par: 1, ball: [r1(left + RI(28, 50)), py - 18], seesaws: [[px, py, len]], goal: { type: 'hold', secs: 5 }, walls: [], candidates: cands };
+  },
+  // Tinta i toca / tinta i zona: tinta justa i obstacles.
+  tintatoca() { const t = TEMPLATES.precisio(); return { ...t, kind: 'tintatoca', place: 'ball2', goal: { type: 'touch' } }; },
+  tintazona() { const t = TEMPLATES.precisio(); return { ...t, kind: 'tintazona', place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } }; },
   // Zona: porta la pilota a la lleixa marcada i que s'hi quedi.
   zona() {
     const r = TEMPLATES.rampa();
@@ -334,6 +364,14 @@ const NAMES = {
   aguantamolinet: ['Bressol', 'Que no caigui, i compte amb el molinet'],
   dominodoble: ['Dòmino doble', 'Tomba la primera caixa i que caigui la pilota'],
   catapultatoca: ['Catapulta i toca', 'Llança la pilota fins a la vermella'],
+  pontoca: ['Pont i toca', 'Fes el pont i arriba a la vermella'],
+  pontzona: ['Pont i zona', "Creua el pont i atura't a la zona"],
+  molinettoca: ['Molinet i toca', 'La plataforma la llança: que toqui la vermella'],
+  cordazona: ['Corda i zona', 'Talla la corda i que la pilota pari a la zona'],
+  embuttoca: ['Embut i toca', 'Recull la pilota i porta-la a la vermella'],
+  equilibri: ['Equilibri', 'Posa un contrapès: que la pilota no caigui en 5 segons'],
+  tintatoca: ['Tinta i toca', 'Tinta justa per arribar a la vermella'],
+  tintazona: ['Tinta i zona', 'Tinta justa per deixar la pilota a la zona'],
 };
 // Ordre: cada tipus nou apareix aviat, i després es van barrejant.
 // (Un tipus «Tap» —aturar una pilota massa ràpida— no va funcionar: amb aquesta física
