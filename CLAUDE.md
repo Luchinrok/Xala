@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 08-11-2026 és `xala-v112`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 08-11-2026, a la branca `imant-combinacions`, és `xala-v113`; a `main`, `xala-v112`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs i els 450 problemes de Mat en 2) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -42,3 +42,4 @@
 - 08-11-2026 (publicat): mecanisme de botó i porta (`level.doors`: { button: [x, y, amplada], door: [x1, y1, x2, y2, gruix] }; qualsevol cos que es mou que toqui el botó obre la porta; amb una porta tancada no es pot guanyar). 4 nivells: Trapa, Trapa i toca, Trapa i zona, Botó i rampa: 32 nivells. Lliçó: en els nivells de dos traços, una persona tarda a fer el segon; el generador ho comprova (segon traç 1,5, 3 i 5 s tard) i `npm test` també (1 i 1,5 s). El «Ziga-zaga» fet a mà demanava fer la segona rampa en menys de 2 s; s'ha refet (vegeu més avall).
 - 08-11-2026 (publicat): Ziga-zaga refet: la pilota comença sobre una lleixa poc inclinada i tarda uns 4 s a caure; les rampes es poden fer en qualsevol ordre i la segona fins a 3 s després (`npm test` ho comprova). La línia d'estat de Fes-la caure té sempre dues línies d'alt: abans, si la pista ocupava dues línies, en fer el primer traç el tauler pujava i desplaçava el dit.
 - 08-11-2026 (publicat): mecanisme d'imant (`level.magnets` [x, y, força, abast]; atreu només la pilota groga, amb força 1/d²). 4 nivells: Imant, Imant i toca, Imant i zona, Imant i bressol: 36 nivells. Lliçó: a la primera, en 3 dels 4 nivells l'imant no feia res; ara el generador exigeix que desviï la pilota 40 px o més i que, sense l'imant, la solució no funcioni (excepte a «Aguanta»).
+- 08-11-2026 (branca `imant-combinacions`, sense publicar): 5 combinacions amb l'imant (Talla i imant, Molinet i imant, Trapa i imant, Catapulta i imant, Penja, imant i toca): 41 nivells. L'imant es col·loca a prop del camí simulat de la pilota (`imantCami`), no a l'atzar; en tots cinc, sense l'imant la solució no funciona.

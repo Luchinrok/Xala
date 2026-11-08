@@ -405,6 +405,43 @@ const TEMPLATES = {
   },
   imantoca() { const t = TEMPLATES.iman(); return t && { ...t, kind: 'imantoca', place: 'ball2', goal: { type: 'touch' } }; },
   imanzona() { const t = TEMPLATES.iman(); return t && { ...t, kind: 'imanzona', place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } }; },
+  // Imant a prop del camí real de la pilota: es simula l'escenari amb la primera
+  // solució (sense objectiu ni imant) i s'agafa un punt del recorregut desplaçat 50-90 px.
+  imantCami(lv) {
+    const w = buildWorld(Matter, { ...lv, cup: undefined, goal: { type: 'hold', secs: 99 }, magnets: [] });
+    lv.candidates[0].forEach(s => w.addStroke(s));
+    const path = [];
+    for (let f = 0; f < 400 && w.state !== 'lost'; f++) { w.step(); if (f % 5 === 0) path.push([w.ball.position.x, w.ball.position.y]); }
+    if (path.length < 10) return null;
+    for (let k = 0; k < 30; k++) {
+      const [px, py] = path[Math.floor(R(0.3, 0.9) * path.length)];
+      const a = R(0, Math.PI * 2), d = R(50, 90);
+      const x = r1(px + Math.cos(a) * d), y = r1(py + Math.sin(a) * d);
+      if (x < 30 || x > 370 || y < 120 || y > 500) continue;
+      if (Math.hypot(lv.ball[0] - x, lv.ball[1] - y) < 90) continue;
+      const pts = lv.candidates[0].flat();
+      if (pts.some(([qx, qy]) => Math.hypot(qx - x, qy - y) < 40)) continue;
+      return [x, y, R(1.5, 3.5), RI(90, 140)];
+    }
+    return null;
+  },
+  ambImant(t, kind) {
+    if (!t) return null;
+    const m = TEMPLATES.imantCami(t);
+    return m && { ...t, kind, magnets: [m] };
+  },
+  imantalla() { return TEMPLATES.ambImant(TEMPLATES.talla(), 'imantalla'); },
+  imanmolinet() { return TEMPLATES.ambImant(TEMPLATES.molinet(), 'imanmolinet'); },
+  imancatapulta() { return TEMPLATES.ambImant(TEMPLATES.catapulta(), 'imancatapulta'); },
+  imanpenjatoca() { const t = TEMPLATES.ambImant(TEMPLATES.tallarampa(), 'imanpenjatoca'); return t && { ...t, place: 'ball2', goal: { type: 'touch' } }; },
+  // Trapa i imant: la pilota és sobre una trapa a mitja alçada; l'imant la porta al cistell.
+  imantrapa() {
+    const t = TEMPLATES.trapa();
+    if (!t) return null;
+    const cx = t.ball[0];
+    const base = { ...t, ball: [cx, 300], cup: undefined, doors: [{ ...t.doors[0], door: [cx - 46, 318, cx + 46, 318, 10] }] };
+    return TEMPLATES.ambImant(base, 'imantrapa');
+  },
   imanbressol() {
     const t = TEMPLATES.aguanta();
     const [x1, y1] = [t.walls[0][0] + 6, t.walls[0][1]], [x2, y2] = [t.walls[1][0] + 6, t.walls[1][1]];
@@ -454,6 +491,11 @@ const NAMES = {
   imantoca: ['Imant i toca', "Amb l'ajuda de l'imant, arriba a la vermella"],
   imanzona: ['Imant i zona', "Amb l'ajuda de l'imant, deixa la pilota a la zona"],
   imanbressol: ['Imant i bressol', "Que no caigui en 5 segons, i que l'imant no se l'endugui"],
+  imantalla: ['Talla i imant', "Talla la corda: l'imant farà la resta"],
+  imanmolinet: ['Molinet i imant', "La plataforma la llança i l'imant la corba"],
+  imancatapulta: ['Catapulta i imant', "Llança la pilota i deixa que l'imant l'atrapi"],
+  imanpenjatoca: ['Penja, imant i toca', "Rampa, talla la corda i que l'imant la porti a la vermella"],
+  imantrapa: ['Trapa i imant', "Obre la trapa: l'imant porta la pilota al cistell"],
   pontoca: ['Pont i toca', 'Fes el pont i arriba a la vermella'],
   pontzona: ['Pont i zona', "Creua el pont i atura't a la zona"],
   molinettoca: ['Molinet i toca', 'La plataforma la llança: que toqui la vermella'],
