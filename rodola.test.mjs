@@ -43,6 +43,14 @@ LEVELS.forEach((lv, i) => {
     const ph = simulate(Matter, lv, lv.solution.map(s => asPhone(s, w)));
     check(ph.state === 'won', `${id}: dibuixat en un tauler de ${w} px (${ph.state})`);
   }
+  // dos traços: una persona tarda una estona a fer el segon (1 i 1,5 s; el
+  // generador ja demana fins a 5 s per als nivells nous)
+  if (lv.solution.length > 1) {
+    for (const d of [60, 90]) {
+      const late = simulate(Matter, lv, [[0, lv.solution[0]], [d, lv.solution[1]]], 1500);
+      check(late.state === 'won', `${id}: amb el segon traç ${d / 60} s més tard (${late.state})`);
+    }
+  }
   // un gargot en un racó de dalt no ha de resoldre'l
   const dud = simulate(Matter, lv, [line(10, 20, 40, 20)]);
   check(dud.state !== 'won', `${id}: un traç inútil no el resol`);

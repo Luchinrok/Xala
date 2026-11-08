@@ -331,6 +331,19 @@ export default {
         ctx.fillStyle = ink;
         ctx.beginPath(); ctx.arc(s.position.x * scale, s.position.y * scale, scale * 4, 0, 7); ctx.fill();
       });
+      // botons i portes: el botó és corall fins que es prem; la porta oberta deixa una ombra
+      world.doors.forEach(d => {
+        if (d.open) {
+          ctx.save();
+          ctx.setLineDash([5 * scale, 5 * scale]);
+          ctx.strokeStyle = 'rgba(32,24,15,.25)'; ctx.lineWidth = Math.max(1, scale * 1.5);
+          poly(d.door.vertices); ctx.stroke();
+          ctx.restore();
+        } else {
+          body(d.door, '#8C7A66', ink);
+        }
+        body(d.pad, d.open ? soft : coral, ink);
+      });
       // cordes: del punt fix al que aguanten (les tallades ja no es dibuixen)
       world.ropes.forEach(r => {
         ctx.fillStyle = ink;

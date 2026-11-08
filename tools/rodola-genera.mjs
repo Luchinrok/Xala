@@ -43,6 +43,8 @@ const mirrorLevel = (lv) => ({
   boxes: (lv.boxes || []).map(([x, y, w, h]) => [400 - x, y, w, h]),
   ropes: (lv.ropes || []).map(([x, y, w]) => [400 - x, y, w]),
   spinners: (lv.spinners || []).map(([x, y, l, d]) => [400 - x, y, l, -d]),
+  doors: (lv.doors || []).map(({ button: [bx, by, bw], door: [a, b, c, d, t] }) => ({ button: [400 - bx, by, bw], door: [400 - c, d, 400 - a, b, t] })),
+  ...(lv.button ? { button: [400 - lv.button[0], lv.button[1], lv.button[2]] } : {}),
   nodraw: (lv.nodraw || []).map(([x, y, w, h]) => [400 - x - w, y, w, h]),
   ...(lv.cup ? { cup: [400 - lv.cup[0], lv.cup[1]] } : {}),
   candidates: lv.candidates.map(c => c.map(s => s.map(([x, y]) => [400 - x, y]))),
@@ -332,6 +334,55 @@ const TEMPLATES = {
   // Tinta i toca / tinta i zona: tinta justa i obstacles.
   tintatoca() { const t = TEMPLATES.precisio(); return { ...t, kind: 'tintatoca', place: 'ball2', goal: { type: 'touch' } }; },
   tintazona() { const t = TEMPLATES.precisio(); return { ...t, kind: 'tintazona', place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } }; },
+  // ---------- botó i porta ----------
+  // Un botó lluny de la pilota i dels camins per on cauen els gargots de prova.
+  botoPos(avoidX) {
+    for (let k = 0; k < 20; k++) {
+      const bx = RI(70, 330), by = RI(240, 440);
+      if (Math.abs(bx - avoidX) < 100 || Math.abs(bx - 200) < 45) continue;
+      return [bx, by, RI(40, 56)];
+    }
+    return null;
+  },
+  pesos(btn, n = 10) {
+    const [bx, by, bw] = btn, out = [];
+    for (let i = 0; i < n; i++) { const s = RI(26, 40); out.push(square(r1(bx - s / 2 + RI(-bw / 3, bw / 3)), r1(by - s - RI(60, 160)), s)); }
+    return out;
+  },
+  // Trapa: la pilota és sobre una trapa damunt del cistell; el botó l'obre.
+  trapa() {
+    const cx = RI(80, 320), btn = TEMPLATES.botoPos(cx);
+    if (!btn) return null;
+    return {
+      kind: 'trapa', par: 1, ball: [cx, 498], cup: [cx, 578],
+      doors: [{ button: btn, door: [cx - 46, 516, cx + 46, 516, 10] }],
+      walls: [], candidates: TEMPLATES.pesos(btn).map(s => [s]),
+    };
+  },
+  // Trapa i toca: a sota de la trapa hi ha la pilota vermella.
+  trapatoca() {
+    const t = TEMPLATES.trapa();
+    if (!t) return null;
+    const cx = t.ball[0], yy = RI(560, 575);
+    return { ...t, kind: 'trapatoca', cup: undefined, ball2: [cx + RI(-8, 8), yy], walls: [[cx - 18, yy + 19, cx + 18, yy + 19, 10]], goal: { type: 'touch' } };
+  },
+  // Trapa i zona: quan s'obre, la pilota ha d'acabar a la zona.
+  trapazona() {
+    const t = TEMPLATES.trapa();
+    if (!t) return null;
+    const cx = t.ball[0];
+    return { ...t, kind: 'trapazona', ball: [cx, 300], cup: undefined, doors: [{ ...t.doors[0], door: [cx - 46, 318, cx + 46, 318, 10] }], place: 'zone', goal: { type: 'zone', zone: [0, 0, 0, 0] } };
+  },
+  // Botó i rampa: el cistell és tapat; obre'l amb el botó i fes-hi una rampa.
+  botorampa() {
+    const r = TEMPLATES.rampa();
+    const btn = TEMPLATES.botoPos(r.ball[0]);
+    if (!btn) return null;
+    // la tapa del cistell es posa quan se sap on cau la pilota (vegeu tryCandidate)
+    // primer la rampa i després el pes: és l'ordre en què ho faria una persona (el primer
+    // traç posa el món en marxa; la pilota espera sobre la tapa fins que es prem el botó)
+    return { ...r, kind: 'botorampa', par: 2, lid: btn, candidates: TEMPLATES.pesos(btn, 6).map(s => [r.candidates[0][0], s]) };
+  },
   // Zona: porta la pilota a la lleixa marcada i que s'hi quedi.
   zona() {
     const r = TEMPLATES.rampa();
@@ -364,6 +415,10 @@ const NAMES = {
   aguantamolinet: ['Bressol', 'Que no caigui, i compte amb el molinet'],
   dominodoble: ['Dòmino doble', 'Tomba la primera caixa i que caigui la pilota'],
   catapultatoca: ['Catapulta i toca', 'Llança la pilota fins a la vermella'],
+  trapa: ['Trapa', 'Prem el botó i la trapa s’obrirà'],
+  trapatoca: ['Trapa i toca', 'Obre la trapa: a sota hi ha la vermella'],
+  trapazona: ['Trapa i zona', 'Obre la trapa i que la pilota pari a la zona'],
+  botorampa: ['Botó i rampa', 'Destapa el cistell amb el botó i fes-hi arribar la pilota'],
   pontoca: ['Pont i toca', 'Fes el pont i arriba a la vermella'],
   pontzona: ['Pont i zona', "Creua el pont i atura't a la zona"],
   molinettoca: ['Molinet i toca', 'La plataforma la llança: que toqui la vermella'],
@@ -439,12 +494,21 @@ function tryCandidate(base, solRaw) {
     const [cx, cy] = lv.cup;
     if (cy > 560) lv.nodraw = [...(lv.nodraw || []), [Math.max(0, cx - 70), 450, Math.min(140, 400 - Math.max(0, cx - 70)), 150]];
   }
+  if (lv.lid) {
+    const [cx] = lv.cup;
+    if (Math.abs(lv.lid[0] - cx) < 90) return no('el botó cau a sobre del cistell');
+    // la tapa, enfonsada dins el cistell: la pilota s'hi queda esperant el botó
+    lv.doors = [{ button: lv.lid, door: [cx - 31, 556, cx + 31, 556, 10] }];
+    delete lv.lid;
+  }
   if (simulate(Matter, lv, sol).state !== 'won') return no('la solució no guanya');
   const wins = JIT.filter(([dx, dy]) => simulate(Matter, lv, shift(sol, dx, dy)).state === 'won').length;
   // les empentes depenen de més coses: se'ls demana més marge
   if (wins < (['empenta', 'domino'].includes(base.kind) ? 7 : 6)) return no('massa just (mà tremolosa)');
   if (DUDS.some(d => simulate(Matter, lv, [d]).state === 'won')) return no('es resol amb un gargot');
   if (PHONES.some(w => simulate(Matter, lv, sol.map(s => asPhone(s, w))).state !== 'won')) return no('falla dibuixat com al mòbil');
+  // dos traços: una persona tarda una estona a fer el segon
+  if (sol.length > 1 && [90, 180, 300].some(d => simulate(Matter, lv, [[0, sol[0]], [d, sol[1]]], 1500).state !== 'won')) return no('falla si el segon traç arriba tard');
   return lv;
 }
 

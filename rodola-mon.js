@@ -28,7 +28,7 @@ function segment(Bodies, [x1, y1, x2, y2, th = 14], opts) {
 export const goalOf = (level) => level.goal || { type: 'cup' };
 
 export function buildWorld(Matter, level) {
-  const { Engine, Bodies, Body, Composite, Constraint, Vertices, Common } = Matter;
+  const { Engine, Bodies, Body, Composite, Constraint, Vertices, Common, Events } = Matter;
   // Els números dels cossos decideixen l'ordre en què es resolen els xocs. Es
   // tornen a començar a cada nivell perquè la física sigui sempre igual: al
   // mòbil, després d'haver jugat altres nivells, i al simulador de les proves.
@@ -71,6 +71,29 @@ export function buildWorld(Matter, level) {
     return b;
   });
   Composite.add(engine.world, [...statics, ...cup, ball, ...(ball2 ? [ball2] : []), ...boxes, ...planks, ...pins, ...spinners]);
+  // botons i portes: { button: [x, y, amplada], door: [x1, y1, x2, y2, gruix] }.
+  // Quan alguna cosa que es mou (pilota, traç, caixa) toca el botó, la porta s'obre.
+  const doors = (level.doors || []).map(({ button: [bx, by, bw], door }) => {
+    const pad = Bodies.rectangle(bx, by, bw, 8, { ...solid, label: 'button' });
+    const d = segment(Bodies, door, { ...solid, label: 'door' });
+    Composite.add(engine.world, [pad, d]);
+    return { pad, door: d, open: false };
+  });
+  if (doors.length) {
+    Events.on(engine, 'collisionStart', (ev) => {
+      for (const pair of ev.pairs) {
+        const a = pair.bodyA.parent, b = pair.bodyB.parent;
+        for (const dr of doors) {
+          if (dr.open) continue;
+          const other = a === dr.pad ? b : b === dr.pad ? a : null;
+          if (other && !other.isStatic) {
+            Composite.remove(engine.world, dr.door);
+            dr.open = true;
+          }
+        }
+      }
+    });
+  }
   // cordes: [ax, ay, 'ball' | índex de caixa]. Un punt fix i una corda tibant
   // (com un pèndol). Un traç que la travessa la talla.
   const ropes = (level.ropes || []).map(([ax, ay, what]) => {
@@ -88,7 +111,7 @@ export function buildWorld(Matter, level) {
   let state = 'ready'; // ready | playing | won | lost
 
   // No es pot dibuixar sobre les parets, el cistell, la pilota ni les zones ratllades.
-  const blockers = () => [...statics, ...cup, ...boxes, ...planks];
+  const blockers = () => [...statics, ...cup, ...boxes, ...planks, ...doors.flatMap(d => (d.open ? [d.pad] : [d.pad, d.door]))];
   // tot el cercle per on passa una plataforma que gira és zona prohibida
   const m = T / 2 + 2;
   function forbidden(x, y) {
@@ -211,6 +234,9 @@ export function buildWorld(Matter, level) {
       const inside = x > zx && x < zx + zw && y > zy && y < zy + zh;
       inCup = inside && slow ? inCup + 1 : 0;
       if (inCup >= 30) state = 'won';
+    } else if (doors.some(d => !d.open)) {
+      // amb una porta encara tancada no es pot guanyar (la pilota pot esperar sobre la tapa)
+      inCup = 0;
     } else {
       const inside = Math.abs(x - cx) < CUP_W / 2 && y < cy && y > cy - CUP_H - 4;
       inCup = inside && slow ? inCup + 1 : 0;
@@ -220,7 +246,7 @@ export function buildWorld(Matter, level) {
   }
 
   return {
-    engine, ball, ball2, goal, statics, cup, boxes, planks, spinners, ropes, strokes, nodraw, ink: level.ink || 0,
+    engine, ball, ball2, goal, statics, cup, boxes, planks, spinners, ropes, doors, strokes, nodraw, ink: level.ink || 0,
     addStroke, step, forbidden,
     get state() { return state; },
     get frames() { return frames; },
