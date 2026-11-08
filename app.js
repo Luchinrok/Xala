@@ -25,6 +25,7 @@ import mat2 from './mat2.js';
 import traca from './traca.js';
 import xifra from './xifra.js';
 import serp from './serp.js';
+import rodola from './rodola.js';
 import { t } from './i18n.js';
 
 // Títol, tagline i instruccions surten dels camps del mòdul de cada joc.
@@ -35,7 +36,7 @@ const gameInstructions = (g) => g.instructions || [];
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
 const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs];
-const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp];
+const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, rodola];
 
 const app = document.getElementById('app');
 
@@ -246,6 +247,8 @@ function glyph(id) {
     connecta4:  '<rect x="7" y="9" width="26" height="24" rx="3" fill="none" stroke-width="3"/><circle cx="14" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="20" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="26" cy="16" r="2.6" fill="none" stroke-width="2"/><circle cx="14" cy="26" r="2.6" fill="none" stroke-width="2"/><circle cx="26" cy="26" r="2.6" fill="none" stroke-width="2"/><circle cx="20" cy="26" r="2.6" fill="currentColor" stroke="none"/>',
     dames:      '<rect x="6" y="6" width="28" height="28" rx="2" fill="none" stroke-width="3"/><path d="M15.3 6v28M24.7 6v28M6 15.3h28M6 24.7h28" stroke-width="1.6"/><circle cx="20" cy="20" r="4.6" fill="none" stroke-width="2.6"/><circle cx="20" cy="20" r="1.8" fill="none" stroke-width="2"/>',
     puntsicaixes:'<circle cx="10" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="30" r="2" fill="currentColor" stroke="none"/><path d="M10 10h10M10 20h10M10 10v10M20 10v10" fill="none" stroke-width="2.4"/>',
+    // Rodola!: una pilota que cau cap a un cistell
+    rodola:     '<circle cx="13" cy="11" r="6" fill="none" stroke-width="3"/><path d="M6 22l14 5" stroke-width="3"/><path d="M22 24h12l-2 12h-8z" fill="none" stroke-width="3"/>',
     // La Serp: una serp en S amb un ull
     serp:       '<path d="M30 9H14a5 5 0 0 0 0 10h12a5 5 0 0 1 0 10H8" fill="none" stroke-width="4"/><circle cx="30" cy="9" r="3"/><circle cx="34" cy="30" r="2.4"/>',
     // La Xifra: una fitxa amb un signe de més i un número petit
@@ -284,7 +287,7 @@ function goLanding() {
       </button>
       <button class="mode-card" id="mode-sp" style="--c:var(--paper-2)">
         <span>${glyph('solo')}</span>
-        <div><h3>Un sol jugador</h3><p>10 jocs per a tu sol, quan vulguis.</p></div>
+        <div><h3>Un sol jugador</h3><p>11 jocs per a tu sol, quan vulguis.</p></div>
       </button>
     </div>
   `;

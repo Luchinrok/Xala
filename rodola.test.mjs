@@ -1,0 +1,38 @@
+// ============================================================
+// Prova de Rodola!: cada nivell es resol amb la solució desada, i no amb
+// traços inútils. També comprova la simplificació dels traços.
+// Executa:  node rodola.test.mjs   (inclòs a  npm test)
+// ============================================================
+
+import { createRequire } from 'node:module';
+import { simulate, simplify, buildWorld } from './rodola-mon.js';
+import { LEVELS } from './rodola-nivells.js';
+
+const require = createRequire(import.meta.url);
+const Matter = require('./vendor/matter.min.js');
+
+let failures = 0;
+const check = (cond, msg) => { if (!cond) { console.log('  FAIL ' + msg); failures++; } };
+const line = (x1, y1, x2, y2, n = 3) => Array.from({ length: n + 1 }, (_, i) => [x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n]);
+
+check(simplify(line(0, 0, 100, 0, 10), 5).length === 2, 'una línia recta queda en un sol tram');
+const square = [[0, 0], [40, 0], [40, 40], [0, 40], [0, 0]];
+check(simplify(square, 5).length === 5, 'un quadrat tancat no desapareix');
+
+const w = buildWorld(Matter, LEVELS[0]);
+check(w.addStroke([[LEVELS[0].ball[0], LEVELS[0].ball[1]]]) === null, 'no es pot dibuixar sobre la pilota');
+const [nx, ny, nw, nh] = LEVELS[0].nodraw[0];
+check(w.addStroke([[nx + nw / 2, ny + nh / 2]]) === null, 'no es pot dibuixar a les zones ratllades');
+
+LEVELS.forEach((lv, i) => {
+  const id = `#${i + 1} ${lv.name}`;
+  const r = simulate(Matter, lv, lv.solution);
+  check(r.state === 'won', `${id}: la solució guanya (${r.state})`);
+  check(r.strokes <= lv.par, `${id}: la solució fa servir ${r.strokes} traços (par ${lv.par})`);
+  // un gargot en un racó de dalt no ha de resoldre'l
+  const dud = simulate(Matter, lv, [line(10, 20, 40, 20)]);
+  check(dud.state !== 'won', `${id}: un traç inútil no el resol`);
+});
+
+console.log(failures ? `\n✘ RODOLA: ${failures} errors` : `  ok   ${LEVELS.length} nivells verificats\n\n✔ RODOLA: TOT BÉ`);
+process.exit(failures ? 1 : 0);

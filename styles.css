@@ -1355,3 +1355,20 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .serp-key--pause { grid-column: 2; grid-row: 2; font-size: 15px; background: var(--paper-2); }
 .serp-key--right { grid-column: 3; grid-row: 2; }
 .serp-key--down { grid-column: 2; grid-row: 3; }
+
+/* ============================================================
+   Rodola!: tria de nivell i tauler de dibuix
+   ============================================================ */
+.rodola-levels { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.rodola-level { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px; min-height: 70px;
+  cursor: pointer; color: var(--ink); text-align: left; background: var(--paper); border: 2px solid var(--ink);
+  border-radius: var(--r-sm); box-shadow: var(--shadow); transition: transform .08s ease, box-shadow .08s ease; }
+.rodola-level:active { transform: translateY(4px); box-shadow: 0 0 0 var(--ink); }
+.rodola-level.done { background: var(--paper-2); }
+.rodola-level:disabled { cursor: default; opacity: .45; box-shadow: none; }
+.rodola-level__n { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1; }
+.rodola-level__s { font-size: 14px; color: var(--ink-soft); }
+/* touch-action: none: dibuixar no ha de fer desplaçar la pàgina */
+.rodola-board { width: min(100%, calc((100dvh - 250px) * 2 / 3)); margin: 4px auto 0; border: 3px solid var(--ink);
+  border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow); touch-action: none; }
+.rodola-board canvas { display: block; cursor: crosshair; }
