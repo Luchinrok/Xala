@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 09-11-2026, a la branca `tres-mecanismes-2`, és `xala-v116`; a `main`, `xala-v115`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 09-11-2026 és `xala-v116`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs i els 450 problemes de Mat en 2) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -45,4 +45,4 @@
 - 08-11-2026 (publicat): 5 combinacions amb l'imant (Talla i imant, Molinet i imant, Trapa i imant, Catapulta i imant, Penja, imant i toca): 41 nivells. L'imant es col·loca a prop del camí simulat de la pilota (`imantCami`), no a l'atzar; en tots cinc, sense l'imant la solució no funciona.
 - 08-11-2026 (publicat): dues pilotes grogues (`level.extra` [[x, y]]; totes han d'arribar al cistell o a la zona, i si en cau una es perd; l'imant les atreu totes; una corda pot aguantar la de més amb 'e0'). 4 nivells: Dues rampes, Dues i pont, Dues cordes, Dues i rampa: 45 nivells. No va sortir «Dues i imant» (l'imant les separava).
 - 08-11-2026 (publicat): 4 nivells de tres mecanismes (Corda, molinet i imant; Corda, trapa i imant; Trapa, molinet i imant; Pes, botó i dues): 49 nivells. Comprovat que, sense cada mecanisme, la solució no funciona.
-- 09-11-2026 (branca `tres-mecanismes-2`, sense publicar): 3 nivells més de tres mecanismes (Corda, molinet i dues; Pont, imant i toca; Catapulta i molinet): 52 nivells. El generador té `need` (mecanismes que han de comptar: sense ells la solució no guanya) i comprova el segon traç també 1 s tard. No van sortir: Cadena (el pes no tomba prou la caixa per prémer el botó) i Catapulta i trapa (fallava amb el segon traç 1 s tard).
+- 09-11-2026 (publicat): 3 nivells més de tres mecanismes (Corda, molinet i dues; Pont, imant i toca; Catapulta i molinet): 52 nivells. El generador té `need` (mecanismes que han de comptar: sense ells la solució no guanya) i comprova el segon traç també 1 s tard. No van sortir: Cadena (el pes no tomba prou la caixa per prémer el botó) i Catapulta i trapa (fallava amb el segon traç 1 s tard).
