@@ -83,7 +83,9 @@ export default {
       LEVELS.forEach((lv, i) => { if (m[lv.name]) st[i] = m[lv.name]; });
       return st;
     };
-    const unlocked = (i) => i === 0 || !!saved()[i - 1];
+    // obert: el primer, el que ve després d'un de superat, i qualsevol de superat
+    // (amb l'ordre nou, un nivell superat pot quedar després d'un que no)
+    const unlocked = (i) => { const st = saved(); return i === 0 || !!st[i - 1] || !!st[i]; };
 
     function stop() {
       cancelAnimationFrame(raf); raf = 0;

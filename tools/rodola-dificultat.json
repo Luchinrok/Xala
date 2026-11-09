@@ -1,0 +1,418 @@
+[
+ {
+  "n": 1,
+  "name": "Primer traç",
+  "strokes": 1,
+  "wins": 1,
+  "rate": 0.7,
+  "score": 9.7
+ },
+ {
+  "n": 2,
+  "name": "El pont",
+  "strokes": 1,
+  "wins": 5,
+  "rate": 3.3,
+  "score": 8.3
+ },
+ {
+  "n": 3,
+  "name": "El balancí",
+  "strokes": 1,
+  "wins": 19,
+  "rate": 12.7,
+  "score": 3.7
+ },
+ {
+  "n": 4,
+  "name": "L'embut",
+  "strokes": 1,
+  "wins": 6,
+  "rate": 4,
+  "score": 8
+ },
+ {
+  "n": 5,
+  "name": "Ziga-zaga",
+  "strokes": 2,
+  "wins": 0,
+  "rate": 0,
+  "score": 10
+ },
+ {
+  "n": 6,
+  "name": "Toca 1",
+  "strokes": 1,
+  "wins": 2,
+  "rate": 1.3,
+  "score": 9.3
+ },
+ {
+  "n": 7,
+  "name": "Tomba 1",
+  "strokes": 1,
+  "wins": 0,
+  "rate": 0,
+  "score": 10
+ },
+ {
+  "n": 8,
+  "name": "Aguanta 1",
+  "strokes": 1,
+  "wins": 2,
+  "rate": 1.3,
+  "score": 9.3
+ },
+ {
+  "n": 9,
+  "name": "Zona 1",
+  "strokes": 1,
+  "wins": 9,
+  "rate": 6,
+  "score": 7
+ },
+ {
+  "n": 10,
+  "name": "Dòmino 1",
+  "strokes": 1,
+  "wins": 5,
+  "rate": 3.3,
+  "score": 8.3
+ },
+ {
+  "n": 11,
+  "name": "Tomba 2",
+  "strokes": 1,
+  "wins": 1,
+  "rate": 0.7,
+  "score": 9.7
+ },
+ {
+  "n": 12,
+  "name": "Poca tinta 2",
+  "strokes": 1,
+  "wins": 0,
+  "rate": 0,
+  "score": 10
+ },
+ {
+  "n": 13,
+  "name": "Talla 1",
+  "strokes": 1,
+  "wins": 2,
+  "rate": 1.3,
+  "score": 9.3
+ },
+ {
+  "n": 14,
+  "name": "Catapulta 1",
+  "strokes": 1,
+  "wins": 14,
+  "rate": 9.3,
+  "score": 5.3
+ },
+ {
+  "n": 15,
+  "name": "Molinet 1",
+  "strokes": 1,
+  "wins": 7,
+  "rate": 4.7,
+  "score": 7.7
+ },
+ {
+  "n": 16,
+  "name": "Talla 2",
+  "strokes": 1,
+  "wins": 6,
+  "rate": 4,
+  "score": 8
+ },
+ {
+  "n": 17,
+  "name": "Penja i toca",
+  "strokes": 2,
+  "wins": 0,
+  "rate": 0,
+  "score": 10
+ },
+ {
+  "n": 18,
+  "name": "Catapulta i zona",
+  "strokes": 1,
+  "wins": 17,
+  "rate": 11.3,
+  "score": 4.3
+ },
+ {
+  "n": 19,
+  "name": "Molinet i zona",
+  "strokes": 1,
+  "wins": 0,
+  "rate": 0,
+  "score": 10
+ },
+ {
+  "n": 20,
+  "name": "Corda i molinet",
+  "strokes": 1,
+  "wins": 4,
+  "rate": 2.7,
+  "score": 8.7
+ },
+ {
+  "n": 21,
+  "name": "Bressol",
+  "strokes": 1,
+  "wins": 2,
+  "rate": 1.3,
+  "score": 9.3
+ },
+ {
+  "n": 22,
+  "name": "Catapulta i toca",
+  "strokes": 1,
+  "wins": 7,
+  "rate": 4.7,
+  "score": 7.7
+ },
+ {
+  "n": 23,
+  "name": "Pont i toca",
+  "strokes": 1,
+  "wins": 2,
+  "rate": 1.3,
+  "score": 9.3
+ },
+ {
+  "n": 24,
+  "name": "Pont i zona",
+  "strokes": 1,
+  "wins": 8,
+  "rate": 5.3,
+  "score": 7.3
+ },
+ {
+  "n": 25,
+  "name": "Molinet i toca",
+  "strokes": 1,
+  "wins": 1,
+  "rate": 0.7,
+  "score": 9.7
+ },
+ {
+  "n": 26,
+  "name": "Corda i zona",
+  "strokes": 1,
+  "wins": 6,
+  "rate": 4,
+  "score": 8
+ },
+ {
+  "n": 27,
+  "name": "Embut i toca",
+  "strokes": 1,
+  "wins": 0,
+  "rate": 0,
+  "score": 10
+ },
+ {
+  "n": 28,
+  "name": "Tinta i toca",
+  "strokes": 1,
+  "wins": 0,
+  "rate": 0,
+  "score": 10
+ },
+ {
+  "n": 29,
+  "name": "Trapa",
+  "strokes": 1,
+  "wins": 13,
+  "rate": 8.7,
+  "score": 5.7
+ },
+ {
+  "n": 30,
+  "name": "Trapa i toca",
+  "strokes": 1,
+  "wins": 27,
+  "rate": 18,
+  "score": 1
+ },
+ {
+  "n": 31,
+  "name": "Trapa i zona",
+  "strokes": 1,
+  "wins": 28,
+  "rate": 18.7,
+  "score": 0.7
+ },
+ {
+  "n": 32,
+  "name": "Botó i rampa",
+  "strokes": 2,
+  "wins": 1,
+  "rate": 0.7,
+  "score": 9.7
+ },
+ {
+  "n": 33,
+  "name": "Imant",
+  "strokes": 1,
+  "wins": 5,
+  "rate": 3.3,
+  "score": 8.3
+ },
+ {
+  "n": 34,
+  "name": "Imant i toca",
+  "strokes": 1,
+  "wins": 4,
+  "rate": 2.7,
+  "score": 8.7
+ },
+ {
+  "n": 35,
+  "name": "Imant i zona",
+  "strokes": 1,
+  "wins": 2,
+  "rate": 1.3,
+  "score": 9.3
+ },
+ {
+  "n": 36,
+  "name": "Imant i bressol",
+  "strokes": 1,
+  "wins": 6,
+  "rate": 4,
+  "score": 8
+ },
+ {
+  "n": 37,
+  "name": "Talla i imant",
+  "strokes": 1,
+  "wins": 1,
+  "rate": 0.7,
+  "score": 9.7
+ },
+ {
+  "n": 38,
+  "name": "Molinet i imant",
+  "strokes": 1,
+  "wins": 1,
+  "rate": 0.7,
+  "score": 9.7
+ },
+ {
+  "n": 39,
+  "name": "Trapa i imant",
+  "strokes": 1,
+  "wins": 28,
+  "rate": 18.7,
+  "score": 0.7
+ },
+ {
+  "n": 40,
+  "name": "Catapulta i imant",
+  "strokes": 1,
+  "wins": 12,
+  "rate": 8,
+  "score": 6
+ },
+ {
+  "n": 41,
+  "name": "Penja, imant i toca",
+  "strokes": 2,
+  "wins": 0,
+  "rate": 0,
+  "score": 10
+ },
+ {
+  "n": 42,
+  "name": "Dues rampes",
+  "strokes": 2,
+  "wins": 2,
+  "rate": 1.3,
+  "score": 9.3
+ },
+ {
+  "n": 43,
+  "name": "Dues i pont",
+  "strokes": 1,
+  "wins": 4,
+  "rate": 2.7,
+  "score": 8.7
+ },
+ {
+  "n": 44,
+  "name": "Dues cordes",
+  "strokes": 1,
+  "wins": 2,
+  "rate": 1.3,
+  "score": 9.3
+ },
+ {
+  "n": 45,
+  "name": "Dues i rampa",
+  "strokes": 1,
+  "wins": 1,
+  "rate": 0.7,
+  "score": 9.7
+ },
+ {
+  "n": 46,
+  "name": "Corda, molinet i imant",
+  "strokes": 1,
+  "wins": 4,
+  "rate": 2.7,
+  "score": 8.7
+ },
+ {
+  "n": 47,
+  "name": "Corda, trapa i imant",
+  "strokes": 2,
+  "wins": 1,
+  "rate": 0.7,
+  "score": 9.7
+ },
+ {
+  "n": 48,
+  "name": "Trapa, molinet i imant",
+  "strokes": 1,
+  "wins": 9,
+  "rate": 6,
+  "score": 7
+ },
+ {
+  "n": 49,
+  "name": "Pes, botó i dues",
+  "strokes": 1,
+  "wins": 17,
+  "rate": 11.3,
+  "score": 4.3
+ },
+ {
+  "n": 50,
+  "name": "Corda, molinet i dues",
+  "strokes": 1,
+  "wins": 1,
+  "rate": 0.7,
+  "score": 9.7
+ },
+ {
+  "n": 51,
+  "name": "Pont, imant i toca",
+  "strokes": 1,
+  "wins": 16,
+  "rate": 10.7,
+  "score": 4.7
+ },
+ {
+  "n": 52,
+  "name": "Catapulta i molinet",
+  "strokes": 1,
+  "wins": 8,
+  "rate": 5.3,
+  "score": 7.3
+ }
+]

@@ -13,6 +13,7 @@
 // ============================================================
 
 import GENERATS from './rodola-generats.js';
+import ORDRE from './rodola-ordre.js';
 
 const line = (x1, y1, x2, y2, n = 12) =>
   Array.from({ length: n + 1 }, (_, i) => [x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n]);
@@ -60,7 +61,8 @@ export const BASE = [
     ball: [200, 50],
     cup: [80, 578],
     walls: [[144, 300, 156, 300, 10], [284, 270, 296, 270, 10], [200, 440, 200, 600, 12]],
-    nodraw: [[0, 470, 200, 130]],
+    // la segona zona tapa una drecera (tools/rodola-endureix.mjs)
+    nodraw: [[0, 470, 200, 130], [81, 135, 165, 71]],
     par: 1,
     solution: [line(330, 246, 110, 293)],
   },
@@ -78,9 +80,13 @@ export const BASE = [
   },
 ];
 
+// Tots: els fets a mà i els generats amb tools/rodola-genera.mjs.
+const ALL = [...BASE, ...GENERATS];
+
+// Ordre de joc, de més fàcil a més difícil (rodola-ordre.js, fet amb
+// tools/rodola-ordena.mjs). Un nivell que no hi surti va al final.
 export const LEVELS = [
-  ...BASE,
-  // després, els generats amb tools/rodola-genera.mjs
-  ...GENERATS,
+  ...ORDRE.map(n => ALL.find(l => l.name === n)).filter(Boolean),
+  ...ALL.filter(l => !ORDRE.includes(l.name)),
 ];
 
