@@ -525,6 +525,74 @@ const TEMPLATES = {
       doors: [{ button: [bx, by, btn[2]], door: [cx - 46, 516, cx + 46, 516, 10] }], walls: [], candidates: cands,
     };
   },
+  // ---------- més combinacions de tres ----------
+  // Una plataforma que gira al camí de la pilota (com ambImant però amb un molinet).
+  ambMolinet(t, kind) {
+    if (!t) return null;
+    const w = buildWorld(Matter, { ...t, cup: undefined, goal: { type: 'hold', secs: 99 } });
+    t.candidates[0].forEach(s => w.addStroke(s));
+    const path = [];
+    for (let f = 0; f < 400 && w.state !== 'lost'; f++) { w.step(); if (f % 5 === 0) path.push([w.ball.position.x, w.ball.position.y]); }
+    if (path.length < 10) return null;
+    const pts = t.candidates[0].flat();
+    for (let k = 0; k < 30; k++) {
+      const [px, py] = path[Math.floor(R(0.4, 0.85) * path.length)];
+      const len = RI(90, 130), a = R(0, Math.PI * 2), d = R(15, 40);
+      const x = r1(px + Math.cos(a) * d), y = r1(py + Math.sin(a) * d);
+      if (x < len / 2 + 10 || x > 400 - len / 2 - 10 || y < 150 || y > 500) continue;
+      if (Math.hypot(t.ball[0] - x, t.ball[1] - y) < len / 2 + 40) continue;
+      if (pts.some(([qx, qy]) => Math.hypot(qx - x, qy - y) < len / 2 + 15)) continue;
+      return { ...t, kind, spinners: [...(t.spinners || []), [x, y, len, (rnd() < 0.5 ? -1 : 1) * RI(50, 110)]], need: [...(t.need || []), 'spinners'] };
+    }
+    return null;
+  },
+  // Catapulta i trapa: talla la corda, la pilota cau sobre la tapa del cistell; prem el botó.
+  catapultatrapa() {
+    const t = TEMPLATES.catapulta();
+    if (!t) return null;
+    const btn = TEMPLATES.botoPos(t.ball[0]);
+    if (!btn) return null;
+    const pes = TEMPLATES.pesos(btn, 4);
+    return { ...t, kind: 'catapultatrapa', par: 2, lid: btn, candidates: t.candidates.slice(0, 4).flatMap(c => pes.map(p => [c[0], p])) };
+  },
+  // Corda, molinet i dues: dues pilotes pengen sobre el molinet; talla-les d'un sol traç.
+  cordamolinetdues() {
+    const t = TEMPLATES.cordamolinet();
+    if (!t) return null;
+    const [bx, by] = t.ball, ay = t.ropes[0][1];
+    const dx = rnd() < 0.5 ? -RI(32, 42) : RI(32, 42);
+    const cands = [];
+    for (let i = 0; i < 8; i++) {
+      const yc = RI(ay + 18, by - 26), a = Math.min(bx, bx + dx) - RI(14, 24), b = Math.max(bx, bx + dx) + RI(14, 24);
+      cands.push([line(a, yc, b, yc + RI(-5, 5), 6)]);
+    }
+    return { ...t, kind: 'cordamolinetdues', extra: [[bx + dx, by]], ropes: [...t.ropes, [bx + dx, ay, 'e0']], candidates: cands };
+  },
+  // Pont, imant i toca.
+  pontimantoca() { return TEMPLATES.ambImant(TEMPLATES.pontoca(), 'pontimantoca'); },
+  // Catapulta i molinet: el balancí llança la pilota contra la plataforma que gira.
+  catapultamolinet() { return TEMPLATES.ambMolinet(TEMPLATES.catapulta(), 'catapultamolinet'); },
+  // Cadena: talla la corda; el pes tomba la caixa, la caixa prem el botó, s'obre la trapa.
+  cadena() {
+    const ty = RI(280, 380), tx = RI(110, 190), tw = RI(130, 170);
+    const bh = RI(70, 90), bw = 18;
+    const bx = r1(tx - tw / 2 + RI(30, 50));
+    const btnX = r1(bx + bh * 0.8), btn = [btnX, ty - 10, 44];
+    if (btnX + 22 > tx + tw / 2) return null;
+    const cx = rnd() < 0.5 ? RI(50, 90) : RI(300, 350);
+    if (Math.abs(cx - tx) < tw / 2 + 50) return null;
+    const s = RI(30, 38), wx = r1(bx - bw / 2 - s / 2 + RI(-2, 8)), wy = r1(ty - bh - RI(60, 120));
+    const ay = wy - RI(50, 80);
+    if (ay < 20) return null;
+    const cands = [];
+    for (let i = 0; i < 8; i++) { const yc = RI(ay + 12, wy - s / 2 - 12), w = RI(14, 26); cands.push([line(wx - w, yc, wx + w, yc, 4)]); }
+    return {
+      kind: 'cadena', par: 1, ball: [cx, 498], cup: [cx, 578],
+      walls: [[r1(tx - tw / 2), ty, r1(tx + tw / 2), ty, 12]],
+      boxes: [[bx, r1(ty - 6 - bh / 2), bw, bh], [wx, wy, s, s]], ropes: [[wx, ay, 1]],
+      doors: [{ button: btn, door: [cx - 46, 516, cx + 46, 516, 10] }], candidates: cands,
+    };
+  },
   imanbressol() {
     const t = TEMPLATES.aguanta();
     const [x1, y1] = [t.walls[0][0] + 6, t.walls[0][1]], [x2, y2] = [t.walls[1][0] + 6, t.walls[1][1]];
@@ -584,6 +652,11 @@ const NAMES = {
   cordatrapaiman: ['Corda, trapa i imant', "Talla la corda, obre la trapa i deixa fer l'imant"],
   trapamolinetiman: ['Trapa, molinet i imant', "Obre la trapa: el molinet i l'imant faran la resta"],
   duestrapa: ['Pes, botó i dues', 'Talla la corda del pes i que caiguin totes dues'],
+  catapultatrapa: ['Catapulta i trapa', 'Llança la pilota sobre la tapa i després prem el botó'],
+  cordamolinetdues: ['Corda, molinet i dues', "Talla les dues cordes d'un sol traç sobre el molinet"],
+  pontimantoca: ['Pont, imant i toca', "Fes el pont i que l'imant la porti a la vermella"],
+  catapultamolinet: ['Catapulta i molinet', 'Llança la pilota contra la plataforma que gira'],
+  cadena: ['Cadena', 'Talla la corda i que tot vagi caient'],
   imanmolinet: ['Molinet i imant', "La plataforma la llança i l'imant la corba"],
   imancatapulta: ['Catapulta i imant', "Llança la pilota i deixa que l'imant l'atrapi"],
   imanpenjatoca: ['Penja, imant i toca', "Rampa, talla la corda i que l'imant la porti a la vermella"],
@@ -677,6 +750,10 @@ function tryCandidate(base, solRaw) {
   if (wins < (['empenta', 'domino'].includes(base.kind) ? 7 : 6)) return no('massa just (mà tremolosa)');
   if (DUDS.some(d => simulate(Matter, lv, [d]).state === 'won')) return no('es resol amb un gargot');
   if (PHONES.some(w => simulate(Matter, lv, sol.map(s => asPhone(s, w))).state !== 'won')) return no('falla dibuixat com al mòbil');
+  // need: mecanismes que han de comptar (sense ells, la mateixa solució no ha de guanyar)
+  for (const k of lv.need || []) {
+    if (simulate(Matter, { ...lv, [k]: [] }, sol).state === 'won') return no(`sense ${k} també guanya`);
+  }
   // l'imant ha de comptar: ha de desviar la pilota i, sense ell, la solució no ha de funcionar
   if (lv.magnets && lv.magnets.length) {
     const sense = { ...lv, magnets: [] };
@@ -688,7 +765,7 @@ function tryCandidate(base, solRaw) {
     if (gtype !== 'hold' && simulate(Matter, sense, sol).state === 'won') return no("l'imant no cal");
   }
   // dos traços: una persona tarda una estona a fer el segon
-  if (sol.length > 1 && [90, 180, 300].some(d => simulate(Matter, lv, [[0, sol[0]], [d, sol[1]]], 1500).state !== 'won')) return no('falla si el segon traç arriba tard');
+  if (sol.length > 1 && [60, 90, 180, 300].some(d => simulate(Matter, lv, [[0, sol[0]], [d, sol[1]]], 1500).state !== 'won')) return no('falla si el segon traç arriba tard');
   return lv;
 }
 
@@ -735,7 +812,7 @@ while (out.length - START < WANT && failsInRow < LIMIT * ORDER.length) {
   seen.add(key);
   tally[kind] = (tally[kind] || 0) + 1;
   const [name, hint] = NAMES[kind];
-  const { kind: _k, ...clean } = lv;
+  const { kind: _k, need: _n, ...clean } = lv; // need és només per comprovar
   out.push({ name: `${name} ${tally[kind]}`, hint, ...clean });
   failsInRow = 0;
   for (const k in why) delete why[k];
