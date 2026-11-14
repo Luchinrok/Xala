@@ -37,6 +37,7 @@ const STRINGS = {
 
     'home.tagline': `Pass the phone and let the party begin.`,
     'home.help': `How to play?`,
+    'music.toggle': `Music`,
     'home.language': `Language`,
     'help.kicker': `Instructions`,
     'help.title': `How to play?`,
@@ -248,6 +249,7 @@ const STRINGS = {
 
     'home.tagline': `Pasa el móvil y que empiece la fiesta.`,
     'home.help': `¿Cómo se juega?`,
+    'music.toggle': `Música`,
     'home.language': `Idioma`,
     'help.kicker': `Instrucciones`,
     'help.title': `¿Cómo se juega?`,
@@ -459,6 +461,7 @@ const STRINGS = {
 
     'home.tagline': `Passa el mòbil i que comenci la festa.`,
     'home.help': `Com es juga?`,
+    'music.toggle': `Música`,
     'home.language': `Idioma`,
     'help.kicker': `Instruccions`,
     'help.title': `Com es juga?`,
@@ -670,6 +673,7 @@ const STRINGS = {
 
     'home.tagline': `Passe le téléphone et que la fête commence.`,
     'home.help': `Comment jouer ?`,
+    'music.toggle': `Musique`,
     'home.language': `Langue`,
     'help.kicker': `Instructions`,
     'help.title': `Comment jouer ?`,
@@ -881,6 +885,7 @@ const STRINGS = {
 
     'home.tagline': `Passa il telefono e che la festa cominci.`,
     'home.help': `Come si gioca?`,
+    'music.toggle': `Musica`,
     'home.language': `Lingua`,
     'help.kicker': `Istruzioni`,
     'help.title': `Come si gioca?`,
@@ -1092,6 +1097,7 @@ const STRINGS = {
 
     'home.tagline': `Gib das Handy weiter und los geht die Party.`,
     'home.help': `Wie spielt man?`,
+    'music.toggle': `Musik`,
     'home.language': `Sprache`,
     'help.kicker': `Anleitung`,
     'help.title': `Wie spielt man?`,
@@ -1303,6 +1309,7 @@ const STRINGS = {
 
     'home.tagline': `Passa o telemóvel e que comece a festa.`,
     'home.help': `Como se joga?`,
+    'music.toggle': `Música`,
     'home.language': `Idioma`,
     'help.kicker': `Instruções`,
     'help.title': `Como se joga?`,

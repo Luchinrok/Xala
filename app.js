@@ -25,7 +25,7 @@ import mat2 from './mat2.js';
 import traca from './traca.js';
 import xifra from './xifra.js';
 import serp from './serp.js';
-import rodola from './rodola.js';
+import { createMusic } from './musica.js';
 import { t } from './i18n.js';
 
 // Títol, tagline i instruccions surten dels camps del mòdul de cada joc.
@@ -36,7 +36,21 @@ const gameInstructions = (g) => g.instructions || [];
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
 const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs];
-const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, rodola];
+// Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
+const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp];
+
+// ---------- música de fons (tota l'app) ----------
+// Comença amb el primer toc (iOS només deixa sonar després d'un gest) i es pot
+// apagar amb el botó ♪ de la portada i de les graelles de jocs.
+const music = createMusic();
+document.addEventListener('pointerdown', (e) => {
+  if (!e.target.closest || !e.target.closest('.music-btn')) music.start();
+}, { capture: true });
+const musicButton = () => `<button class="music-btn" id="music" aria-pressed="${music.isOn()}" aria-label="${t('music.toggle')}">♪</button>`;
+function wireMusic(wrap) {
+  const b = wrap.querySelector('#music');
+  b.addEventListener('click', () => b.setAttribute('aria-pressed', String(music.toggle())));
+}
 
 const app = document.getElementById('app');
 
@@ -272,6 +286,7 @@ function goLanding() {
   const wrap = document.createElement('div');
   wrap.className = 'screen home';
   wrap.innerHTML = `
+    ${musicButton()}
     <header class="home__head">
       <h1 class="brand">Xala<span>!</span></h1>
       <p class="tagline">Tria com vols jugar.</p>
@@ -287,7 +302,7 @@ function goLanding() {
       </button>
       <button class="mode-card" id="mode-sp" style="--c:var(--paper-2)">
         <span>${glyph('solo')}</span>
-        <div><h3>Un sol jugador</h3><p>11 jocs per a tu sol, quan vulguis.</p></div>
+        <div><h3>Un sol jugador</h3><p>${SOLO_GAMES.length} jocs per a tu sol, quan vulguis.</p></div>
       </button>
     </div>
   `;
@@ -295,6 +310,7 @@ function goLanding() {
   wrap.querySelector('#mode-mp').addEventListener('click', goMultiplayer);
   wrap.querySelector('#mode-duo').addEventListener('click', goDuo);
   wrap.querySelector('#mode-sp').addEventListener('click', goSingle);
+  wireMusic(wrap);
 }
 
 // ---------- graella de jocs de festa (multijugador) ----------
@@ -306,6 +322,7 @@ function goMultiplayer() {
   wrap.className = 'screen home';
   wrap.innerHTML = `
     <button class="back" id="back">‹ Enrere</button>
+    ${musicButton()}
     <header class="home__head">
       <div class="brand">Xala<span>!</span></div>
       <p class="tagline">${t('home.tagline')}</p>
@@ -317,6 +334,7 @@ function goMultiplayer() {
   renderGameGrid(wrap.querySelector('#grid'), PARTY_GAMES, goMultiplayer);
   wrap.querySelector('#back').addEventListener('click', goLanding);
   wrap.querySelector('#help').addEventListener('click', () => helpList(PARTY_GAMES, goMultiplayer));
+  wireMusic(wrap);
 }
 
 // ---------- graella de jocs per a dos ----------
@@ -328,6 +346,7 @@ function goDuo() {
   wrap.className = 'screen home';
   wrap.innerHTML = `
     <button class="back" id="back">‹ Enrere</button>
+    ${musicButton()}
     <header class="home__head">
       <div class="brand">Xala<span>!</span></div>
       <p class="tagline">Jocs per a dos.</p>
@@ -339,6 +358,7 @@ function goDuo() {
   renderGameGrid(wrap.querySelector('#grid'), DUO_GAMES, goDuo);
   wrap.querySelector('#back').addEventListener('click', goLanding);
   wrap.querySelector('#help').addEventListener('click', () => helpList(DUO_GAMES, goDuo));
+  wireMusic(wrap);
 }
 
 // ---------- graella de jocs d'un sol jugador ----------
@@ -350,6 +370,7 @@ function goSingle() {
   wrap.className = 'screen home';
   wrap.innerHTML = `
     <button class="back" id="back">‹ Enrere</button>
+    ${musicButton()}
     <header class="home__head">
       <div class="brand">Xala<span>!</span></div>
       <p class="tagline">Jocs per a tu sol.</p>
@@ -361,6 +382,7 @@ function goSingle() {
   renderGameGrid(wrap.querySelector('#grid'), SOLO_GAMES, goSingle);
   wrap.querySelector('#back').addEventListener('click', goLanding);
   wrap.querySelector('#help').addEventListener('click', () => helpList(SOLO_GAMES, goSingle));
+  wireMusic(wrap);
 }
 
 // ---------- render compartit d'una graella de jocs ----------

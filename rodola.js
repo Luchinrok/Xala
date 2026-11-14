@@ -14,7 +14,6 @@
 import { buildWorld, starsFor, W, H, T, STEP_MS } from './rodola-mon.js';
 import { LEVELS } from './rodola-nivells.js';
 import { getRecord, setRecord } from './records.js';
-import { createMusic } from './musica.js';
 
 // Ordre dels nivells a la versió xala-v106, quan les estrelles es guardaven pel número.
 const ORDRE_V106 = ["Primer traç", "El pont", "El balancí", "L'embut", "Ziga-zaga", "Toca 1", "Rampa 1", "Tomba 1", "Aguanta 1", "Balancí 1", "Zona 1", "Dòmino 1", "Poca tinta 1", "Toca 2", "Rampa 2", "Tomba 2", "Aguanta 2", "Balancí 2", "Zona 2", "Dòmino 2", "Toca 3", "Tomba 3", "Aguanta 3", "Zona 3", "Poca tinta 2", "Talla 1", "Catapulta 1", "Molinet 1", "Talla i rampa 1", "Talla 2", "Catapulta 2", "Molinet 2", "Talla i rampa 2", "Catapulta 3", "Talla i rampa 3", "Catapulta 4", "Molinet 3"];
@@ -64,8 +63,6 @@ export default {
     let colors = null;
     let restartTimer = null;
     let finished = false;
-    // música de fons: comença en obrir un nivell (un toc: iOS ho demana)
-    const music = createMusic({ alive: () => root.isConnected });
 
     // Estrelles guardades pel nom del nivell ('rodola:estrelles' = { nom: estrelles }),
     // així es poden treure o afegir nivells sense que les estrelles canviïn de lloc.
@@ -94,7 +91,7 @@ export default {
       clearTimeout(restartTimer); restartTimer = null;
       window.removeEventListener('resize', fit);
     }
-    function leave() { stop(); music.stop(); goHome(); }
+    function leave() { stop(); goHome(); }
 
     // ---------- 1) inici: tria de nivell ----------
     async function start() {
@@ -150,10 +147,7 @@ export default {
       root.innerHTML = `
         <div class="chess-top rodola-top">
           <button class="back" id="back">‹ Enrere</button>
-          <div class="rodola-top__right">
-            <button class="rodola-music" id="music" aria-pressed="${music.isOn()}" aria-label="Música">♪</button>
-            <div class="chess-score">Nivell ${i + 1} de ${LEVELS.length}</div>
-          </div>
+          <div class="chess-score">Nivell ${i + 1} de ${LEVELS.length}</div>
         </div>
         <p class="rodola-status" id="status" aria-live="polite">${lv.hint}</p>
         <div class="rodola-board" id="board"><canvas id="cv" role="img" aria-label="Tauler del nivell ${i + 1}: ${lv.hint}"></canvas></div>
@@ -163,9 +157,6 @@ export default {
       `;
       root.querySelector('#back').onclick = screenLevels;
       root.querySelector('#retry').onclick = () => play(level);
-      const mb = root.querySelector('#music');
-      mb.onclick = () => mb.setAttribute('aria-pressed', String(music.toggle()));
-      music.start();
       canvas = root.querySelector('#cv');
       ctx = canvas.getContext('2d');
       const css = getComputedStyle(document.documentElement);
