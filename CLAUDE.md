@@ -5,7 +5,7 @@
 ## On viu i com es publica
 
 - **Adreça:** https://luchinrok.github.io/Xala/. Repo `Luchinrok/Xala`, GitHub Pages des de `main`.
-- **Fer push a `main` és publicar.** Treballar en una branca, ensenyar el resultat i **pujar només quan l'usuari ho digui**.
+- **Fer push a `main` és publicar.** Treballar en una branca i, quan les proves passin, **publicar sempre** (des del 14-11-2026 l'usuari ho vol així: prova els canvis al mòbil i no pot fer-ho si no són publicats).
 - Git no té identitat configurada en aquest PC: fer els commits amb `git -c user.name="$(git log -1 --format=%an)" -c user.email="$(git log -1 --format=%ae)" commit ...`.
 - A casa l'usuari fa servir Android, però l'app ha de continuar funcionant a iOS.
 
