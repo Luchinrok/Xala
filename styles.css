@@ -192,6 +192,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   color: var(--ink); box-shadow: 0 3px 0 var(--ink); cursor: pointer; }
 .music-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
 .music-btn[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
+/* dins dels jocs: a dalt a la dreta, a l'altura del botó d'Enrere; el que hi ha
+   a la dreta de la capçalera del joc es fa una mica enrere per deixar-li lloc */
+#app { position: relative; }
+.music-btn--game { top: calc(env(safe-area-inset-top) + 16px); right: 18px; }
+#app:has(.music-btn--game) .chess-top,
+#app:has(.music-btn--game) .play__top { padding-right: 54px; }
 .home__head .brand { font-size: clamp(40px, 12vw, 64px); }
 .home__head .tagline { margin-top: 8px; font-size: 15px; }
 .home__help { margin-top: 12px; flex: 0 0 auto; padding: 12px 22px; }

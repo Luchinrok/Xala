@@ -414,6 +414,9 @@ function openGame(game, back) {
   const root = document.createElement('div');
   root.className = 'screen';
   app.appendChild(root);
+  // el botó de la música també dins del joc: fora de root (els jocs el reescriuen)
+  app.insertAdjacentHTML('beforeend', musicButton().replace('class="music-btn"', 'class="music-btn music-btn--game"'));
+  wireMusic(app);
   game.mount(root, { goHome: back || goMultiplayer });
 }
 
