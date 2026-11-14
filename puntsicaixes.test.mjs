@@ -24,15 +24,15 @@ const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 42
 
 // partides senceres a l'atzar i amb la màquina: s'acaben i les caixes quadren
 for (let k = 0; k < 60; k++) {
-  const n = 3 + (k % 4), g = newGame(n);
+  const rows = 3 + (k % 4), cols = 3 + (k % 3), n = rows, g = newGame(rows, cols);
   let moves = 0;
   while (!over(g) && moves < 1000) {
     const e = g.turn === 1 ? aiMove(g, k % 2 ? 'easy' : 'normal', rnd) : edges(g)[Math.floor(rnd() * edges(g).length)];
     check(play(g, e) >= 0, 'la màquina tria una ratlla lliure');
     moves++;
   }
-  check(over(g) && g.score[0] + g.score[1] === n * n, `partida ${k}: s'acaba i totes les caixes tenen amo`);
-  check(moves === 2 * n * (n + 1), `partida ${k}: s'han traçat totes les ratlles`);
+  check(over(g) && g.score[0] + g.score[1] === rows * cols, `partida ${k}: s'acaba i totes les caixes tenen amo`);
+  check(moves === (rows + 1) * cols + rows * (cols + 1), `partida ${k}: s'han traçat totes les ratlles`);
 }
 
 // la màquina (normal) no deixa cap caixa amb tres costats si pot evitar-ho

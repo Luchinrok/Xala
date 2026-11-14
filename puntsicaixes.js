@@ -9,7 +9,8 @@
 import { newGame, play, over, aiMove } from './puntsicaixes-motor.js';
 import { getRecord, setRecord } from './records.js';
 
-const SIZES = { 3: '3×3', 4: '4×4', 5: '5×5' };
+// mides: columnes × files (les rectangulars, llargues de dalt a baix del mòbil)
+const SIZES = { '3x3': [3, 3], '4x4': [4, 4], '5x5': [5, 5], '4x6': [4, 6], '5x8': [5, 8], '5x10': [5, 10] };
 const NAMES = { cpu: ['Tu', 'Màquina'], '2p': ['Corall', 'Verd'] };
 const AI_PAUSE = 520;
 
@@ -30,7 +31,7 @@ export default {
   mount(root, { goHome }) {
     let mode = getRecord('puntsicaixes:mode') === '2p' ? '2p' : 'cpu';
     let level = getRecord('puntsicaixes:level') === 'easy' ? 'easy' : 'normal';
-    let size = [3, 4, 5].includes(getRecord('puntsicaixes:size')) ? getRecord('puntsicaixes:size') : 4;
+    let size = SIZES[getRecord('puntsicaixes:size')] ? getRecord('puntsicaixes:size') : '4x4';
     let g = null, aiTimer = null;
 
     const isCpu = () => mode === 'cpu';
@@ -56,8 +57,8 @@ export default {
           <button class="btn ${level === 'normal' ? 'btn--accent' : 'btn--outline'}" data-level="normal">Normal</button>
         </div>` : ''}
         <p class="label" style="margin:18px 0 12px">Mida</p>
-        <div class="btn-row">
-          ${Object.entries(SIZES).map(([n, l]) => `<button class="btn ${size === +n ? 'btn--accent' : 'btn--outline'}" data-size="${n}">${l}</button>`).join('')}
+        <div class="pc-sizes">
+          ${Object.entries(SIZES).map(([id, [c, r]]) => `<button class="btn ${size === id ? 'btn--accent' : 'btn--outline'}" data-size="${id}">${c}×${r}</button>`).join('')}
         </div>
         <p class="muted" style="margin-top:12px">${isCpu() ? 'Tu fas el corall; la màquina, el verd.' : 'Un jugador fa el corall i l\'altre el verd.'}</p>
         <div class="spacer"></div>
@@ -66,21 +67,21 @@ export default {
       root.querySelector('#back').onclick = leave;
       root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { mode = b.dataset.mode; setRecord('puntsicaixes:mode', mode); screenConfig(); }; });
       root.querySelectorAll('[data-level]').forEach(b => { b.onclick = () => { level = b.dataset.level; setRecord('puntsicaixes:level', level); screenConfig(); }; });
-      root.querySelectorAll('[data-size]').forEach(b => { b.onclick = () => { size = +b.dataset.size; setRecord('puntsicaixes:size', size); screenConfig(); }; });
+      root.querySelectorAll('[data-size]').forEach(b => { b.onclick = () => { size = b.dataset.size; setRecord('puntsicaixes:size', size); screenConfig(); }; });
       root.querySelector('#start').onclick = begin;
     }
 
     // ---------- 2) partida ----------
     function begin() {
       stop();
-      g = newGame(size);
+      g = newGame(SIZES[size][1], SIZES[size][0]);
       root.innerHTML = `
         <div class="chess-top">
           <button class="back" id="back">‹ Enrere</button>
           <div class="chess-score" id="score"></div>
         </div>
         <p aria-live="polite" class="c4-turn" id="turn"></p>
-        <div class="pc-board" id="board"></div>
+        <div class="pc-board" id="board" style="--ar:${SIZES[size][0] / SIZES[size][1]}"></div>
         <div id="endbox"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
@@ -110,13 +111,13 @@ export default {
     function render() {
       const el = root.querySelector('#board');
       if (!el) return;
-      const n = g.n, S = 60, P = 18, size2 = n * S + P * 2;
+      const R = g.rows, C = g.cols, S = 60, P = 18, wide = C * S + P * 2, tall = R * S + P * 2;
       const at = (r, c) => [P + c * S, P + r * S];
       const pc = (p) => (p === 0 ? 'var(--accent)' : 'var(--ok)');
       const same = (a, b) => a && b && a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
       let svg = '';
       // caixes
-      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+      for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
         const o = g.owner[r][c];
         if (o === null) continue;
         const [x, y] = at(r, c);
@@ -134,16 +135,19 @@ export default {
           <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${on ? 'pc-on' + (last ? ' pc-last' : '') : 'pc-off'}"/>
         </g>`;
       };
-      for (let r = 0; r <= n; r++) for (let c = 0; c < n; c++) svg += line('h', r, c);
-      for (let r = 0; r < n; r++) for (let c = 0; c <= n; c++) svg += line('v', r, c);
+      for (let r = 0; r <= R; r++) for (let c = 0; c < C; c++) svg += line('h', r, c);
+      for (let r = 0; r < R; r++) for (let c = 0; c <= C; c++) svg += line('v', r, c);
       // punts
-      for (let r = 0; r <= n; r++) for (let c = 0; c <= n; c++) { const [x, y] = at(r, c); svg += `<circle cx="${x}" cy="${y}" r="6" class="pc-dot"/>`; }
-      el.innerHTML = `<svg viewBox="0 0 ${size2} ${size2}" role="img" aria-label="Quadrícula de ${n} per ${n} caixes">${svg}</svg>`;
+      for (let r = 0; r <= R; r++) for (let c = 0; c <= C; c++) { const [x, y] = at(r, c); svg += `<circle cx="${x}" cy="${y}" r="6" class="pc-dot"/>`; }
+      el.innerHTML = `<svg viewBox="0 0 ${wide} ${tall}" role="img" aria-label="Quadrícula de ${C} per ${R} caixes">${svg}</svg>`;
       el.querySelectorAll('[data-e]').forEach(x => x.addEventListener('keydown', (ev) => {
         if ((ev.key === 'Enter' || ev.key === ' ') && interactive()) { ev.preventDefault(); move(JSON.parse(x.dataset.e)); }
       }));
       const [a, b] = NAMES[mode];
-      root.querySelector('#score').textContent = `${a} ${g.score[0]} – ${g.score[1]} ${b}`;
+      // marcador curt (com als altres jocs per a dos): no tapa el botó de la música
+      const sc = root.querySelector('#score');
+      sc.innerHTML = `<span class="dot-p" style="background:var(--accent)"></span> ${g.score[0]} – ${g.score[1]} <span class="dot-p" style="background:var(--ok)"></span>`;
+      sc.setAttribute('aria-label', `${a} ${g.score[0]}, ${b} ${g.score[1]}`);
       const turn = root.querySelector('#turn');
       if (!over(g)) turn.innerHTML = isCpu()
         ? (g.turn === 0 ? '<b class="p1">El teu torn</b>' : '<b class="p2">Pensa la màquina…</b>')

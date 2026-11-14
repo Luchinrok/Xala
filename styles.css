@@ -1502,7 +1502,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* ============================================================
    Punts i caixes: punts, ratlles per tocar (amb zona de toc gruixuda) i caixes
    ============================================================ */
-.pc-board { width: min(100%, calc(100dvh - 250px)); margin: 6px auto 0; touch-action: manipulation; }
+.pc-board { width: min(100%, calc((100dvh - 205px) * var(--ar, 1))); margin: 6px auto 0; touch-action: manipulation; }
+.pc-sizes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .pc-board svg { display: block; width: 100%; height: auto; }
 .pc-hit { stroke: transparent; stroke-width: 24; stroke-linecap: round; }
 .pc-off { stroke: rgba(32, 24, 15, .14); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 2 8; }

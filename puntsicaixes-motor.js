@@ -1,35 +1,35 @@
 // ============================================================
 // puntsicaixes-motor.js — la lògica de «Punts i caixes» (sense pantalla).
-// Una quadrícula de n × n caixes. Per torns es traça una ratlla entre dos
+// Una quadrícula de files × columnes caixes (no cal que sigui quadrada). Per torns es traça una ratlla entre dos
 // punts veïns; qui tanca el quart costat d'una caixa se la queda i torna a
 // tirar. Guanya qui té més caixes. Inclou la jugada de la màquina.
 // ============================================================
 
-// Ratlles: 'h' (horitzontals, n+1 files × n) i 'v' (verticals, n files × n+1).
-export function newGame(n) {
+// Ratlles: 'h' (horitzontals, files+1 × columnes) i 'v' (verticals, files × columnes+1).
+export function newGame(rows, cols = rows) {
   return {
-    n, turn: 0, score: [0, 0], last: null,
-    h: Array.from({ length: n + 1 }, () => Array(n).fill(false)),
-    v: Array.from({ length: n }, () => Array(n + 1).fill(false)),
-    owner: Array.from({ length: n }, () => Array(n).fill(null)),
+    rows, cols, turn: 0, score: [0, 0], last: null,
+    h: Array.from({ length: rows + 1 }, () => Array(cols).fill(false)),
+    v: Array.from({ length: rows }, () => Array(cols + 1).fill(false)),
+    owner: Array.from({ length: rows }, () => Array(cols).fill(null)),
   };
 }
 
 export const edges = (g) => {
   const out = [];
-  for (let r = 0; r <= g.n; r++) for (let c = 0; c < g.n; c++) if (!g.h[r][c]) out.push(['h', r, c]);
-  for (let r = 0; r < g.n; r++) for (let c = 0; c <= g.n; c++) if (!g.v[r][c]) out.push(['v', r, c]);
+  for (let r = 0; r <= g.rows; r++) for (let c = 0; c < g.cols; c++) if (!g.h[r][c]) out.push(['h', r, c]);
+  for (let r = 0; r < g.rows; r++) for (let c = 0; c <= g.cols; c++) if (!g.v[r][c]) out.push(['v', r, c]);
   return out;
 };
-export const over = (g) => g.score[0] + g.score[1] === g.n * g.n;
+export const over = (g) => g.score[0] + g.score[1] === g.rows * g.cols;
 
 // costats ja traçats d'una caixa
 export const sides = (g, r, c) => g.h[r][c] + g.h[r + 1][c] + g.v[r][c] + g.v[r][c + 1];
 // caixes que toca una ratlla
 function boxesOf(g, [t, r, c]) {
   const out = [];
-  if (t === 'h') { if (r > 0) out.push([r - 1, c]); if (r < g.n) out.push([r, c]); }
-  else { if (c > 0) out.push([r, c - 1]); if (c < g.n) out.push([r, c]); }
+  if (t === 'h') { if (r > 0) out.push([r - 1, c]); if (r < g.rows) out.push([r, c]); }
+  else { if (c > 0) out.push([r, c - 1]); if (c < g.cols) out.push([r, c]); }
   return out;
 }
 
