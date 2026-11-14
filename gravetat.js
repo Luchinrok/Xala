@@ -11,6 +11,15 @@ const W = 300, LANE = 165, MID = 12, H = LANE * 2 + MID;
 const TILE = 25, EDGE = 10, R = 9, RX = 70;
 const GRAV = 0.55, MAXV = 9;
 const STEP = 1000 / 60;
+import { getRecord, setRecord } from './records.js';
+
+const KEY = 'gravetat';
+// la màquina: quant mira endavant (en passos) i quant tarda a reaccionar
+const AI = {
+  easy: { name: 'Fàcil', look: [4, 9], delay: [6, 16], miss: 0.12 },
+  normal: { name: 'Normal', look: [7, 12], delay: [2, 8], miss: 0.04 },
+  hard: { name: 'Difícil', look: [9, 13], delay: [0, 2], miss: 0 },
+};
 const PLAYERS = [
   { name: 'Corall', c: '#E4572E' },
   { name: 'Verd', c: '#1F8A70' },
@@ -57,6 +66,9 @@ export default {
     let raf = 0, last = 0, acc = 0;
     let s = null;
     const wins = [0, 0];
+    let cpu = getRecord(KEY + ':mode') !== '2p';
+    let level = AI[getRecord(KEY + ':level')] ? getRecord(KEY + ':level') : 'normal';
+    const names = () => (cpu ? ['Tu', 'Màquina'] : PLAYERS.map(p => p.name));
 
     function stop() {
       cancelAnimationFrame(raf); raf = 0;
@@ -71,24 +83,35 @@ export default {
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Gira la gravetat</p>
         <h2 style="font-size:30px;margin:6px 0 16px">Corre pel terra i pel sostre</h2>
-        <p class="muted">Deixeu el mòbil pla a la taula, entre els dos. Cadascú toca la meitat que té davant per girar la gravetat del seu corredor.</p>
+        <p class="label" style="margin:0 0 12px">Mode</p>
+        <div class="btn-row">
+          <button class="btn ${cpu ? 'btn--accent' : 'btn--outline'}" data-mode="cpu">1 jugador</button>
+          <button class="btn ${!cpu ? 'btn--accent' : 'btn--outline'}" data-mode="2p">2 jugadors</button>
+        </div>
+        ${cpu ? `<p class="label" style="margin:18px 0 12px">Dificultat</p>
+        <div class="btn-row">
+          ${Object.entries(AI).map(([id, a]) => `<button class="btn ${level === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${a.name}</button>`).join('')}
+        </div>` : ''}
+        <p class="muted" style="margin-top:12px">${cpu ? 'Tu corres a baix; la màquina, a dalt. Toca la pantalla per girar la gravetat.' : 'Deixeu el mòbil pla a la taula, entre els dos. Cadascú toca la meitat que té davant per girar la gravetat del seu corredor.'}</p>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
       `;
       root.querySelector('#back').onclick = leave;
-      root.querySelector('#start').onclick = begin;
+      root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { cpu = b.dataset.mode === 'cpu'; setRecord(KEY + ':mode', cpu ? 'cpu' : '2p'); screenConfig(); }; });
+      root.querySelectorAll('[data-level]').forEach(b => { b.onclick = () => { level = b.dataset.level; setRecord(KEY + ':level', level); screenConfig(); }; });
+      root.querySelector('#start').onclick = () => { wins[0] = wins[1] = 0; begin(); };
     }
 
     function begin() {
       stop();
       s = {
         course: makeCourse(Date.now() & 0xffffff), scroll: 0, frame: 0, count: 180, over: false, winner: null,
-        p: [0, 1].map(() => ({ y: LANE - EDGE - R, vy: 0, g: 1, alive: true, dist: 0, flip: 0 })),
+        p: [0, 1].map(() => ({ y: LANE - EDGE - R, vy: 0, g: 1, alive: true, dist: 0, flip: 0, plan: -1 })),
       };
       root.innerHTML = `
         <div class="chess-top">
           <button class="back" id="back">‹ Enrere</button>
-          <div class="chess-score" id="score">${PLAYERS[0].name} ${wins[0]} – ${wins[1]} ${PLAYERS[1].name}</div>
+          <div class="chess-score" id="score">${names()[0]} ${wins[0]} – ${wins[1]} ${names()[1]}</div>
         </div>
         <div class="drac-board gv-board" id="board" style="--ar:${W / H}"><canvas id="cv" role="img" aria-label="Dos corredors, un a cada meitat"></canvas></div>
         <div id="endbox"></div>
@@ -103,7 +126,7 @@ export default {
       root.querySelector('#board').addEventListener('pointerdown', (e) => {
         e.preventDefault();
         const r = canvas.getBoundingClientRect();
-        flip(e.clientY - r.top > r.height / 2 ? 0 : 1);
+        flip(cpu || e.clientY - r.top > r.height / 2 ? 0 : 1); // a 1 jugador, tota la pantalla és teva
       });
       document.addEventListener('keydown', onKey);
       window.addEventListener('resize', fit);
@@ -133,6 +156,7 @@ export default {
     function grounded(p) { return p.vy === 0 && (p.y === floorY - R || p.y === ceilY + R); }
     function flip(i) {
       if (!s || s.over || s.count > 0) return;
+      if (cpu && i === 1 && !flip.ai) return; // la màquina juga sola
       const p = s.p[i];
       if (!p.alive || !grounded(p)) return;
       p.g = -p.g; p.vy = 0; p.flip = 8;
@@ -154,6 +178,7 @@ export default {
       const speed = Math.min(5.6, 2.4 + s.frame * 0.0012);
       s.scroll += speed;
       const x0 = s.scroll + RX - R + 2, x1 = s.scroll + RX + R - 2;
+      if (cpu) think(speed);
       for (const p of s.p) {
         if (!p.alive) continue;
         if (p.flip) p.flip--;
@@ -172,6 +197,25 @@ export default {
         if (s.winner != null) wins[s.winner]++;
         if (navigator.vibrate) navigator.vibrate(50);
         setTimeout(roundOver, 500);
+      }
+    }
+
+    // La màquina: si veu un forat a la seva superfície una mica endavant, gira
+    // (amb un retard i, segons la dificultat, de tant en tant s'equivoca).
+    const R2 = (a) => a[0] + Math.random() * (a[1] - a[0]);
+    function think(speed) {
+      const p = s.p[1], A = AI[level];
+      if (!p.alive) return;
+      if (p.plan >= 0) { if (--p.plan < 0) { flip.ai = true; flip(1); flip.ai = false; } return; }
+      if (!grounded(p)) return;
+      const surf = p.g > 0 ? s.course.floor : s.course.ceil;
+      const ahead = speed * R2(A.look);
+      for (let x = s.scroll + RX - R + 2; x <= s.scroll + RX + R + ahead; x += TILE / 2) {
+        if (!has(surf, x)) {
+          if (Math.random() < A.miss) { p.plan = 999; return; } // aquesta no la veu
+          p.plan = Math.round(R2(A.delay));
+          return;
+        }
       }
     }
 
@@ -199,14 +243,27 @@ export default {
       // terra i sostre, peça a peça
       const first = Math.floor(s.scroll / TILE), off = s.scroll - first * TILE;
       s.course.ensure(first + Math.ceil(W / TILE) + 2);
+      // terra: bloc de tinta amb vora clara; forat: buit vermell amb punxes,
+      // perquè es vegi de lluny on no es pot trepitjar
       for (let j = 0; j <= Math.ceil(W / TILE) + 1; j++) {
         const x = j * TILE - off, col = first + j;
-        ctx.fillStyle = ink;
-        if (s.course.floor[col]) ctx.fillRect(x, LANE - EDGE, TILE + 0.5, EDGE);
-        if (s.course.ceil[col]) ctx.fillRect(x, 0, TILE + 0.5, EDGE);
-        ctx.fillStyle = P.c;
-        if (s.course.floor[col] && col % 2) ctx.fillRect(x + 6, LANE - EDGE + 3, TILE - 12, 3);
-        if (s.course.ceil[col] && col % 2) ctx.fillRect(x + 6, EDGE - 6, TILE - 12, 3);
+        for (const [has, y0, dir] of [[s.course.floor[col], LANE - EDGE, 1], [s.course.ceil[col], 0, -1]]) {
+          if (has) {
+            ctx.fillStyle = ink; ctx.fillRect(x, y0, TILE + 0.5, EDGE);
+            ctx.fillStyle = P.c; // vora de color: la superfície on es corre
+            ctx.fillRect(x, dir > 0 ? y0 : y0 + EDGE - 3, TILE + 0.5, 3);
+          } else {
+            ctx.fillStyle = 'rgba(210, 31, 31, .16)';
+            ctx.fillRect(x, dir > 0 ? y0 - 26 : 0, TILE + 0.5, EDGE + 26);
+            ctx.fillStyle = '#D21F1F';
+            ctx.beginPath(); // punxes a la vora del forat
+            for (let k = 0; k < 2; k++) {
+              const sx = x + k * TILE / 2, base = dir > 0 ? LANE : 0, tip = dir > 0 ? LANE - 12 : 12;
+              ctx.moveTo(sx, base); ctx.lineTo(sx + TILE / 4, tip); ctx.lineTo(sx + TILE / 2, base);
+            }
+            ctx.fill();
+          }
+        }
       }
       // el corredor: un quadrat amb ulls que mira endavant i cap on tira la gravetat
       if (p.alive || s.over) {
@@ -251,13 +308,15 @@ export default {
     function roundOver() {
       if (!root.isConnected) return;
       stop(); draw();
-      root.querySelector('#score').textContent = `${PLAYERS[0].name} ${wins[0]} – ${wins[1]} ${PLAYERS[1].name}`;
+      const [na, nb] = names();
+      root.querySelector('#score').textContent = `${na} ${wins[0]} – ${wins[1]} ${nb}`;
       const w = s.winner;
+      const title = w == null ? 'Empat!' : cpu ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : `Guanya el ${PLAYERS[w].name}!`;
       const box = root.querySelector('#endbox');
       box.innerHTML = `
         <div class="panel center stack" style="--stack-gap:8px">
-          <h2 style="color:${w == null ? 'var(--ink)' : PLAYERS[w].c}">${w == null ? 'Empat!' : `Guanya el ${PLAYERS[w].name}!`}</h2>
-          <p class="muted">${Math.floor(s.scroll / TILE)} metres · ${PLAYERS[0].name} ${wins[0]} – ${wins[1]} ${PLAYERS[1].name}</p>
+          <h2 style="color:${w == null ? 'var(--ink)' : PLAYERS[w].c}">${title}</h2>
+          <p class="muted">${Math.floor(s.scroll / TILE)} metres · ${na} ${wins[0]} – ${wins[1]} ${nb}</p>
         </div>
         <div class="stack">
           <button class="btn btn--accent" id="again">Revenja</button>

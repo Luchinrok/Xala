@@ -11,6 +11,15 @@ const W = 300, H = 470, BR = 8, GOALS = 5;
 const STEP = 1000 / 60, SUB = 5;
 const FL = 70, FT = 7;                 // llargada i gruix de les paletes
 const REST = 0.5, UP = -0.42;          // angles (radiants) de la paleta de baix-esquerra
+import { getRecord, setRecord } from './records.js';
+
+const KEY = 'flipers';
+// la màquina: des de quina distància veu venir la bola, i quantes vegades reacciona a temps
+const AI = {
+  easy: { name: 'Fàcil', reach: 52, react: 0.35 },
+  normal: { name: 'Normal', reach: 66, react: 0.6 },
+  hard: { name: 'Difícil', reach: 80, react: 0.9 },
+};
 const PLAYERS = [
   { name: 'Corall', c: '#E4572E' },
   { name: 'Verd', c: '#1F8A70' },
@@ -69,6 +78,9 @@ export default {
     let raf = 0, last = 0, acc = 0;
     let s = null;
     const touches = new Map(); // pointerId -> paleta
+    let cpu = getRecord(KEY + ':mode') !== '2p';
+    let level = AI[getRecord(KEY + ':level')] ? getRecord(KEY + ':level') : 'normal';
+    const names = () => (cpu ? ['Tu', 'Màquina'] : PLAYERS.map(p => p.name));
 
     function stop() {
       cancelAnimationFrame(raf); raf = 0;
@@ -84,11 +96,22 @@ export default {
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker">Flipers</p>
         <h2 style="font-size:30px;margin:6px 0 16px">Pinball cara a cara</h2>
-        <p class="muted">Deixeu el mòbil pla a la taula, entre els dos. Cadascú toca la meitat esquerra o dreta de la seva zona per pujar les paletes. Guanya qui fa ${GOALS} gols.</p>
+        <p class="label" style="margin:0 0 12px">Mode</p>
+        <div class="btn-row">
+          <button class="btn ${cpu ? 'btn--accent' : 'btn--outline'}" data-mode="cpu">1 jugador</button>
+          <button class="btn ${!cpu ? 'btn--accent' : 'btn--outline'}" data-mode="2p">2 jugadors</button>
+        </div>
+        ${cpu ? `<p class="label" style="margin:18px 0 12px">Dificultat</p>
+        <div class="btn-row">
+          ${Object.entries(AI).map(([id, a]) => `<button class="btn ${level === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${a.name}</button>`).join('')}
+        </div>` : ''}
+        <p class="muted" style="margin-top:12px">${cpu ? `Tu jugues a baix; la màquina, a dalt. Toca l'esquerra o la dreta de la pantalla per pujar cada paleta. Guanya qui fa ${GOALS} gols.` : `Deixeu el mòbil pla a la taula, entre els dos. Cadascú toca la meitat esquerra o dreta de la seva zona per pujar les paletes. Guanya qui fa ${GOALS} gols.`}</p>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
       `;
       root.querySelector('#back').onclick = leave;
+      root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { cpu = b.dataset.mode === 'cpu'; setRecord(KEY + ':mode', cpu ? 'cpu' : '2p'); screenConfig(); }; });
+      root.querySelectorAll('[data-level]').forEach(b => { b.onclick = () => { level = b.dataset.level; setRecord(KEY + ':level', level); screenConfig(); }; });
       root.querySelector('#start').onclick = begin;
     }
 
@@ -132,10 +155,10 @@ export default {
     function flipperAt(e) {
       const r = canvas.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-      const pl = y > 0.5 ? 0 : 1, side = x < 0.5 ? -1 : 1;
+      const pl = cpu || y > 0.5 ? 0 : 1, side = x < 0.5 ? -1 : 1; // a 1 jugador, tota la pantalla és teva
       return s.fl.find(f => f.pl === pl && f.side === side);
     }
-    function refresh() { s.fl.forEach(f => { f.up = [...touches.values()].includes(f) || !!f.key; }); }
+    function refresh() { s.fl.forEach(f => { if (cpu && f.pl === 1) return; f.up = [...touches.values()].includes(f) || !!f.key; }); }
     function wireTouch(el) {
       el.addEventListener('pointerdown', (e) => { e.preventDefault(); touches.set(e.pointerId, flipperAt(e)); refresh(); });
       const up = (e) => { touches.delete(e.pointerId); refresh(); };
@@ -148,7 +171,7 @@ export default {
     function onKey(e) {
       if (!root.isConnected) { stop(); return; }
       const k = KEYMAP[e.key] || KEYMAP[e.key.toLowerCase()];
-      if (!k || !s) return;
+      if (!k || !s || (cpu && k[0] === 1)) return;
       e.preventDefault();
       const f = s.fl.find(x => x.pl === k[0] && x.side === k[1]);
       f.key = e.type === 'keydown';
@@ -198,6 +221,7 @@ export default {
         f.a = f.up ? Math.min(1, f.a + 0.34) : Math.max(0, f.a - 0.16);
         f.w = (angleOf({ ...f, a: f.a }) - angleOf({ ...f, a: prev })); // radiants per pas
       }
+      if (cpu) think();
       if (s.wait > 0) { s.wait--; return; }
       const b = s.ball;
       for (let i = 0; i < SUB; i++) {
@@ -239,9 +263,26 @@ export default {
       }
     }
 
+    // La màquina (paletes de dalt): puja la paleta del costat per on ve la bola
+    // quan és a prop; segons la dificultat, reacciona més o menys a temps.
+    function think() {
+      const A = AI[level], b = s.ball;
+      for (const f of s.fl.filter(x => x.pl === 1)) {
+        if (f.hold > 0) { f.hold--; f.up = true; continue; }
+        f.up = false;
+        if (s.wait > 0 || b.vy > 0.5) continue;
+        const d = Math.hypot(b.x - f.px, b.y - f.py), mine = f.side < 0 ? b.x < W / 2 + 10 : b.x > W / 2 - 10;
+        if (mine && d < A.reach && b.y > f.py - 10) {
+          if (f.decided === undefined) f.decided = Math.random() < A.react;
+          if (f.decided) { f.up = true; f.hold = 10; }
+        } else f.decided = undefined;
+      }
+    }
+
     function renderScore() {
       const el = root.querySelector('#score');
-      if (el) el.textContent = `${PLAYERS[0].name} ${s.score[0]} – ${s.score[1]} ${PLAYERS[1].name}`;
+      const [na, nb] = names();
+      if (el) el.textContent = `${na} ${s.score[0]} – ${s.score[1]} ${nb}`;
     }
 
     // ---------- dibuix ----------
@@ -298,7 +339,7 @@ export default {
       const box = root.querySelector('#endbox');
       box.innerHTML = `
         <div class="panel center stack" style="--stack-gap:8px">
-          <h2 style="color:${PLAYERS[w].c}">Guanya el ${PLAYERS[w].name}!</h2>
+          <h2 style="color:${PLAYERS[w].c}">${cpu ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : `Guanya el ${PLAYERS[w].name}!`}</h2>
           <p class="muted">${s.score[0]} – ${s.score[1]}</p>
         </div>
         <div class="stack">
