@@ -378,9 +378,11 @@ export default {
 
   mount(root, { goHome }) {
     let mode = '2p';      // 'cpu' | '2p' — per defecte 2 jugadors
+    const flipB = (color) => mode === '2p' && color === 'b';
     let diff = 'normal';  // 'easy' | 'normal' | 'hard'
 
     let pos = null;
+    let lastMove = null;  // [de, a] de l'última jugada
     let selected = null;      // [r,c] de la peça triada
     let legalForSel = [];     // jugades legals de la peça triada
     let crossForSel = [];     // jugades que deixarien el rei en escac (× no clicables)
@@ -427,6 +429,7 @@ export default {
     // ---------- arrenca la partida ----------
     function beginGame() {
       pos = initialPos();
+      lastMove = null;
       selected = null;
       legalForSel = [];
       crossForSel = [];
@@ -476,12 +479,14 @@ export default {
           const cross = crossForSel.some(m => m.to[0] === r && m.to[1] === c);
           const kingCheck = kingPos && kingPos[0] === r && kingPos[1] === c;
           let inner = '';
-          if (piece) inner += `<span class="piece">${GLYPH[piece.c][piece.t]}</span>`;
+          // a 2 jugadors, les negres giren cap per avall: cada jugador seu a una banda del mòbil
+          if (piece) inner += `<span class="piece${flipB(piece.c) ? ' piece--flip' : ''}">${GLYPH[piece.c][piece.t]}</span>`;
           if (target) inner += piece ? '<span class="dot dot--cap"></span>' : '<span class="dot"></span>';
           else if (cross) inner += '<span class="cross">✕</span>';
           let cls = light ? 'sq--light' : 'sq--dark';
           if (sel) cls += ' sq--sel';
           if (kingCheck) cls += ' sq--check';
+          if (lastMove && lastMove.some(([lr, lc]) => lr === r && lc === c)) cls += ' sq--last';
           html += `<button class="sq ${cls}" data-r="${r}" data-c="${c}">${inner}</button>`;
         }
       }
@@ -579,7 +584,7 @@ export default {
       const color = pos.turn; // el peó que corona és del bàndol que mou ara
       const names = { Q: 'Dama', R: 'Torre', B: 'Alfil', N: 'Cavall' };
       const overlay = document.createElement('div');
-      overlay.className = 'promo-overlay';
+      overlay.className = 'promo-overlay' + (flipB(color) ? ' promo-overlay--flip' : '');
       overlay.innerHTML = `
         <div class="promo-dialog">
           <p class="promo-title">Corona el peó</p>
@@ -607,6 +612,7 @@ export default {
     // cosmètica i no bloqueja mai l'avenç de la partida.
     function makeMove(mv) {
       const mover = pos.turn;
+      lastMove = [mv.fr, mv.to]; // es marca al tauler: es veu què ha fet el contrari
       pos = applyMove(pos, mv);
       selected = null;
       legalForSel = [];
@@ -684,6 +690,7 @@ export default {
       const fly = document.createElement('div');
       fly.className = 'anim-piece';
       fly.textContent = GLYPH[mover][type];
+      if (flipB(mover)) fly.style.rotate = '180deg';
       fly.style.width = size + 'px';
       fly.style.height = size + 'px';
       fly.style.transform = at(from[0], from[1]);

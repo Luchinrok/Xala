@@ -321,14 +321,13 @@ function goMultiplayer() {
   const wrap = document.createElement('div');
   wrap.className = 'screen home';
   wrap.innerHTML = `
-    <button class="back" id="back">‹ Enrere</button>
-    ${musicButton()}
+    <div class="topbar"><button class="back" id="back">‹ Enrere</button>${musicButton()}</div>
     <header class="home__head">
       <div class="brand">Xala<span>!</span></div>
       <p class="tagline">${t('home.tagline')}</p>
     </header>
     <div class="grid" id="grid"></div>
-    <button class="btn btn--outline home__help" id="help">${t('home.help')}</button>
+    <div class="footbar"><button class="btn btn--outline home__help" id="help">${t('home.help')}</button></div>
   `;
   app.appendChild(wrap);
   renderGameGrid(wrap.querySelector('#grid'), PARTY_GAMES, goMultiplayer);
@@ -345,14 +344,13 @@ function goDuo() {
   const wrap = document.createElement('div');
   wrap.className = 'screen home';
   wrap.innerHTML = `
-    <button class="back" id="back">‹ Enrere</button>
-    ${musicButton()}
+    <div class="topbar"><button class="back" id="back">‹ Enrere</button>${musicButton()}</div>
     <header class="home__head">
       <div class="brand">Xala<span>!</span></div>
       <p class="tagline">Jocs per a dos.</p>
     </header>
     <div class="grid" id="grid"></div>
-    <button class="btn btn--outline home__help" id="help">${t('home.help')}</button>
+    <div class="footbar"><button class="btn btn--outline home__help" id="help">${t('home.help')}</button></div>
   `;
   app.appendChild(wrap);
   renderGameGrid(wrap.querySelector('#grid'), DUO_GAMES, goDuo);
@@ -369,14 +367,13 @@ function goSingle() {
   const wrap = document.createElement('div');
   wrap.className = 'screen home';
   wrap.innerHTML = `
-    <button class="back" id="back">‹ Enrere</button>
-    ${musicButton()}
+    <div class="topbar"><button class="back" id="back">‹ Enrere</button>${musicButton()}</div>
     <header class="home__head">
       <div class="brand">Xala<span>!</span></div>
       <p class="tagline">Jocs per a tu sol.</p>
     </header>
     <div class="grid" id="grid"></div>
-    <button class="btn btn--outline home__help" id="help">${t('home.help')}</button>
+    <div class="footbar"><button class="btn btn--outline home__help" id="help">${t('home.help')}</button></div>
   `;
   app.appendChild(wrap);
   renderGameGrid(wrap.querySelector('#grid'), SOLO_GAMES, goSingle);

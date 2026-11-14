@@ -215,6 +215,7 @@ export default {
     let aiTimer = null;
     const AI_PAUSE = 600;
 
+    let turnPath = []; // caselles per on passa la fitxa en aquest torn
     function clearAiTimer() { if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; } }
     function leave() { clearAiTimer(); goHome(); }
 
@@ -270,6 +271,7 @@ export default {
     function beginGame() {
       clearAiTimer();
       state.board = initialBoard();
+      state.last = null; turnPath = [];
       state.turn = 1;
       state.over = false;
       state.animating = false;
@@ -355,6 +357,7 @@ export default {
           let selectable = false;
           if (canPlay && pc && pc.c === state.turn) selectable = mustContinue ? (mustContinue[0] === r && mustContinue[1] === c) : stepsFor(r, c).length > 0;
           let cls = 'dm-cell ' + (dark ? 'dark' : 'light');
+          if (state.last && state.last.some(([lr, lc]) => lr === r && lc === c)) cls += ' last';
           if (isSel) cls += ' sel';
           else if (selectable) cls += ' can';
           let inner = '';
@@ -409,6 +412,8 @@ export default {
       const tgt = targets.find(t => t.to[0] === to[0] && t.to[1] === to[1]);
       if (!tgt) return;
       const from = selected, cap = tgt.cap || null, mover = state.turn;
+      if (!mustContinue) turnPath = [from]; // primer salt del torn
+      turnPath.push(to);
       state.animating = true;
       animateMove(from, to, cap ? [cap] : [], () => {
         applyStepModel(from, to, cap);
@@ -420,6 +425,7 @@ export default {
           }
         }
         promoteInPlace(state.board, to, mover);
+        state.last = turnPath; // l'última jugada es queda marcada al tauler
         selected = null; targets = []; mustContinue = null;
         state.animating = false; renderBoard();
         endTurn();
@@ -513,6 +519,7 @@ export default {
       let i = 0;
       const finalize = () => {
         state.board = move.board; // resultat canònic (amb coronació)
+        state.last = move.path;
         selected = null; targets = []; mustContinue = null;
         state.animating = false; renderBoard();
         endTurn();
