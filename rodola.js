@@ -255,7 +255,7 @@ export default {
         setRecord('rodola:estrelles', m);
       }
       const isLast = level === LEVELS.length - 1;
-      const cheer = { cup: 'Dins!', touch: 'Tocada!', off: 'Avall!', hold: 'Aguantada!', zone: 'Clavada!' }[world.goal.type] || 'Fet!';
+      const cheer = { cup: 'Dins!', touch: 'Tocada!', off: 'Avall!', hold: 'Aguantada!', zone: 'Clavada!', wall: 'Pam!' }[world.goal.type] || 'Fet!';
       setStatus(`${isLast ? 'Ho has acabat tot!' : cheer} ${starsText(stars)} · ${used} ${used === 1 ? 'traç' : 'traços'}`);
       root.querySelector('#status').classList.add('rodola-status--win');
       const box = root.querySelector('#controls');
@@ -303,7 +303,7 @@ export default {
         for (let k = -h; k < w; k += 14) { ctx.beginPath(); ctx.moveTo((x + k) * scale, (y + h) * scale); ctx.lineTo((x + k + h) * scale, y * scale); ctx.stroke(); }
         ctx.restore();
       }
-      world.statics.forEach(b => body(b, ink));
+      world.statics.forEach(b => body(b, b === world.target ? coral : ink, ink));
       world.cup.forEach(b => body(b, coral, ink));
       world.planks.forEach(b => body(b, paper2, ink));
       world.planks.forEach(b => {
@@ -371,7 +371,20 @@ export default {
       });
       // la caixa que cal tombar va en corall
       world.boxes.forEach((b, i) => body(b, goal.type === 'off' && i === (goal.box || 0) ? coral : paper2, ink));
-      world.strokes.forEach(b => body(b, soft));
+      // els traços, tal com els has dibuixat
+      world.strokes.forEach(b => {
+        if (!b.shape) return body(b, soft);
+        ctx.save();
+        ctx.translate(b.position.x * scale, b.position.y * scale);
+        ctx.rotate(b.angle);
+        ctx.strokeStyle = soft; ctx.fillStyle = soft;
+        ctx.lineWidth = T * scale; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.beginPath();
+        b.shape.forEach(([x, y], i) => (i ? ctx.lineTo(x * scale, y * scale) : ctx.moveTo(x * scale, y * scale)));
+        if (b.shape.length === 1) ctx.lineTo(b.shape[0][0] * scale + 0.1, b.shape[0][1] * scale);
+        ctx.stroke();
+        ctx.restore();
+      });
       // pilotes: la groga és la teva; la vermella, la que has de tocar
       const ballAt = (b, fill) => {
         ctx.fillStyle = fill;

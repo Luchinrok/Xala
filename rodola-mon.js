@@ -12,6 +12,7 @@ export const BALL_R = 13;
 export const CUP_W = 64;     // amplada de dins del cistell
 export const CUP_H = 56;     // alçada de les parets
 export const STEP_MS = 1000 / 60;
+export const STROKE_TOL = 5; // com s'allunya, com a molt, la física del traç dibuixat
 
 // Un segment [x1, y1, x2, y2, gruix] convertit en rectangle.
 function segment(Bodies, [x1, y1, x2, y2, th = 14], opts) {
@@ -25,10 +26,11 @@ function segment(Bodies, [x1, y1, x2, y2, th = 14], opts) {
 //   off   la caixa level.goal.box cau de la taula (surt per baix)
 //   hold  la pilota aguanta level.goal.secs segons sense caure
 //   zone  la pilota, quieta dins la zona level.goal.zone [x, y, w, h]
+//   wall  la pilota toca la paret corall level.goal.wall [x1, y1, x2, y2, gruix]
 export const goalOf = (level) => level.goal || { type: 'cup' };
 
 export function buildWorld(Matter, level) {
-  const { Engine, Bodies, Body, Composite, Constraint, Vertices, Common, Events } = Matter;
+  const { Engine, Bodies, Body, Composite, Constraint, Vertices, Common, Events, Query } = Matter;
   // Els números dels cossos decideixen l'ordre en què es resolen els xocs. Es
   // tornen a començar a cada nivell perquè la física sigui sempre igual: al
   // mòbil, després d'haver jugat altres nivells, i al simulador de les proves.
@@ -75,6 +77,9 @@ export function buildWorld(Matter, level) {
     label: 'ball', restitution: 0.25, friction: 0.03, frictionAir: 0.002, density: 0.0015,
   }));
   const yellows = [ball, ...extra];
+  // «Paret»: la paret corall que la pilota ha de tocar
+  const target = goal.type === 'wall' ? segment(Bodies, goal.wall, { ...solid, label: 'target' }) : null;
+  if (target) statics.push(target);
   Composite.add(engine.world, [...statics, ...cup, ...yellows, ...(ball2 ? [ball2] : []), ...boxes, ...planks, ...pins, ...spinners]);
   // imants: [x, y, força, abast]. Atreuen la pilota groga (no els traços): com més a
   // prop, més fort. A tocar del límit de l'abast, força × gravetat de la pilota.
@@ -179,11 +184,13 @@ export function buildWorld(Matter, level) {
   }
 
   // Afegeix un traç com a cos rígid que cau. Retorna el cos (o null).
-  // El traç es simplifica en pocs trams rectes: amb moltes peces petites la
-  // llibreria fa lliscar els cossos pels pendents.
+  // Per a la física, el traç es simplifica en pocs trams rectes (amb moltes
+  // peces petites la llibreria fa lliscar els cossos pels pendents); però a la
+  // pantalla es dibuixa tal com l'has fet (body.shape).
   function addStroke(points) {
     if (state === 'won' || state === 'lost') return null;
-    const pts = simplify(clean(points), 5);
+    const raw = clean(points);
+    const pts = simplify(raw, STROKE_TOL);
     if (!pts.length) return null;
     const opts = { friction: 1, frictionStatic: 10, restitution: 0.05, density: 0.003 };
     const parts = [];
@@ -195,6 +202,9 @@ export function buildWorld(Matter, level) {
     }
     const body = parts.length === 1 ? parts[0] : Body.create({ parts, ...opts });
     body.label = 'stroke';
+    // la forma dibuixada, en coordenades del cos (gira i cau amb ell)
+    const c = Math.cos(-body.angle), s = Math.sin(-body.angle), { x: px, y: py } = body.position;
+    body.shape = raw.map(([x, y]) => [(x - px) * c - (y - py) * s, (x - px) * s + (y - py) * c]);
     // si el traç travessa una corda, la talla
     for (const r of ropes) {
       if (r.cut) continue;
@@ -250,7 +260,9 @@ export function buildWorld(Matter, level) {
     }
     if (yellows.some(out) || (ball2 && out(ball2))) { state = 'lost'; return state; }
     const isSlow = (b) => Math.hypot(b.velocity.x, b.velocity.y) < 1.2;
-    if (goal.type === 'touch') {
+    if (goal.type === 'wall') {
+      if (yellows.every(b => (b.touched = b.touched || Query.collides(b, [target]).length > 0))) state = 'won';
+    } else if (goal.type === 'touch') {
       if (Math.hypot(x - ball2.position.x, y - ball2.position.y) <= BALL_R * 2 + 1.5) state = 'won';
     } else if (goal.type === 'hold') {
       if (frames >= (goal.secs || 5) * 60) state = 'won';
@@ -271,7 +283,7 @@ export function buildWorld(Matter, level) {
   }
 
   return {
-    engine, ball, extra, ball2, goal, statics, cup, boxes, planks, spinners, ropes, doors, magnets, strokes, nodraw, ink: level.ink || 0,
+    engine, ball, extra, ball2, goal, target, statics, cup, boxes, planks, spinners, ropes, doors, magnets, strokes, nodraw, ink: level.ink || 0,
     addStroke, step, forbidden,
     get state() { return state; },
     get frames() { return frames; },

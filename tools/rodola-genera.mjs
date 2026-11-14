@@ -10,7 +10,7 @@
 
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-import { simulate, buildWorld } from '../rodola-mon.js';
+import { simulate, buildWorld, BALL_R } from '../rodola-mon.js';
 import { BASE } from '../rodola-nivells.js';
 import { SIMILAR, levelDistance } from './rodola-semblanca.mjs';
 
@@ -593,6 +593,11 @@ const TEMPLATES = {
       doors: [{ button: btn, door: [cx - 46, 516, cx + 46, 516, 10] }], candidates: cands,
     };
   },
+  // ---------- paret: porta la pilota fins a tocar la paret corall ----------
+  paretempeny() { const t = TEMPLATES.empenta(); return { ...t, kind: 'paretempeny', place: 'wall', goal: { type: 'wall' } }; },
+  paretdomino() { const t = TEMPLATES.domino(); return { ...t, kind: 'paretdomino', place: 'wall', goal: { type: 'wall' } }; },
+  paretbalanci() { const t = TEMPLATES.balanci(); return { ...t, kind: 'paretbalanci', place: 'wall', goal: { type: 'wall' } }; },
+  paretrampa() { const t = TEMPLATES.rampa(); return { ...t, kind: 'paretrampa', place: 'wall', goal: { type: 'wall' } }; },
   imanbressol() {
     const t = TEMPLATES.aguanta();
     const [x1, y1] = [t.walls[0][0] + 6, t.walls[0][1]], [x2, y2] = [t.walls[1][0] + 6, t.walls[1][1]];
@@ -657,6 +662,10 @@ const NAMES = {
   pontimantoca: ['Pont, imant i toca', "Fes el pont i que l'imant la porti a la vermella"],
   catapultamolinet: ['Catapulta i molinet', 'Llança la pilota contra la plataforma que gira'],
   cadena: ['Cadena', 'Talla la corda i que tot vagi caient'],
+  paretempeny: ['Empeny-la', 'Fes que la pilota toqui la paret corall'],
+  paretdomino: ['Tomba i paret', 'Fes que la pilota toqui la paret corall'],
+  paretbalanci: ['Salta a la paret', 'Fes que la pilota toqui la paret corall'],
+  paretrampa: ['Rampa i paret', 'Fes que la pilota toqui la paret corall'],
   imanmolinet: ['Molinet i imant', "La plataforma la llança i l'imant la corba"],
   imancatapulta: ['Catapulta i imant', "Llança la pilota i deixa que l'imant l'atrapi"],
   imanpenjatoca: ['Penja, imant i toca', "Rampa, talla la corda i que l'imant la porti a la vermella"],
@@ -718,6 +727,22 @@ function tryCandidate(base, solRaw) {
     if (x < 40 || x > 360 || Math.abs(x - lv.ball[0]) < 70) return no('cau massa a la vora');
     lv.ball2 = [r1(x), yy + 6];
     lv.walls = [...lv.walls, [r1(x) - 16, yy + 25, r1(x) + 16, yy + 25, 10]];
+  } else if (place === 'wall') {
+    // la paret corall, dreta, allà on la pilota passa de costat
+    const w = buildWorld(Matter, { ...lv, cup: undefined, goal: { type: 'hold', secs: 99 } });
+    sol.forEach(s => w.addStroke(s));
+    const path = [];
+    for (let f = 0; f < 600 && w.state !== 'lost'; f++) {
+      w.step();
+      const { x, y } = w.ball.position, vx = w.ball.velocity.x;
+      if (Math.abs(vx) > 1.5 && Math.hypot(x - lv.ball[0], y - lv.ball[1]) > 70) path.push([x, y, vx]);
+    }
+    if (path.length < 6) return no('la pilota no es mou de costat');
+    const [px, py, vx] = path[Math.floor(R(0.2, 0.7) * path.length)];
+    const wx = r1(px + Math.sign(vx) * (BALL_R + 8)), h = RI(36, 50);
+    if (wx < 12 || wx > 388 || py < 40 || py > 560) return no('la paret cau fora');
+    if (sol.flat().some(([x, y]) => Math.abs(x - wx) < 24 && Math.abs(y - py) < h + 16)) return no('la paret trepitja el traç');
+    lv.goal = { type: 'wall', wall: [wx, r1(py - h), wx, r1(py + h), 12] };
   } else if (place === 'zone') {
     // una lleixa amb paret on la pilota s'atura, i la zona a sobre
     const yy = RI(460, 520), x = passAt(lv, sol, yy - 60);

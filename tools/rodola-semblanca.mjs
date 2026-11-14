@@ -16,7 +16,8 @@ const mirror = (lv) => ({
   ball: [400 - lv.ball[0], lv.ball[1]],
   cup: lv.cup && [400 - lv.cup[0], lv.cup[1]],
   ball2: lv.ball2 && [400 - lv.ball2[0], lv.ball2[1]],
-  goal: lv.goal && lv.goal.zone ? { ...lv.goal, zone: [400 - lv.goal.zone[0] - lv.goal.zone[2], ...lv.goal.zone.slice(1)] } : lv.goal,
+  goal: lv.goal && lv.goal.zone ? { ...lv.goal, zone: [400 - lv.goal.zone[0] - lv.goal.zone[2], ...lv.goal.zone.slice(1)] }
+    : lv.goal && lv.goal.wall ? { ...lv.goal, wall: [400 - lv.goal.wall[2], lv.goal.wall[3], 400 - lv.goal.wall[0], lv.goal.wall[1], lv.goal.wall[4]] } : lv.goal,
   walls: (lv.walls || []).map(([a, b, c, d, t]) => [400 - c, d, 400 - a, b, t]),
   boxes: (lv.boxes || []).map(([x, y, w, h]) => [400 - x, y, w, h]),
   seesaws: (lv.seesaws || []).map(([x, y, l]) => [400 - x, y, l]),
@@ -42,7 +43,8 @@ const cham = (A, B) => {
   const f = (P, Q) => P.reduce((s, p) => s + Math.min(...Q.map(q => Math.hypot(p[0] - q[0], p[1] - q[1]))), 0) / P.length;
   return (f(A, B) + f(B, A)) / 2;
 };
-const anchor = (lv) => lv.cup || lv.ball2 || (lv.goal && lv.goal.zone && [lv.goal.zone[0] + lv.goal.zone[2] / 2, lv.goal.zone[1] + lv.goal.zone[3] / 2]) || (lv.boxes && lv.boxes[0]) || lv.ball;
+const anchor = (lv) => lv.cup || lv.ball2 || (lv.goal && lv.goal.zone && [lv.goal.zone[0] + lv.goal.zone[2] / 2, lv.goal.zone[1] + lv.goal.zone[3] / 2])
+  || (lv.goal && lv.goal.wall && [(lv.goal.wall[0] + lv.goal.wall[2]) / 2, (lv.goal.wall[1] + lv.goal.wall[3]) / 2]) || (lv.boxes && lv.boxes[0]) || lv.ball;
 const gtype = (lv) => (lv.goal && lv.goal.type) || 'cup';
 // mecanismes diferents (corda, plataforma que gira, balancí, caixes): idea diferent
 const mech = (lv) => ['ropes', 'spinners', 'seesaws', 'boxes', 'doors', 'magnets', 'extra'].map(k => ((lv[k] || []).length ? 1 : 0)).join('');
