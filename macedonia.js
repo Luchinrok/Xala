@@ -25,6 +25,13 @@ const FRUITS = [
 ];
 const STEP = 1000 / 60;
 
+// ---------- partida desada (com a Encaixa!): es pot continuar ----------
+const SAVE_KEY = 'xala:macedonia:partida';
+function loadSave() {
+  try { const g = JSON.parse(localStorage.getItem(SAVE_KEY)); return g && Array.isArray(g.fruits) ? g : null; } catch (e) { return null; }
+}
+function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* */ } }
+
 let matterReady = null;
 function loadMatter() {
   if (window.Matter) return Promise.resolve(window.Matter);
@@ -62,8 +69,10 @@ export default {
 
     const best = () => getRecord('macedonia') || 0;
     function stop() {
+      if (s && !s.over && engine) save(); // en sortir, es desa on era
       cancelAnimationFrame(raf); raf = 0;
       document.removeEventListener('keydown', onKey);
+      document.removeEventListener('visibilitychange', onHide);
       window.removeEventListener('resize', fit);
     }
     function leave() { stop(); goHome(); }
@@ -80,22 +89,29 @@ export default {
         </div>
         <p class="muted center" style="margin-top:12px">De la cirera a la síndria · Rècord: ${best()}</p>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
+        ${loadSave()
+          ? `<button class="btn btn--accent" id="continue" style="margin-top:28px">Continuar partida</button>
+             <button class="btn btn--outline" id="start" style="margin-top:12px">Nova partida</button>`
+          : '<button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>'}
       `;
       root.querySelector('#back').onclick = leave;
-      root.querySelector('#start').onclick = () => {
-        root.querySelector('#start').disabled = true;
-        loadMatter().then((m) => { M = m; begin(); }).catch(() => {
-          root.querySelector('#start').disabled = false;
+      const go = (resume) => {
+        root.querySelectorAll('.btn').forEach(b => { b.disabled = true; });
+        loadMatter().then((m) => { M = m; begin(resume ? loadSave() : null); }).catch(() => {
+          root.querySelectorAll('.btn').forEach(b => { b.disabled = false; });
           root.querySelector('.muted').textContent = 'No s\'ha pogut carregar el joc. Torna-ho a provar.';
         });
       };
+      root.querySelector('#start').onclick = () => go(false);
+      const c = root.querySelector('#continue');
+      if (c) c.onclick = () => go(true);
     }
 
     // ---------- 2) partida ----------
     const pick = () => Math.floor(Math.random() * 5);
-    function begin() {
-      stop();
+    function begin(saved) {
+      s = null; stop();
+      if (!saved) clearSave();
       engine = M.Engine.create({ positionIterations: 8, velocityIterations: 6 });
       engine.gravity.y = 1;
       const wall = { isStatic: true, friction: 0.4, restitution: 0.1 };
@@ -104,13 +120,17 @@ export default {
         M.Bodies.rectangle(-WALL / 2 + WALL, H / 2, WALL * 2, H * 2, wall),
         M.Bodies.rectangle(W + WALL / 2 - WALL, H / 2, WALL * 2, H * 2, wall),
       ]);
-      s = { x: W / 2, cur: pick(), next: pick(), score: 0, wait: 0, danger: 0, over: false, pops: [], merging: new Set(), biggest: 0 };
+      s = { x: W / 2, cur: pick(), next: pick(), score: 0, wait: 0, danger: 0, over: false, pops: [], merging: new Set(), biggest: 0, tick: 0 };
+      if (saved) {
+        Object.assign(s, { cur: saved.cur, next: saved.next, score: saved.score, biggest: saved.biggest || 0 });
+        for (const f of saved.fruits) { const b = fruit(f.l, f.x, f.y); M.Body.setAngle(b, f.a || 0); }
+      }
       M.Events.on(engine, 'collisionStart', onCollide);
       M.Events.on(engine, 'collisionActive', onCollide);
       root.innerHTML = `
         <div class="chess-top">
           <button class="back" id="back">‹ Enrere</button>
-          <div class="chess-score" id="score">0</div>
+          <div class="chess-score" id="score">${s.score}</div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Mou el dit i deixa anar per tirar</p>
         <div class="drac-board mc-board" id="board" style="--ar:${W / H}"><canvas id="cv" role="img" aria-label="El bol de fruites"></canvas></div>
@@ -128,6 +148,7 @@ export default {
       wirePointer(root.querySelector('#board'));
       markChain();
       document.addEventListener('keydown', onKey);
+      document.addEventListener('visibilitychange', onHide);
       window.addEventListener('resize', fit);
       fit();
       last = performance.now(); acc = 0;
@@ -217,8 +238,16 @@ export default {
       if (!s.over) raf = requestAnimationFrame(loop);
     }
 
+    function save() {
+      const fruits = M.Composite.allBodies(engine.world).filter(b => b.label === 'fruit')
+        .map(b => ({ l: b.lvl, x: Math.round(b.position.x * 10) / 10, y: Math.round(b.position.y * 10) / 10, a: Math.round(b.angle * 100) / 100 }));
+      try { localStorage.setItem(SAVE_KEY, JSON.stringify({ fruits, cur: s.cur, next: s.next, score: s.score, biggest: s.biggest })); } catch (e) { /* */ }
+    }
+    function onHide() { if (document.hidden && s && !s.over) save(); }
+
     function update() {
       M.Engine.update(engine, STEP);
+      if (++s.tick % 90 === 0) save(); // cada segon i mig
       doMerges();
       if (s.wait) s.wait--;
       // ple: alguna fruita quieta per sobre de la ratlla durant dos segons
@@ -292,6 +321,7 @@ export default {
 
     // ---------- 3) final ----------
     function gameOver() {
+      clearSave();
       if (!root.isConnected) return;
       stop();
       const pts = s.score, record = pts > best();
@@ -307,7 +337,7 @@ export default {
           <button class="btn btn--accent" id="again">Una altra</button>
           <button class="btn btn--outline" id="home">Tornar a l'inici</button>
         </div>`;
-      box.querySelector('#again').onclick = begin;
+      box.querySelector('#again').onclick = () => begin(null);
       box.querySelector('#home').onclick = leave;
     }
 
