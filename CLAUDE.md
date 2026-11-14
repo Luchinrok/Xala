@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v128`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v129`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs, els problemes de Mat en 2, Petards amagats…) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -58,3 +58,4 @@
 - 14-11-2026 (publicat): el final de partida ja no obliga a desplaçar: `#endbox` i `#result` (Drac, Petards, Serp, Totxos, Macedònia, Escacs, Mat en 2, Xifra, Connecta 4, Dames, Tres en ratlla) surten com un plafó fix a baix, amb els botons de dos en dos. Els jocs nous han de posar el final en un `#endbox` per aprofitar-ho.
 - 14-11-2026 (publicat): joc nou **Pinzellada** (`pinzellada.js` + `pinzellada-motor.js`, del tipus «pinta el laberint»): la bola llisca fins a la paret i pinta; nivells infinits amb llavor, fets fent lliscar la bola a l'atzar i obrint només per on passa (la casella on s'atura cada lliscada queda de paret), així sempre tenen solució; `pinzellada.test.mjs` en prova 300. Lliçó: el temps del primer fotograma de `requestAnimationFrame` pot ser anterior al `performance.now()` del toc: limitar a 0. Macedònia mostra l'evolució de les fruites sota el bol (les que encara no tens, esvaïdes).
 - 14-11-2026 (publicat): Macedònia desa la partida (`xala:macedonia:partida`: fruites, punts, la fruita actual i la següent) cada segon i mig, en sortir i en amagar l'app; a l'inici surt «Continuar partida» / «Nova partida», com a Encaixa!.
+- 14-11-2026 (publicat): el plafó del final és una targeta tancada (vora a tot el voltant, ombra enfonsable) que flota a baix, no una làmina oberta per sota.
