@@ -14,6 +14,7 @@
 // ============================================================
 
 import { getRecord, setRecord } from './records.js';
+import { submitScore, openRanking, rankingButton } from './ranking.js';
 import { keyboardGrid } from './board-keys.js';
 
 const SIZE = 8;       // graella 8×8
@@ -300,11 +301,13 @@ export default {
         <h2 style="font-size:30px;margin:6px 0 16px">Encaixa els blocs</h2>
         <p class="muted" style="margin-bottom:6px">Arrossega les peces a la graella i omple files o columnes senceres per netejar-les. S'acaba quan cap peça hi cap.</p>
         <button class="btn btn--outline" id="record" style="margin-top:16px">Rècord</button>
+        ${rankingButton('rank', 'style="margin-top:12px"')}
         <div class="spacer"></div>
         ${buttons}
       `;
       root.querySelector('#back').onclick = leave;
       root.querySelector('#record').onclick = screenRecord;
+      root.querySelector('#rank').onclick = () => openRanking({ joc: 'encaixa', title: 'Encaixa!' });
       if (saved) {
         root.querySelector('#continue').onclick = continueGame;
         root.querySelector('#new').onclick = beginGame;
@@ -808,6 +811,7 @@ export default {
       cleanup();
       clearGame(); // partida acabada: esborra el desat
       const isRecord = state.newRecord; // el rècord ja s'ha desat en viu a paintScore
+      submitScore('encaixa', '', state.score);
       const best = getRecord('encaixa');
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
@@ -821,11 +825,13 @@ export default {
         <div class="spacer"></div>
         <div class="stack" style="margin-top:20px">
           <button class="btn btn--accent" id="again">Una altra</button>
+          ${rankingButton('rank2')}
           <button class="btn btn--outline" id="home">Sortir</button>
         </div>
       `;
       root.querySelector('#back').onclick = screenConfig;
       root.querySelector('#again').onclick = beginGame;
+      root.querySelector('#rank2').onclick = () => openRanking({ joc: 'encaixa', title: 'Encaixa!' });
       root.querySelector('#home').onclick = leave;
     }
 

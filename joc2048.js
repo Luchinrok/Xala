@@ -22,6 +22,7 @@
 // ============================================================
 
 import { getRecord, setRecord } from './records.js';
+import { submitScore, openRanking, rankingButton } from './ranking.js';
 
 const SIZE = 4;
 const MOVE_MS = 130; // ha de coincidir amb la transició CSS de .g2048-tile
@@ -148,6 +149,7 @@ export default {
     function leave() { cleanup(); goHome(); }
 
     const best = () => getRecord('joc2048') || 0;
+    const showRank = () => openRanking({ joc: '2048', title: '2048' });
 
     // ---------- 1) configuració ----------
     function screenConfig() {
@@ -158,11 +160,13 @@ export default {
         <h2 style="font-size:30px;margin:6px 0 14px">Ajunta fins a 2048</h2>
         <p class="muted" style="margin-bottom:8px">Llisca (o fletxes) per moure les fitxes. Dues d'iguals es fusionen i se sumen. Arriba a 2048!</p>
         <button class="btn btn--outline" id="record" style="margin-top:8px">Rècord</button>
+        ${rankingButton('rank', 'style="margin-top:12px"')}
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>
       `;
       root.querySelector('#back').onclick = leave;
       root.querySelector('#record').onclick = screenRecords;
+      root.querySelector('#rank').onclick = showRank;
       root.querySelector('#start').onclick = beginGame;
     }
 
@@ -412,6 +416,7 @@ export default {
       const prev = best();
       const isRecord = state.score > prev;
       if (isRecord) setRecord('joc2048', state.score);
+      submitScore('2048', '', state.score);
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
         <p class="kicker center">Final</p>
@@ -424,11 +429,13 @@ export default {
         <div class="spacer"></div>
         <div class="stack" style="margin-top:20px">
           <button class="btn btn--accent" id="again">Una altra</button>
+          ${rankingButton('rank2')}
           <button class="btn btn--outline" id="home">Sortir</button>
         </div>
       `;
       root.querySelector('#back').onclick = screenConfig;
       root.querySelector('#again').onclick = beginGame;
+      root.querySelector('#rank2').onclick = showRank;
       root.querySelector('#home').onclick = leave;
     }
 

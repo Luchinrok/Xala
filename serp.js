@@ -8,6 +8,7 @@
 
 import { newGame, step, canTurn } from './serp-motor.js';
 import { getRecord, setRecord } from './records.js';
+import { submitScore, openRanking, rankingButton } from './ranking.js';
 
 const SIZE = 15;
 const SPEEDS = {
@@ -49,6 +50,8 @@ export default {
     let colors = null;
 
     const best = () => getRecord('serp:' + speed) || 0;
+    // rànquing general (ranking.js)
+    const showRank = () => openRanking({ joc: 'serp', title: 'La Serp', variants: Object.entries(SPEEDS).map(([id, l]) => ({ id, name: l.name })), variant: speed });
 
     function stop() {
       if (timer) { clearInterval(timer); timer = null; }
@@ -70,10 +73,12 @@ export default {
           ${Object.entries(SPEEDS).map(([id, s]) => `<button class="btn ${speed === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${s.name}</button>`).join('')}
         </div>
         <p class="muted center" style="margin-top:12px">Rècord: ${best()}</p>
+        ${rankingButton('rank', 'style="margin-top:14px"')}
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
       `;
       root.querySelector('#back').onclick = leave;
+      root.querySelector('#rank').onclick = showRank;
       root.querySelectorAll('[data-level]').forEach(b => {
         b.onclick = () => { speed = b.dataset.level; setRecord('serp:speed', speed); screenConfig(); };
       });
@@ -256,6 +261,7 @@ export default {
       const pts = g.eaten;
       const record = pts > best();
       if (record) setRecord('serp:' + speed, pts);
+      submitScore('serp', speed, pts);
       const full = !g.food;
       setStatus(full ? 'Has omplert tot el tauler!' : 'Patapam!');
       root.querySelector('#pad').style.display = 'none';
@@ -267,9 +273,11 @@ export default {
         </div>
         <div class="stack" style="margin-top:14px;--stack-gap:12px">
           <button class="btn btn--accent" id="again">Una altra</button>
+          ${rankingButton('rank2')}
           <button class="btn btn--outline" id="home">Sortir</button>
         </div>`;
       box.querySelector('#again').onclick = begin;
+      box.querySelector('#rank2').onclick = showRank;
       box.querySelector('#home').onclick = leave;
     }
 

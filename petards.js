@@ -9,6 +9,7 @@
 
 import { newGame, reveal, chord, toggleFlag, flags, count } from './petards-motor.js';
 import { getRecord, setRecord } from './records.js';
+import { submitScore, openRanking, rankingButton } from './ranking.js';
 
 const LEVELS = {
   easy: { name: 'Fàcil', rows: 9, cols: 8, mines: 10 },
@@ -40,6 +41,8 @@ export default {
     let g = null, markMode = false, timer = null, secs = 0, started = false;
 
     const best = () => getRecord('petards:' + level) || 0;
+    // rànquing general (ranking.js)
+    const showRank = () => openRanking({ joc: 'petards', title: 'Petards amagats', variants: Object.entries(LEVELS).map(([id, l]) => ({ id, name: l.name })), variant: level, fmt: (p) => fmt(100000 - p) });
     function stop() { if (timer) { clearInterval(timer); timer = null; } }
     function leave() { stop(); goHome(); }
 
@@ -55,10 +58,12 @@ export default {
           ${Object.entries(LEVELS).map(([id, l]) => `<button class="btn ${level === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${l.name}</button>`).join('')}
         </div>
         <p class="muted center" style="margin-top:12px">${LEVELS[level].cols}×${LEVELS[level].rows} · ${LEVELS[level].mines} petards${best() ? ` · Rècord: ${fmt(best())}` : ''}</p>
+        ${rankingButton('rank', 'style="margin-top:14px"')}
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
       `;
       root.querySelector('#back').onclick = leave;
+      root.querySelector('#rank').onclick = showRank;
       root.querySelectorAll('[data-level]').forEach(b => {
         b.onclick = () => { level = b.dataset.level; setRecord('petards:level', level); screenConfig(); };
       });
@@ -181,6 +186,7 @@ export default {
       stop();
       const record = won && (!best() || secs < best());
       if (record) setRecord('petards:' + level, secs);
+      if (won) submitScore('petards', level, 100000 - secs); // el temps: menys és millor
       // en guanyar, els petards que quedaven es marquen sols
       if (won) for (let r = 0; r < g.rows; r++) for (let c = 0; c < g.cols; c++) if (g.mine[r][c]) g.flag[r][c] = false;
       render();
@@ -194,9 +200,11 @@ export default {
         </div>
         <div class="stack" style="margin-top:14px;--stack-gap:12px">
           <button class="btn btn--accent" id="again">Una altra</button>
+          ${rankingButton('rank2')}
           <button class="btn btn--outline" id="home">Sortir</button>
         </div>`;
       box.querySelector('#again').onclick = begin;
+      box.querySelector('#rank2').onclick = showRank;
       box.querySelector('#home').onclick = leave;
     }
 

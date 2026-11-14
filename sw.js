@@ -2,7 +2,7 @@
 // Quan afegeixis fitxers nous (jocs, dades), inclou-los a ASSETS
 // i puja la versió de CACHE per forçar l'actualització.
 
-const CACHE = 'xala-v135';
+const CACHE = 'xala-v136';
 const ASSETS = [
   './',
   './index.html',
@@ -55,6 +55,7 @@ const ASSETS = [
   './vendor/matter.min.js',
   './serp-motor.js',
   './musica.js',
+  './ranking.js',
   './traca-reptes.js',
   './LLICENCIA-diccionari.txt',
   './icon.svg',
@@ -82,6 +83,8 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  // el rànquing (Supabase) sempre de la xarxa: si no, es veuria la còpia vella
+  if (new URL(e.request.url).hostname.endsWith('supabase.co')) return;
   e.respondWith(
     caches.match(e.request).then((hit) =>
       hit || fetch(e.request).then((res) => {

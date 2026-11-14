@@ -7,6 +7,7 @@
 // ============================================================
 
 import { getRecord, setRecord } from './records.js';
+import { submitScore, openRanking, rankingButton } from './ranking.js';
 
 const W = 300, H = 420;
 const PY = 392, PH = 10, BR = 6;
@@ -43,6 +44,8 @@ export default {
     let s = null;
 
     const best = () => getRecord('trencamurs:' + level) || 0;
+    // rànquing general (ranking.js)
+    const showRank = () => openRanking({ joc: 'totxos', title: 'Totxos', variants: Object.entries(LEVELS).map(([id, l]) => ({ id, name: l.name })), variant: level });
     function stop() {
       cancelAnimationFrame(raf); raf = 0;
       document.removeEventListener('keydown', onKey);
@@ -64,10 +67,12 @@ export default {
           ${Object.entries(LEVELS).map(([id, l]) => `<button class="btn ${level === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${l.name}</button>`).join('')}
         </div>
         <p class="muted center" style="margin-top:12px">Rècord: ${best()}</p>
+        ${rankingButton('rank', 'style="margin-top:14px"')}
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
       `;
       root.querySelector('#back').onclick = leave;
+      root.querySelector('#rank').onclick = showRank;
       root.querySelectorAll('[data-level]').forEach(b => {
         b.onclick = () => { level = b.dataset.level; setRecord('trencamurs:level', level); screenConfig(); };
       });
@@ -263,6 +268,7 @@ export default {
       stop();
       const pts = s.score, record = pts > best();
       if (record) setRecord('trencamurs:' + level, pts);
+      submitScore('totxos', level, pts);
       setStatus('Sense vides!');
       const box = root.querySelector('#endbox');
       box.innerHTML = `
@@ -272,9 +278,11 @@ export default {
         </div>
         <div class="stack" style="margin-top:14px;--stack-gap:12px">
           <button class="btn btn--accent" id="again">Una altra</button>
+          ${rankingButton('rank2')}
           <button class="btn btn--outline" id="home">Sortir</button>
         </div>`;
       box.querySelector('#again').onclick = begin;
+      box.querySelector('#rank2').onclick = showRank;
       box.querySelector('#home').onclick = leave;
     }
 

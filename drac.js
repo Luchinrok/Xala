@@ -7,6 +7,7 @@
 // ============================================================
 
 import { getRecord, setRecord } from './records.js';
+import { submitScore, openRanking, rankingButton } from './ranking.js';
 
 const W = 300, H = 450;          // món lògic (es dibuixa escalat)
 const GROUND = H - 38;           // on comença el terra
@@ -44,6 +45,8 @@ export default {
     let s = null; // estat de la partida
 
     const best = () => getRecord('drac:' + level) || 0;
+    // rànquing general (ranking.js)
+    const showRank = () => openRanking({ joc: 'drac', title: 'El Drac', variants: Object.entries(LEVELS).map(([id, l]) => ({ id, name: l.name })), variant: level });
     function stop() {
       cancelAnimationFrame(raf); raf = 0;
       document.removeEventListener('keydown', onKey);
@@ -64,10 +67,12 @@ export default {
           ${Object.entries(LEVELS).map(([id, l]) => `<button class="btn ${level === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${l.name}</button>`).join('')}
         </div>
         <p class="muted center" style="margin-top:12px">Rècord: ${best()}</p>
+        ${rankingButton('rank', 'style="margin-top:14px"')}
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
       `;
       root.querySelector('#back').onclick = leave;
+      root.querySelector('#rank').onclick = showRank;
       root.querySelectorAll('[data-level]').forEach(b => {
         b.onclick = () => { level = b.dataset.level; setRecord('drac:level', level); screenConfig(); };
       });
@@ -275,6 +280,7 @@ export default {
       draw();
       const pts = s.score, record = pts > best();
       if (record) setRecord('drac:' + level, pts);
+      submitScore('drac', level, pts);
       setStatus('Patapam!');
       const box = root.querySelector('#endbox');
       box.innerHTML = `
@@ -284,9 +290,11 @@ export default {
         </div>
         <div class="stack" style="margin-top:14px;--stack-gap:12px">
           <button class="btn btn--accent" id="again">Una altra</button>
+          ${rankingButton('rank2')}
           <button class="btn btn--outline" id="home">Sortir</button>
         </div>`;
       box.querySelector('#again').onclick = begin;
+      box.querySelector('#rank2').onclick = showRank;
       box.querySelector('#home').onclick = leave;
     }
 

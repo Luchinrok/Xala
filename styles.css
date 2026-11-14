@@ -1516,3 +1516,30 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* marcadors curts dels jocs per a dos: un punt de color per jugador */
 .dot-p { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--ink); vertical-align: -1px; }
 .chess-score { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* ============================================================
+   Rànquing (ranking.js): finestra per sobre del joc
+   ============================================================ */
+.rank-overlay { position: fixed; inset: 0; z-index: 30; background: rgba(32, 24, 15, .45); display: flex; align-items: flex-end; justify-content: center;
+  padding: calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px); animation: rise .2s ease both; }
+.rank-sheet { width: min(100%, var(--maxw)); max-height: 100%; overflow: auto; background: var(--paper); border: 3px solid var(--ink);
+  border-radius: 22px; box-shadow: 0 6px 0 var(--ink); padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.rank-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.rank-head h2 { font-size: 26px; margin-top: 2px; }
+.rank-close { width: 44px; height: 44px; padding: 0; flex: none; }
+.rank-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
+.rank-tabs .btn { padding: 8px 6px; font-size: 15px; }
+.rank-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; min-height: 120px; }
+.rank-list li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: var(--paper-2); }
+.rank-list li.muted { background: none; justify-content: center; text-align: center; }
+.rank-list li.rank-me { background: var(--accent); color: var(--paper); }
+.rank-pos { font-family: var(--font-display); font-weight: 800; min-width: 2.6em; text-align: right; white-space: nowrap; }
+.rank-list li:nth-child(-n+3) .rank-pos::after { content: '🏆'; font-size: 12px; margin-left: 2px; }
+.rank-nom { flex: 1; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-pts { font-family: var(--font-display); font-weight: 800; }
+.rank-name { display: flex; flex-direction: column; gap: 6px; }
+.rank-name label { font-weight: 700; font-size: 14px; }
+.rank-name__row { display: flex; gap: 8px; }
+.rank-name__row input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); color: var(--ink); }
+.rank-name__row .btn { flex: none; width: auto; padding: 10px 16px; }
+.rank-name .muted { margin: 0; font-size: 13px; }
