@@ -1512,3 +1512,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .pc-last { stroke: #F2A900; }
 .pc-dot { fill: var(--ink); }
 .pc-ini { font-family: var(--font-display); font-weight: 800; font-size: 22px; fill: var(--paper); }
+/* marcadors curts dels jocs per a dos: un punt de color per jugador */
+.dot-p { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--ink); vertical-align: -1px; }
+.chess-score { min-width: 0; overflow: hidden; text-overflow: ellipsis; }

@@ -9,8 +9,9 @@
 
 const W = 300, H = 470, BR = 8, GOALS = 5;
 const STEP = 1000 / 60, SUB = 5;
-const FL = 70, FT = 7;                 // llargada i gruix de les paletes
-const REST = 0.5, UP = -0.42;          // angles (radiants) de la paleta de baix-esquerra
+// paletes més curtes i més caigudes: el forat del mig és prou ample perquè hi hagi gols
+const FL = 60, FT = 7;                 // llargada i gruix de les paletes
+const REST = 0.62, UP = -0.38;         // angles (radiants) de la paleta de baix-esquerra
 import { getRecord, setRecord } from './records.js';
 
 const KEY = 'flipers';
@@ -147,7 +148,7 @@ export default {
     function serve() {
       const a = (Math.random() - 0.5) * 0.9;
       const dir = s.toward === 0 ? 1 : -1;
-      s.ball = { x: W / 2, y: H / 2, vx: 4.2 * Math.sin(a), vy: dir * 4.2 * Math.cos(a) };
+      s.ball = { x: W / 2, y: H / 2, vx: 5 * Math.sin(a), vy: dir * 5 * Math.cos(a) };
       s.wait = 70;
     }
 
@@ -248,9 +249,10 @@ export default {
       // velocitat entre 3,5 i 12 (mai s'atura, mai travessa res)
       const sp = Math.hypot(b.vx, b.vy);
       if (sp > 12) { b.vx *= 12 / sp; b.vy *= 12 / sp; }
-      else if (sp < 3.5) { const k = 3.5 / (sp || 1); b.vx = (b.vx || 0.5) * k; b.vy = (b.vy || 1) * k; }
+      else if (sp < 4.5) { const k = 4.5 / (sp || 1); b.vx = (b.vx || 0.5) * k; b.vy = (b.vy || 1) * k; }
       // que no quedi anant de costat a costat per sempre
-      if (Math.abs(b.vy) < 1.2) b.vy = b.vy < 0 ? -1.2 : 1.2;
+      // sempre avança cap a una porteria (si no, ronda pel mig i costa molt fer gol)
+      if (Math.abs(b.vy) < 2.8) b.vy = b.vy < 0 ? -2.8 : 2.8;
       // gol
       if (b.y > H + BR * 2 || b.y < -BR * 2) {
         const scorer = b.y > H ? 1 : 0;
@@ -282,7 +284,8 @@ export default {
     function renderScore() {
       const el = root.querySelector('#score');
       const [na, nb] = names();
-      if (el) el.textContent = `${na} ${s.score[0]} – ${s.score[1]} ${nb}`;
+      // curt (no ha de tapar el botó de la música): un punt de color per jugador
+      if (el) { el.innerHTML = `<span class="dot-p" style="background:${PLAYERS[0].c}"></span> ${s.score[0]} – ${s.score[1]} <span class="dot-p" style="background:${PLAYERS[1].c}"></span>`; el.setAttribute('aria-label', `${na} ${s.score[0]}, ${nb} ${s.score[1]}`); }
     }
 
     // ---------- dibuix ----------

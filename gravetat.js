@@ -69,6 +69,8 @@ export default {
     let cpu = getRecord(KEY + ':mode') !== '2p';
     let level = AI[getRecord(KEY + ':level')] ? getRecord(KEY + ':level') : 'normal';
     const names = () => (cpu ? ['Tu', 'Màquina'] : PLAYERS.map(p => p.name));
+    // marcador curt (no ha de tapar el botó de la música): un punt de color per jugador
+    const scoreHtml = () => `<span class="dot-p" style="background:${PLAYERS[0].c}"></span> ${wins[0]} – ${wins[1]} <span class="dot-p" style="background:${PLAYERS[1].c}"></span>`;
 
     function stop() {
       cancelAnimationFrame(raf); raf = 0;
@@ -111,7 +113,7 @@ export default {
       root.innerHTML = `
         <div class="chess-top">
           <button class="back" id="back">‹ Enrere</button>
-          <div class="chess-score" id="score">${names()[0]} ${wins[0]} – ${wins[1]} ${names()[1]}</div>
+          <div class="chess-score" id="score" aria-label="${names()[0]} ${wins[0]}, ${names()[1]} ${wins[1]}">${scoreHtml()}</div>
         </div>
         <div class="drac-board gv-board" id="board" style="--ar:${W / H}"><canvas id="cv" role="img" aria-label="Dos corredors, un a cada meitat"></canvas></div>
         <div id="endbox"></div>
@@ -309,7 +311,7 @@ export default {
       if (!root.isConnected) return;
       stop(); draw();
       const [na, nb] = names();
-      root.querySelector('#score').textContent = `${na} ${wins[0]} – ${wins[1]} ${nb}`;
+      root.querySelector('#score').innerHTML = scoreHtml();
       const w = s.winner;
       const title = w == null ? 'Empat!' : cpu ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : `Guanya el ${PLAYERS[w].name}!`;
       const box = root.querySelector('#endbox');
