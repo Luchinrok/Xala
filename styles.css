@@ -1421,3 +1421,31 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .rodola-board { width: min(100%, calc((100dvh - 225px) * 2 / 3)); margin: 0 auto; border: 3px solid var(--ink);
   border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow); touch-action: none; }
 .rodola-board canvas { display: block; cursor: crosshair; }
+
+/* ============================================================
+   El Drac i Trencamurs: tauler de dibuix que cap sense desplaçar
+   ============================================================ */
+.drac-board { width: min(100%, calc((100dvh - 240px) * var(--ar, .6667))); margin: 4px auto 0; border: 3px solid var(--ink);
+  border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow); touch-action: none; user-select: none; -webkit-user-select: none; }
+.drac-board canvas { display: block; }
+
+/* ============================================================
+   Petards amagats: caselles tapades (aixecades) i destapades (planes)
+   ============================================================ */
+.pt-board { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 3px; margin: 6px auto 0;
+  width: min(100%, calc(var(--cols) * 40px)); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.pt-cell { aspect-ratio: 1; min-width: 0; padding: 0; border: 2px solid var(--ink); border-radius: 7px; cursor: pointer;
+  background: var(--paper-2); box-shadow: 0 3px 0 var(--ink); font: inherit; font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(14px, 4.6vw, 20px); line-height: 1; color: var(--ink); display: flex; align-items: center; justify-content: center;
+  -webkit-touch-callout: none; }
+.pt-cell:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.pt-open { background: var(--paper); box-shadow: none; border-color: rgba(32, 24, 15, .18); transform: translateY(3px); }
+.pt-open:active { transform: translateY(3px); box-shadow: none; }
+.pt-n1 { color: #1F8A70; } .pt-n2 { color: var(--coral, #E4572E); } .pt-n3 { color: #9C2F14; }
+.pt-n4, .pt-n5, .pt-n6, .pt-n7, .pt-n8 { color: var(--ink); }
+.pt-flag { color: var(--coral, #E4572E); }
+.pt-wrong { text-decoration: line-through; }
+.pt-mine { background: var(--paper); box-shadow: none; transform: translateY(3px); }
+.pt-boom { background: var(--coral, #E4572E); }
+.pt-petard { width: 52%; height: 52%; border-radius: 50%; background: #FFC828; border: 2px solid var(--ink); position: relative; }
+.pt-petard::after { content: ''; position: absolute; width: 2px; height: 45%; background: var(--ink); right: 8%; top: -40%; transform: rotate(35deg); }

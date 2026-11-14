@@ -1,6 +1,6 @@
 # Xala!
 
-«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`, `mat2.js`, `traca.js`, `xifra.js`, `serp.js`, `rodola.js`…). Parla amb l'usuari en català.
+«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`, `mat2.js`, `traca.js`, `xifra.js`, `serp.js`, `drac.js`, `petards.js`, `trencamurs.js`, `rodola.js`…). Parla amb l'usuari en català.
 
 ## On viu i com es publica
 
@@ -11,8 +11,8 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v123`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
-- **Proves:** `npm test` (motor d'escacs i els 450 problemes de Mat en 2) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v124`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Proves:** `npm test` (motor d'escacs, els problemes de Mat en 2, Petards amagats…) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
 - **Marca:** corall `#E4572E` sobre crema, estil de festa major (ombres «enfonsables», fons de punts). És el caràcter de l'app: no treure'l en nom de la sobrietat. Lletres: Bricolage (títols) i Hanken Grotesk (text); els botons han d'heretar la lletra (`font: inherit`).
@@ -53,3 +53,4 @@
 - 14-11-2026 (publicat): música de fons a tota l'app (`musica.js`, Web Audio): comença amb el primer toc i es pot apagar amb el botó ♪ de la portada i de les graelles (es guarda a `xala:musica`; text a `i18n.js`, `music.toggle`). **Fes-la caure tret de l'app** (l'usuari: no s'acosta prou a Brain It On). El codi es queda al repo per reprendre'l: per tornar-lo a posar, afegir `rodola` a `SOLO_GAMES` a `app.js` i els fitxers `rodola*.js` i `vendor/matter.min.js` a `ASSETS`.
 - 14-11-2026 (publicat): el botó ♪ també dins de cada joc (`.music-btn--game`, fora de `root` perquè els jocs reescriuen la pantalla), a dalt a la dreta; `.chess-top` i `.play__top` deixen 54 px a la dreta perquè no tapi el marcador. Revisat a tots els jocs a 360 px.
 - 14-11-2026 (publicat): capçaleres que no marxen en desplaçar. A les graelles de jocs, `.topbar` (Enrere i ♪) fixa a dalt i `.footbar` («Com es juga?») fixa a baix; dins dels jocs i a l'ajuda, el botó d'Enrere (o la `.chess-top`) es queda a dalt, amb una franja de paper darrere (al botó sol, amb ombres de color de paper: un `::before` li tapava el fons) i el ♪ és `position: fixed`. Escacs a 2 jugadors: les negres surten cap per avall (`rotate`, que no trepitja les animacions), també el diàleg de coronar. Escacs i dames marquen en groc l'última jugada (`sq--last`, `.dm-cell.last`; a dames, tot el camí dels salts).
+- 14-11-2026 (publicat): tres jocs típics a Un sol jugador, amb nom i aspecte propis (no còpies): El Drac (`drac.js`, del tipus «toca per volar»: un drac de correfoc passa entre torres; tres dificultats, rècord), Petards amagats (`petards.js` + `petards-motor.js`, del tipus buscamines: el primer toc és segur, mantenir el dit o «Marca» posa bandera, tocar un número amb les banderes fetes obre el voltant; rècord de temps; `petards.test.mjs`) i Trencamurs (`trencamurs.js`, del tipus pala i maons: tres vides, maons foscos de dos tocs, cada mur net en surt un de més dur). L'usuari havia demanat «el Flappy Bird»: no es copia cap joc concret.

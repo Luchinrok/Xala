@@ -25,6 +25,9 @@ import mat2 from './mat2.js';
 import traca from './traca.js';
 import xifra from './xifra.js';
 import serp from './serp.js';
+import drac from './drac.js';
+import petards from './petards.js';
+import trencamurs from './trencamurs.js';
 import { createMusic } from './musica.js';
 import { t } from './i18n.js';
 
@@ -37,7 +40,7 @@ const gameInstructions = (g) => g.instructions || [];
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
 const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs];
 // Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
-const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp];
+const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs];
 
 // ---------- música de fons (tota l'app) ----------
 // Comença amb el primer toc (iOS només deixa sonar després d'un gest) i es pot
@@ -263,6 +266,12 @@ function glyph(id) {
     puntsicaixes:'<circle cx="10" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="20" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="30" r="2" fill="currentColor" stroke="none"/><path d="M10 10h10M10 20h10M10 10v10M20 10v10" fill="none" stroke-width="2.4"/>',
     // Fes-la caure: una pilota que cau cap a un cistell
     rodola:     '<circle cx="13" cy="11" r="6" fill="none" stroke-width="3"/><path d="M6 22l14 5" stroke-width="3"/><path d="M22 24h12l-2 12h-8z" fill="none" stroke-width="3"/>',
+    // El Drac: un drac amb una ala i espurnes
+    drac:       '<ellipse cx="19" cy="22" rx="10" ry="7" stroke-width="3"/><path d="M17 19l4-9 4 9" stroke-width="3"/><circle cx="29" cy="17" r="5" stroke-width="3"/><path d="M8 24l-4 2M8 28l-3 4" stroke-width="3"/>',
+    // Petards amagats: un petard amb la metxa i una bandera
+    petards:    '<circle cx="16" cy="24" r="9" stroke-width="3"/><path d="M21 16l4-5" stroke-width="3"/><path d="M28 34V8l8 4-8 4" stroke-width="3"/>',
+    // Trencamurs: maons, una pilota i la pala
+    trencamurs: '<rect x="6" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="22" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="14" y="16" width="12" height="6" rx="1" stroke-width="2.5"/><circle cx="20" cy="27" r="2.5"/><path d="M11 33h18" stroke-width="4"/>',
     // La Serp: una serp en S amb un ull
     serp:       '<path d="M30 9H14a5 5 0 0 0 0 10h12a5 5 0 0 1 0 10H8" fill="none" stroke-width="4"/><circle cx="30" cy="9" r="3"/><circle cx="34" cy="30" r="2.4"/>',
     // La Xifra: una fitxa amb un signe de més i un número petit
