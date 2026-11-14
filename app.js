@@ -30,6 +30,7 @@ import petards from './petards.js';
 import trencamurs from './trencamurs.js';
 import macedonia from './macedonia.js';
 import gravetat from './gravetat.js';
+import flipers from './flipers.js';
 import pinzellada from './pinzellada.js';
 import { createMusic } from './musica.js';
 import { t } from './i18n.js';
@@ -41,7 +42,7 @@ const gameInstructions = (g) => g.instructions || [];
 
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
-const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat];
+const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers];
 // Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
 const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada];
 
@@ -275,9 +276,11 @@ function glyph(id) {
     petards:    '<circle cx="16" cy="24" r="9" stroke-width="3"/><path d="M21 16l4-5" stroke-width="3"/><path d="M28 34V8l8 4-8 4" stroke-width="3"/>',
     // Totxos (trencamurs): maons, una pilota i la pala
     trencamurs: '<rect x="6" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="22" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="14" y="16" width="12" height="6" rx="1" stroke-width="2.5"/><circle cx="20" cy="27" r="2.5"/><path d="M11 33h18" stroke-width="4"/>',
+    // Flipers: dues paletes i una bola
+    flipers:    '<path d="M6 30l11 4M34 30l-11 4" stroke-width="5"/><circle cx="20" cy="15" r="5" stroke-width="3"/><circle cx="9" cy="8" r="3"/><circle cx="31" cy="10" r="3"/>',
     // Gira la gravetat: un corredor entre terra i sostre, amb fletxes amunt i avall
     gravetat:   '<path d="M5 8h30M5 32h30" stroke-width="4"/><rect x="14" y="21" width="9" height="9" rx="2" stroke-width="3"/><path d="M29 24V14m-3 3 3-3 3 3" stroke-width="3"/>',
-    // Fruites (macedonia): dues fruites, una de petita i una de grossa, amb full
+    // Macedònia: dues fruites, una de petita i una de grossa, amb full
     macedonia:  '<circle cx="14" cy="27" r="6" stroke-width="3"/><circle cx="26" cy="20" r="10" stroke-width="3"/><path d="M26 10c2-4 6-5 8-4-1 3-4 5-8 4z" stroke-width="2.5"/>',
     // Pinzellada: un laberint amb una bola i el rastre pintat
     pinzellada: '<rect x="6" y="6" width="28" height="28" rx="3" stroke-width="3"/><path d="M12 28V13h16v12" stroke-width="4"/><circle cx="28" cy="27" r="3"/>',
@@ -409,9 +412,10 @@ function renderGameGrid(grid, games, back) {
     card.className = 'card' + (game.ready ? '' : ' locked') + (dark ? ' card--dark' : '');
     card.style.setProperty('--c', cardColor);
     // mida del títol limitada per l'amplada de la targeta: la paraula més
-    // llarga hi ha de cabre sencera (unes 0,56 em per lletra en Bricolage)
+    // llarga hi ha de cabre sencera, amb marge (unes 0,64 em per lletra en
+    // Bricolage; amb 0,56 «Macedònia» es partia en alguns mòbils)
     const longest = Math.max(...gameTitle(game).split(/ +/).map(w => w.length));
-    card.style.setProperty('--fit', (100 / (longest * 0.56)).toFixed(1) + 'cqi');
+    card.style.setProperty('--fit', (100 / (longest * 0.64)).toFixed(1) + 'cqi');
     card.innerHTML = `
       ${game.ready ? '' : `<span class="badge">${t('soon')}</span>`}
       <span>${glyph(game.id)}</span>

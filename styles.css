@@ -1496,3 +1496,5 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 
 /* Gira la gravetat: les dues meitats caben senceres */
 .gv-board { width: min(100%, calc((100dvh - 190px) * var(--ar))); }
+/* Flipers: la taula sencera a la pantalla */
+.fp-board { width: min(100%, calc((100dvh - 150px) * var(--ar))); }

@@ -1,6 +1,6 @@
 # Xala!
 
-«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`, `mat2.js`, `traca.js`, `xifra.js`, `serp.js`, `drac.js`, `petards.js`, `trencamurs.js` (Totxos), `macedonia.js` (Fruites), `pinzellada.js`, `gravetat.js`, `rodola.js`…). Parla amb l'usuari en català.
+«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`, `mat2.js`, `traca.js`, `xifra.js`, `serp.js`, `drac.js`, `petards.js`, `trencamurs.js` (Totxos), `macedonia.js`, `pinzellada.js`, `gravetat.js`, `flipers.js`, `rodola.js`…). Parla amb l'usuari en català.
 
 ## On viu i com es publica
 
@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v130`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v131`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs, els problemes de Mat en 2, Petards amagats…) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -60,3 +60,4 @@
 - 14-11-2026 (publicat): Macedònia desa la partida (`xala:macedonia:partida`: fruites, punts, la fruita actual i la següent) cada segon i mig, en sortir i en amagar l'app; a l'inici surt «Continuar partida» / «Nova partida», com a Encaixa!.
 - 14-11-2026 (publicat): el plafó del final és una targeta tancada (vora a tot el voltant, ombra enfonsable) que flota a baix, no una làmina oberta per sota.
 - 14-11-2026 (publicat): Pinzellada amb quatre dificultats (Fàcil 1-30, Mitjà 31-80, Difícil 81-150, Expert 151-300; `TIERS` a `pinzellada-motor.js`), es pot anar directament a qualsevol. Les altes proven uns quants laberints i es queden el que menys resol algú que llisca a l'atzar (`luck`): les trampes fan la dificultat, no la mida. Macedònia es diu ara **Fruites** (fitxer i rècords continuen sent `macedonia`). Als plafons del final, «Tornar a l'inici» és ara «Sortir» i els botons no es parteixen en dues línies. Joc nou per a dos: **Gira la gravetat** (`gravetat.js`): mòbil pla a la taula, cadascú la seva meitat (la de dalt girada), el mateix recorregut per als dos, toca per girar la gravetat; recompte de rondes. Pendent: Flipers (pinball per a 2).
+- 14-11-2026 (publicat): joc nou per a dos **Flipers** (`flipers.js`, pinball cara a cara): dues paletes per jugador, toca la meitat esquerra o dreta de la teva zona; gol si la bola s'escapa per entre les paletes de l'altre; a 5 gols. Física pròpia (càpsules i cercles, 5 subpassos, velocitat entre 3,5 i 12; la paleta que gira empeny amb ω × r). La taula és simètrica i el centre queda lliure per al servei. Macedònia torna a dir-se **Macedònia** (l'usuari): els títols de les targetes es calculen a 0,64 em per lletra (amb 0,56 «Macedònia» es partia en alguns mòbils); comprovat a 320, 360 i 412 px.
