@@ -1,5 +1,5 @@
 // ============================================================
-// Trencamurs — joc d'un sol jugador (del tipus «pala i maons»).
+// Totxos — joc d'un sol jugador (fitxer trencamurs.js; es deia Trencamurs) (del tipus «pala i maons»).
 //
 // Mou la pala amb el dit perquè la pilota no caigui i rebota-la contra el mur
 // fins que no en quedi cap maó. Els maons foscos s'han de tocar dues vegades.
@@ -21,7 +21,7 @@ const ROWCOL = ['#E4572E', '#FFC828', '#1F8A70', '#E4572E', '#FFC828', '#1F8A70'
 
 export default {
   id: 'trencamurs',
-  title: 'Trencamurs',
+  title: 'Totxos',
   tagline: 'Rebota la pilota i trenca el mur',
   accent: '#E4572E',
   color: 'var(--accent)',
@@ -57,7 +57,7 @@ export default {
       stop();
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
-        <p class="kicker">Trencamurs</p>
+        <p class="kicker">Totxos</p>
         <h2 style="font-size:30px;margin:6px 0 22px">Rebota la pilota i trenca el mur</h2>
         <p class="label" style="margin:0 0 12px">Dificultat</p>
         <div class="btn-row" id="levels">

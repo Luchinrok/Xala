@@ -1449,3 +1449,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .pt-boom { background: var(--coral, #E4572E); }
 .pt-petard { width: 52%; height: 52%; border-radius: 50%; background: #FFC828; border: 2px solid var(--ink); position: relative; }
 .pt-petard::after { content: ''; position: absolute; width: 2px; height: 45%; background: var(--ink); right: 8%; top: -40%; transform: rotate(35deg); }
+
+/* Macedònia: la cadena de fruites, de la petita a la grossa */
+.mc-chain { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
+.mc-dot { width: var(--s); height: var(--s); border-radius: 50%; background: var(--c); border: 2px solid var(--ink); }
