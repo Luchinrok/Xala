@@ -300,7 +300,6 @@ export default {
         </div>`;
       box.querySelector('#again').onclick = begin;
       box.querySelector('#home').onclick = leave;
-      box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
 
     screenConfig();

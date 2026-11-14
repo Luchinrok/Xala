@@ -1453,3 +1453,28 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* Macedònia: la cadena de fruites, de la petita a la grossa */
 .mc-chain { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
 .mc-dot { width: var(--s); height: var(--s); border-radius: 50%; background: var(--c); border: 2px solid var(--ink); }
+
+/* ============================================================
+   Final de partida: un plafó fix a baix, sempre a la vista (sense haver de
+   desplaçar per trobar «Una altra»). Serveix per a tots els jocs que posen el
+   resultat a #endbox o #result sota el tauler.
+   ============================================================ */
+.screen #endbox:not(:empty), .screen #result:not(:empty) {
+  position: fixed; z-index: 8; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: min(100%, var(--maxw)); max-height: 62vh; overflow: auto;
+  padding: 12px 18px calc(env(safe-area-inset-bottom) + 14px); margin: 0 !important;
+  background: var(--paper); border: 3px solid var(--ink); border-bottom: 0; border-radius: 22px 22px 0 0;
+  box-shadow: 0 -6px 0 rgba(32, 24, 15, .10); animation: sheetUp .28s ease both;
+}
+@keyframes sheetUp { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+.screen #endbox .panel, .screen #result .panel { margin-top: 0 !important; padding: 2px 0 0; border: 0; box-shadow: none; background: none; }
+.screen #endbox h2, .screen #result h2 { font-size: 24px !important; }
+/* botons de dos en dos (el darrer, si queda sol, a tota l'amplada); textos a tota l'amplada */
+.screen #endbox .stack, .screen #result .stack, .screen #result.stack {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px !important; }
+.screen #endbox .stack > :not(button), .screen #result .stack > :not(button), .screen #result.stack > :not(button),
+.screen #endbox .stack > button:last-of-type:nth-of-type(odd), .screen #result .stack > button:last-of-type:nth-of-type(odd),
+.screen #result.stack > button:last-of-type:nth-of-type(odd) { grid-column: 1 / -1; }
+.screen #endbox .btn, .screen #result .btn { padding-top: 12px; padding-bottom: 12px; font-size: 17px; }
+.screen #endbox .panel p, .screen #result p { margin: 0; }
+@media (prefers-reduced-motion: reduce) { .screen #endbox:not(:empty), .screen #result:not(:empty) { animation: none; } }
