@@ -14,6 +14,7 @@
 
 import GENERATS from './rodola-generats.js';
 import ORDRE from './rodola-ordre.js';
+import AMA from './rodola-ama.js';
 
 const line = (x1, y1, x2, y2, n = 12) =>
   Array.from({ length: n + 1 }, (_, i) => [x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n]);
@@ -80,8 +81,9 @@ export const BASE = [
   },
 ];
 
-// Tots: els fets a mà i els generats amb tools/rodola-genera.mjs.
-const ALL = [...BASE, ...GENERATS];
+// Tots: els fets a mà, els generats amb tools/rodola-genera.mjs i els trencaclosques
+// dissenyats a mà (rodola-ama.js).
+const ALL = [...BASE, ...GENERATS, ...AMA];
 
 // Ordre de joc, de més fàcil a més difícil (rodola-ordre.js, fet amb
 // tools/rodola-ordena.mjs). Un nivell que no hi surti va al final.

@@ -1372,6 +1372,13 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* touch-action: none: dibuixar no ha de fer desplaçar la pàgina */
 /* tauler, estat i botons caben sempre sense desplaçar */
 .rodola-top .back { margin-bottom: 8px; }
+.rodola-top__right { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+/* botó de la música: rodó, amb ombra enfonsable; apagat, esvaït i ratllat */
+.rodola-music { font: inherit; font-weight: 800; font-size: 20px; line-height: 1; width: 44px; height: 44px;
+  border: 3px solid var(--ink); border-radius: 999px; background: var(--paper); color: var(--ink);
+  box-shadow: 0 3px 0 var(--ink); cursor: pointer; padding: 0; }
+.rodola-music:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.rodola-music[aria-pressed="false"] { opacity: .45; text-decoration: line-through; }
 /* sempre dues línies d'alt: si el text canvia, el tauler no es mou mentre dibuixes */
 .rodola-status { height: 2.6em; margin: 0 0 4px; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 700; font-size: 15px; color: var(--ink-soft); line-height: 1.3; overflow: hidden; }
 .rodola-status--win { color: var(--accent); }

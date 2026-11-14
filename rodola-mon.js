@@ -13,6 +13,7 @@ export const CUP_W = 64;     // amplada de dins del cistell
 export const CUP_H = 56;     // alçada de les parets
 export const STEP_MS = 1000 / 60;
 export const STROKE_TOL = 5; // com s'allunya, com a molt, la física del traç dibuixat
+export const CLOSED_TOL = 1.5; // el mateix, per als traços tancats (rodes)
 
 // Un segment [x1, y1, x2, y2, gruix] convertit en rectangle.
 function segment(Bodies, [x1, y1, x2, y2, th = 14], opts) {
@@ -190,7 +191,12 @@ export function buildWorld(Matter, level) {
   function addStroke(points) {
     if (state === 'won' || state === 'lost') return null;
     const raw = clean(points);
-    const pts = simplify(raw, STROKE_TOL);
+    // traç gairebé tancat (una roda, un quadrat): es tanca i es simplifica poc,
+    // perquè una roda feta a mà rodoli de debò i no faci sots com un hexàgon
+    const closed = raw.length > 8 && Math.hypot(raw[0][0] - raw[raw.length - 1][0], raw[0][1] - raw[raw.length - 1][1]) < 24
+      && raw.reduce((m, [x, y]) => Math.max(m, Math.hypot(x - raw[0][0], y - raw[0][1])), 0) > 30;
+    if (closed) raw.push([...raw[0]]);
+    const pts = simplify(raw, closed ? CLOSED_TOL : STROKE_TOL);
     if (!pts.length) return null;
     const opts = { friction: 1, frictionStatic: 10, restitution: 0.05, density: 0.003 };
     const parts = [];
@@ -202,6 +208,14 @@ export function buildWorld(Matter, level) {
     }
     const body = parts.length === 1 ? parts[0] : Body.create({ parts, ...opts });
     body.label = 'stroke';
+    // Matter suma la inèrcia de cada peça sense comptar on és: una roda (peces
+    // lluny del centre) giraria com una baldufa. Es calcula bé (Steiner).
+    // (només a les rodes: un traç tancat que, simplificat com un de normal, encara té
+    // 6 cantons o més; els quadrats que fan de pes es queden com sempre)
+    if (closed && simplify(raw, STROKE_TOL).length >= 7) {
+      const I = parts.reduce((t, p) => t + p.inertia + p.mass * ((p.position.x - body.position.x) ** 2 + (p.position.y - body.position.y) ** 2), 0);
+      Body.setInertia(body, I);
+    }
     // la forma dibuixada, en coordenades del cos (gira i cau amb ell)
     const c = Math.cos(-body.angle), s = Math.sin(-body.angle), { x: px, y: py } = body.position;
     body.shape = raw.map(([x, y]) => [(x - px) * c - (y - py) * s, (x - px) * s + (y - py) * c]);
