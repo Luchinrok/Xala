@@ -317,7 +317,7 @@ export default {
         <div class="spacer"></div>
         <div class="stack" style="margin-top:18px">
           <button class="btn btn--accent" id="again">Una altra</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--outline" id="home">Sortir</button>
         </div>
       `;
       root.querySelector('#gallows').innerHTML = gallowsSVG(state.errors);

@@ -6,7 +6,7 @@
 // de nivell. Els nivells surten de pinzellada-motor.js (sempre tenen solució).
 // ============================================================
 
-import { makeLevel, newGame, move, won } from './pinzellada-motor.js';
+import { makeLevel, newGame, move, won, TIERS, tierOf } from './pinzellada-motor.js';
 import { getRecord, setRecord } from './records.js';
 
 const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' };
@@ -29,7 +29,10 @@ export default {
   ],
 
   mount(root, { goHome }) {
-    let n = getRecord('pinzellada:nivell') || 1;
+    // on es va de cada dificultat: 'pinzellada:<id>' = el nivell següent per fer
+    const nextOf = (t) => Math.min(t.to, Math.max(t.from, getRecord('pinzellada:' + t.id) || (t.id === 'facil' ? getRecord('pinzellada:nivell') || 1 : t.from)));
+    let tier = TIERS.find(t => t.id === getRecord('pinzellada:tier')) || TIERS[0];
+    let n = nextOf(tier);
     let g = null, canvas = null, ctx = null, px = 0, colors = null;
     let anim = null; // { cells, i, t0 }
     let raf = 0;
@@ -41,25 +44,52 @@ export default {
     }
     function leave() { stop(); goHome(); }
 
+    // ---------- 1) tria de dificultat ----------
+    function screenConfig() {
+      stop();
+      root.innerHTML = `
+        <button class="back" id="back">‹ Enrere</button>
+        <p class="kicker">Pinzellada</p>
+        <h2 style="font-size:30px;margin:6px 0 22px">Llisca la bola i pinta tot el laberint</h2>
+        <p class="label" style="margin:0 0 12px">Dificultat</p>
+        <div class="pz-tiers" id="tiers">
+          ${TIERS.map(t => {
+            const done = nextOf(t) - t.from, total = t.to - t.from + 1;
+            return `<button class="btn ${tier.id === t.id ? 'btn--accent' : 'btn--outline'}" data-tier="${t.id}">${t.name}<small>${done} de ${total}</small></button>`;
+          }).join('')}
+        </div>
+        <p class="muted center" style="margin-top:12px">Nivell ${nextOf(tier) - tier.from + 1} de ${tier.name.toLowerCase()} · tauler de ${makeLevel(nextOf(tier)).cols}×${makeLevel(nextOf(tier)).rows}</p>
+        <div class="spacer"></div>
+        <button class="btn btn--accent" id="start" style="margin-top:28px">${nextOf(tier) > tier.from ? 'Continua' : 'Comença'}</button>
+      `;
+      root.querySelector('#back').onclick = leave;
+      root.querySelectorAll('[data-tier]').forEach(b => {
+        b.onclick = () => { tier = TIERS.find(t => t.id === b.dataset.tier); setRecord('pinzellada:tier', tier.id); screenConfig(); };
+      });
+      root.querySelector('#start').onclick = () => { n = nextOf(tier); begin(); };
+    }
+
+    // ---------- 2) un nivell ----------
     function begin() {
       stop();
+      tier = tierOf(n);
       const lv = makeLevel(n);
       g = newGame(lv);
       anim = null;
       root.innerHTML = `
         <div class="chess-top">
           <button class="back" id="back">‹ Enrere</button>
-          <div class="chess-score" id="score">Nivell ${n}</div>
+          <div class="chess-score" id="score">${tier.name} · ${n - tier.from + 1}</div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Llisca per moure la bola</p>
         <div class="pz-board" id="board" style="--ar:${lv.cols / lv.rows}"><canvas id="cv" role="img" aria-label="Laberint de ${lv.cols} per ${lv.rows}"></canvas></div>
         <div class="btn-row" id="controls" style="margin-top:14px">
           <button class="btn btn--outline" id="retry">Torna-hi</button>
-          ${n > 1 ? '<button class="btn btn--outline" id="prev">‹ Anterior</button>' : ''}
+          ${n > tier.from ? '<button class="btn btn--outline" id="prev">‹ Anterior</button>' : ''}
         </div>
         <div id="endbox"></div>
       `;
-      root.querySelector('#back').onclick = leave;
+      root.querySelector('#back').onclick = screenConfig;
       root.querySelector('#retry').onclick = begin;
       const prev = root.querySelector('#prev');
       if (prev) prev.onclick = () => { n--; begin(); };
@@ -158,23 +188,24 @@ export default {
     // ---------- nivell fet ----------
     function finish() {
       stop();
-      if (n + 1 > (getRecord('pinzellada:nivell') || 1)) setRecord('pinzellada:nivell', n + 1);
+      if (n + 1 > nextOf(tier) && n < tier.to) setRecord('pinzellada:' + tier.id, n + 1);
+      if (n === tier.to) setRecord('pinzellada:' + tier.id, tier.to + 1);
       setStatus('Tot pintat!');
       root.querySelector('#controls').style.display = 'none';
       const box = root.querySelector('#endbox');
       box.innerHTML = `
         <div class="panel center stack" style="--stack-gap:8px">
-          <h2 style="color:var(--accent)">Nivell ${n} fet!</h2>
+          <h2 style="color:var(--accent)">${n === tier.to ? `${tier.name}: tot fet!` : `Nivell ${n - tier.from + 1} fet!`}</h2>
           <p class="muted">${g.moves} ${g.moves === 1 ? 'lliscada' : 'lliscades'}</p>
         </div>
         <div class="stack">
-          <button class="btn btn--accent" id="next">Següent ›</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--accent" id="next">Següent</button>
+          <button class="btn btn--outline" id="home">Sortir</button>
         </div>`;
-      box.querySelector('#next').onclick = () => { n++; begin(); };
+      box.querySelector('#next').onclick = () => { n = Math.min(300, n + 1); if (n > tier.to && tierOf(n) !== tier) setRecord('pinzellada:tier', tierOf(n).id); begin(); };
       box.querySelector('#home').onclick = leave;
     }
 
-    begin();
+    screenConfig();
   },
 };

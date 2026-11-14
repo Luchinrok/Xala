@@ -1481,7 +1481,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .screen #endbox .stack > :not(button), .screen #result .stack > :not(button), .screen #result.stack > :not(button),
 .screen #endbox .stack > button:last-of-type:nth-of-type(odd), .screen #result .stack > button:last-of-type:nth-of-type(odd),
 .screen #result.stack > button:last-of-type:nth-of-type(odd) { grid-column: 1 / -1; }
-.screen #endbox .btn, .screen #result .btn { padding-top: 12px; padding-bottom: 12px; font-size: 17px; }
+.screen #endbox .btn, .screen #result .btn { padding: 12px 8px; font-size: 17px; white-space: nowrap; }
 .screen #endbox .panel p, .screen #result p { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .screen #endbox:not(:empty), .screen #result:not(:empty) { animation: none; } }
 
@@ -1489,3 +1489,10 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .pz-board { width: min(100%, calc((100dvh - 300px) * var(--ar, 1))); margin: 4px auto 0; border: 3px solid var(--ink);
   border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow); touch-action: none; user-select: none; -webkit-user-select: none; }
 .pz-board canvas { display: block; }
+/* Pinzellada: les quatre dificultats, de dues en dues, amb el progrés a sota */
+.pz-tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pz-tiers .btn { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.pz-tiers small { font-size: 12px; font-weight: 600; opacity: .75; }
+
+/* Gira la gravetat: les dues meitats caben senceres */
+.gv-board { width: min(100%, calc((100dvh - 190px) * var(--ar))); }

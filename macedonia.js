@@ -1,5 +1,5 @@
 // ============================================================
-// Macedònia — joc d'un sol jugador (del tipus «ajunta fruites»).
+// Fruites — joc d'un sol jugador (fitxer macedonia.js; es deia Macedònia) (del tipus «ajunta fruites»).
 //
 // Deixa caure fruites dins el bol. Quan dues d'iguals es toquen, s'ajunten en
 // la fruita següent, més grossa (i sumen punts). Si el bol s'omple per sobre
@@ -49,7 +49,7 @@ function loadMatter() {
 
 export default {
   id: 'macedonia',
-  title: 'Macedònia',
+  title: 'Fruites',
   tagline: 'Ajunta fruites iguals i fes-les créixer',
   accent: '#E4572E',
   color: 'var(--paper-2)',
@@ -82,7 +82,7 @@ export default {
       stop();
       root.innerHTML = `
         <button class="back" id="back">‹ Enrere</button>
-        <p class="kicker">Macedònia</p>
+        <p class="kicker">Fruites</p>
         <h2 style="font-size:30px;margin:6px 0 22px">Ajunta fruites iguals i fes-les créixer</h2>
         <div class="mc-chain" aria-label="De la cirera a la síndria">
           ${FRUITS.map(f => `<span class="mc-dot" style="--c:${f.c};--s:${Math.round(10 + f.r * 0.28)}px" title="${f.name}"></span>`).join('')}
@@ -335,7 +335,7 @@ export default {
         </div>
         <div class="stack" style="margin-top:14px;--stack-gap:12px">
           <button class="btn btn--accent" id="again">Una altra</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--outline" id="home">Sortir</button>
         </div>`;
       box.querySelector('#again').onclick = () => begin(null);
       box.querySelector('#home').onclick = leave;

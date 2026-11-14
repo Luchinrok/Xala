@@ -17,16 +17,59 @@ function rng(seed) {
   return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
 }
 
-// mida i nombre de lliscades segons el número de nivell (1, 2, 3...)
+// Quatre dificultats, cadascuna amb els seus nivells (vegeu pinzellada.js)
+export const TIERS = [
+  { id: 'facil', name: 'Fàcil', from: 1, to: 30 },
+  { id: 'mitja', name: 'Mitjà', from: 31, to: 80 },
+  { id: 'dificil', name: 'Difícil', from: 81, to: 150 },
+  { id: 'expert', name: 'Expert', from: 151, to: 300 },
+];
+export const tierOf = (n) => TIERS.find(t => n >= t.from && n <= t.to) || TIERS[TIERS.length - 1];
+
+// mida del tauler i nombre de lliscades segons el número de nivell
 export function sizeFor(n) {
-  const rows = Math.min(13, 7 + 2 * Math.floor((n - 1) / 6));
-  const cols = Math.min(11, 7 + 2 * Math.floor((n - 1) / 8));
-  return { rows, cols, moves: Math.min(40, 8 + n) };
+  if (n <= 30) return { rows: 7, cols: 7, moves: 8 + Math.floor(n / 6) };
+  if (n <= 80) return { rows: n > 55 ? 11 : 9, cols: 9, moves: 14 + Math.floor((n - 30) / 5) };
+  if (n <= 150) return { rows: n > 115 ? 13 : 11, cols: 11, moves: 25 + Math.floor((n - 80) / 5) };
+  return { rows: 15, cols: n > 220 ? 13 : 11, moves: Math.min(70, 40 + Math.floor((n - 150) / 5)) };
 }
 
+// Com de fàcil és: de 40 partides d'algú que llisca a l'atzar (sense tornar
+// enrere tot just), quantes acaben pintant-ho tot. Com menys, més trampes té.
+export function luck(level, runs = 40) {
+  const rnd = rng(level.n * 31 + 5);
+  const names = Object.keys(DIRS), back = { up: 'down', down: 'up', left: 'right', right: 'left' };
+  let ok = 0;
+  for (let k = 0; k < runs; k++) {
+    const g = newGame(level);
+    let lastD = null;
+    for (let m = 0; m < level.solution.length * 4 && !won(g); m++) {
+      const opts = names.filter(d => d !== (lastD && back[lastD]) && slide(level, g.pos[0], g.pos[1], d).length);
+      const pickFrom = opts.length ? opts : names.filter(d => slide(level, g.pos[0], g.pos[1], d).length);
+      if (!pickFrom.length) break;
+      lastD = pickFrom[Math.floor(rnd() * pickFrom.length)];
+      move(g, lastD);
+    }
+    if (won(g)) ok++;
+  }
+  return ok / runs;
+}
+
+// Les dificultats altes proven uns quants laberints i es queden el que té més trampes.
 export function makeLevel(n) {
+  const tries = n > 150 ? 8 : n > 80 ? 5 : n > 30 ? 2 : 1;
+  let best = null, bestLuck = 2;
+  for (let k = 0; k < tries; k++) {
+    const lv = makeOne(n, k * 1000);
+    const l = tries > 1 ? luck(lv) : 0;
+    if (l < bestLuck) { best = lv; bestLuck = l; }
+  }
+  return best;
+}
+
+function makeOne(n, salt) {
   const { rows, cols, moves } = sizeFor(n);
-  for (let attempt = 0; attempt < 200; attempt++) {
+  for (let attempt = salt; attempt < salt + 200; attempt++) {
     const rnd = rng(n * 7919 + attempt);
     const open = Array.from({ length: rows }, () => Array(cols).fill(false));
     const stop = Array.from({ length: rows }, () => Array(cols).fill(false)); // han de quedar paret

@@ -408,7 +408,7 @@ export default {
         <div class="stack" style="margin-top:16px">
           <button class="btn btn--accent" id="next">Següent problema</button>
           <button class="btn btn--outline" id="share2">Repta un amic</button>
-          <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+          <button class="btn btn--outline" id="home">Sortir</button>
         </div>
       `;
       box.querySelector('#next').onclick = () => {

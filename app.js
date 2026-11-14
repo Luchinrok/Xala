@@ -29,6 +29,7 @@ import drac from './drac.js';
 import petards from './petards.js';
 import trencamurs from './trencamurs.js';
 import macedonia from './macedonia.js';
+import gravetat from './gravetat.js';
 import pinzellada from './pinzellada.js';
 import { createMusic } from './musica.js';
 import { t } from './i18n.js';
@@ -40,7 +41,7 @@ const gameInstructions = (g) => g.instructions || [];
 
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
-const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs];
+const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat];
 // Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
 const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada];
 
@@ -274,7 +275,9 @@ function glyph(id) {
     petards:    '<circle cx="16" cy="24" r="9" stroke-width="3"/><path d="M21 16l4-5" stroke-width="3"/><path d="M28 34V8l8 4-8 4" stroke-width="3"/>',
     // Totxos (trencamurs): maons, una pilota i la pala
     trencamurs: '<rect x="6" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="22" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="14" y="16" width="12" height="6" rx="1" stroke-width="2.5"/><circle cx="20" cy="27" r="2.5"/><path d="M11 33h18" stroke-width="4"/>',
-    // Macedònia: dues fruites, una de petita i una de grossa, amb full
+    // Gira la gravetat: un corredor entre terra i sostre, amb fletxes amunt i avall
+    gravetat:   '<path d="M5 8h30M5 32h30" stroke-width="4"/><rect x="14" y="21" width="9" height="9" rx="2" stroke-width="3"/><path d="M29 24V14m-3 3 3-3 3 3" stroke-width="3"/>',
+    // Fruites (macedonia): dues fruites, una de petita i una de grossa, amb full
     macedonia:  '<circle cx="14" cy="27" r="6" stroke-width="3"/><circle cx="26" cy="20" r="10" stroke-width="3"/><path d="M26 10c2-4 6-5 8-4-1 3-4 5-8 4z" stroke-width="2.5"/>',
     // Pinzellada: un laberint amb una bola i el rastre pintat
     pinzellada: '<rect x="6" y="6" width="28" height="28" rx="3" stroke-width="3"/><path d="M12 28V13h16v12" stroke-width="4"/><circle cx="28" cy="27" r="3"/>',

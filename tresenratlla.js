@@ -345,7 +345,7 @@ export default {
       wrap.innerHTML = `
         <p class="muted center">${sub}</p>
         <button class="btn btn--accent" id="again">Una altra</button>
-        <button class="btn btn--outline" id="home">Tornar a l'inici</button>
+        <button class="btn btn--outline" id="home">Sortir</button>
       `;
       root.appendChild(wrap);
       root.querySelector('#again').onclick = beginGame;
