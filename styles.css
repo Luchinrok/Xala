@@ -1453,6 +1453,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* Macedònia: la cadena de fruites, de la petita a la grossa */
 .mc-chain { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
 .mc-dot { width: var(--s); height: var(--s); border-radius: 50%; background: var(--c); border: 2px solid var(--ink); }
+/* a la partida: la cadena sota el bol, en una pastilla; el que encara no tens, esvaït */
+.mc-board { width: min(100%, calc((100dvh - 300px) * var(--ar))); }
+.mc-chain--game { flex-wrap: nowrap; gap: 4px; margin: 10px auto 0; padding: 6px 10px; width: fit-content; max-width: 100%;
+  background: var(--paper-2); border-radius: 999px; }
+.mc-chain--game .mc-dot { opacity: .3; transition: opacity .3s; }
+.mc-chain--game .mc-dot--got { opacity: 1; }
 
 /* ============================================================
    Final de partida: un plafó fix a baix, sempre a la vista (sense haver de
@@ -1478,3 +1484,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .screen #endbox .btn, .screen #result .btn { padding-top: 12px; padding-bottom: 12px; font-size: 17px; }
 .screen #endbox .panel p, .screen #result p { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .screen #endbox:not(:empty), .screen #result:not(:empty) { animation: none; } }
+
+/* Pinzellada: el laberint cap sencer a la pantalla */
+.pz-board { width: min(100%, calc((100dvh - 300px) * var(--ar, 1))); margin: 4px auto 0; border: 3px solid var(--ink);
+  border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow); touch-action: none; user-select: none; -webkit-user-select: none; }
+.pz-board canvas { display: block; }

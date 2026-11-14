@@ -1,6 +1,6 @@
 # Xala!
 
-«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`, `mat2.js`, `traca.js`, `xifra.js`, `serp.js`, `drac.js`, `petards.js`, `trencamurs.js` (Totxos), `macedonia.js`, `rodola.js`…). Parla amb l'usuari en català.
+«Jocs de festa en català per jugar en grup»: PWA sense build (mòduls ES, HTML, CSS) amb una portada i molts jocs, cadascun al seu fitxer (`dames.js`, `escacs.js`, `connecta4.js`, `penjat.js`, `passaparaula.js`, `impostor.js`, `joc2048.js`, `memory.js`, `encaixa.js`, `bomba.js`, `endevinala.js`, `quiprobable.js`, `sopa.js`, `sudoku.js`, `vaixells.js`, `tresenratlla.js`, `aescena.js`, `mat2.js`, `traca.js`, `xifra.js`, `serp.js`, `drac.js`, `petards.js`, `trencamurs.js` (Totxos), `macedonia.js`, `pinzellada.js`, `rodola.js`…). Parla amb l'usuari en català.
 
 ## On viu i com es publica
 
@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v126`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v127`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs, els problemes de Mat en 2, Petards amagats…) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -56,3 +56,4 @@
 - 14-11-2026 (publicat): tres jocs típics a Un sol jugador, amb nom i aspecte propis (no còpies): El Drac (`drac.js`, del tipus «toca per volar»: un drac de correfoc passa entre torres; tres dificultats, rècord), Petards amagats (`petards.js` + `petards-motor.js`, del tipus buscamines: el primer toc és segur, mantenir el dit o «Marca» posa bandera, tocar un número amb les banderes fetes obre el voltant; rècord de temps; `petards.test.mjs`) i Trencamurs (`trencamurs.js`, del tipus pala i maons: tres vides, maons foscos de dos tocs, cada mur net en surt un de més dur). L'usuari havia demanat «el Flappy Bird»: no es copia cap joc concret.
 - 14-11-2026 (publicat): Trencamurs es diu ara **Totxos** (el nom era massa llarg; el fitxer i les claus de rècord continuen sent `trencamurs`). Joc nou **Macedònia** (`macedonia.js`, del tipus «ajunta fruites»): de la cirera a la síndria, física amb Matter.js (`vendor/matter.min.js` torna a ser a `ASSETS`); s'acaba si una fruita queda 2 s per sobre de la ratlla. Pendents que va demanar l'usuari: Pinzellada (del tipus Maze Paint), Gira la gravetat (2 jugadors) i Flipers (pinball per a 2).
 - 14-11-2026 (publicat): el final de partida ja no obliga a desplaçar: `#endbox` i `#result` (Drac, Petards, Serp, Totxos, Macedònia, Escacs, Mat en 2, Xifra, Connecta 4, Dames, Tres en ratlla) surten com un plafó fix a baix, amb els botons de dos en dos. Els jocs nous han de posar el final en un `#endbox` per aprofitar-ho.
+- 14-11-2026 (publicat): joc nou **Pinzellada** (`pinzellada.js` + `pinzellada-motor.js`, del tipus «pinta el laberint»): la bola llisca fins a la paret i pinta; nivells infinits amb llavor, fets fent lliscar la bola a l'atzar i obrint només per on passa (la casella on s'atura cada lliscada queda de paret), així sempre tenen solució; `pinzellada.test.mjs` en prova 300. Lliçó: el temps del primer fotograma de `requestAnimationFrame` pot ser anterior al `performance.now()` del toc: limitar a 0. Macedònia mostra l'evolució de les fruites sota el bol (les que encara no tens, esvaïdes).

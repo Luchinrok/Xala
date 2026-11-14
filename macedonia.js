@@ -113,7 +113,10 @@ export default {
           <div class="chess-score" id="score">0</div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Mou el dit i deixa anar per tirar</p>
-        <div class="drac-board" id="board" style="--ar:${W / H}"><canvas id="cv" role="img" aria-label="El bol de fruites"></canvas></div>
+        <div class="drac-board mc-board" id="board" style="--ar:${W / H}"><canvas id="cv" role="img" aria-label="El bol de fruites"></canvas></div>
+        <div class="mc-chain mc-chain--game" id="chain" aria-label="Evolució: de la cirera a la síndria">
+          ${FRUITS.map((f, i) => `<span class="mc-dot" data-i="${i}" style="--c:${f.c};--s:${Math.round(9 + f.r * 0.24)}px" title="${f.name}"></span>`).join('')}
+        </div>
         <div id="endbox"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
@@ -123,6 +126,7 @@ export default {
       const v = (n, d) => (css.getPropertyValue(n) || d).trim();
       colors = { paper: v('--paper', '#FBF3E4'), paper2: v('--paper-2', '#F4E8D2'), ink: v('--ink', '#20180F'), coral: v('--coral', '#E4572E') };
       wirePointer(root.querySelector('#board'));
+      markChain();
       document.addEventListener('keydown', onKey);
       window.addEventListener('resize', fit);
       fit();
@@ -180,12 +184,17 @@ export default {
           const n = fruit(lvl, x, y);
           M.Body.setVelocity(n, { x: 0, y: -1 });
           n.pop = 10;
-          s.biggest = Math.max(s.biggest, lvl);
+          if (lvl > s.biggest) { s.biggest = lvl; markChain(); }
         }
         s.score += lvl < FRUITS.length ? (lvl + 1) * (lvl + 2) / 2 : 100; // dues síndries: desapareixen i fan festa
         if (navigator.vibrate) navigator.vibrate(12);
       }
       if (s.pops.length) { root.querySelector('#score').textContent = s.score; s.merging.clear(); s.pops = []; }
+    }
+
+    // l'evolució de sota: les fruites ja aconseguides, plenes; les altres, esvaïdes
+    function markChain() {
+      root.querySelectorAll('#chain .mc-dot').forEach(d => d.classList.toggle('mc-dot--got', +d.dataset.i <= Math.max(4, s.biggest)));
     }
 
     function fit() {
