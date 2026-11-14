@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v134`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v135`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs, els problemes de Mat en 2, Petards amagats…) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -64,3 +64,4 @@
 - 14-11-2026 (publicat): **Punts i caixes** fet de debò (era un esborrany amb `ready: false` i no s'obria): `puntsicaixes.js` + `puntsicaixes-motor.js` + `puntsicaixes.test.mjs`; 1 jugador contra la màquina (Fàcil o Normal: tanca caixes, evita donar el tercer costat i, si no pot, regala el mínim) o 2 jugadors; mides 3×3, 4×4 i 5×5; ratlles en SVG amb zona de toc gruixuda; l'última ratlla en groc. Gira la gravetat i Flipers tenen mode 1 jugador contra la màquina (tres dificultats; a 1 jugador tota la pantalla és teva). A Gira la gravetat els forats es pinten vermells amb punxes i el terra té vora de color, perquè es distingeixin.
 - 14-11-2026 (publicat): marcadors curts a Flipers i Gira la gravetat (● 2 – 1 ●, amb `aria-label` complet): el text llarg tapava el botó ♪. Flipers: paletes de 60 (abans 70) i més caigudes (forat més ample), bola a 5 i velocitat vertical mínima de 2,8, perquè no rondi pel mig: sense tocar, ~4 gols cada 30 s (abans 2).
 - 14-11-2026 (publicat): Punts i caixes amb taulers rectangulars (`newGame(files, columnes)`): 3×3, 4×4, 5×5, 4×6, 5×8 i 5×10 (columnes × files, els llargs de dalt a baix); marcador curt amb punts de color.
+- 14-11-2026 (publicat): Punts i caixes: un toc traça la ratlla lliure més propera al dit (fins a mitja caixa), amb `getScreenCTM`; als taulers petits de pantalla (5×10, caixes de ~39 px) no cal encertar-la de ple.

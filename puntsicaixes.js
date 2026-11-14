@@ -85,10 +85,24 @@ export default {
         <div id="endbox"></div>
       `;
       root.querySelector('#back').onclick = screenConfig;
+      // Un toc traça la ratlla lliure més propera al dit (fins a mitja caixa de
+      // distància): als taulers petits de pantalla no cal encertar-la de ple.
       root.querySelector('#board').addEventListener('click', (e) => {
-        const ln = e.target.closest('[data-e]');
-        if (!ln || !interactive()) return;
-        move(JSON.parse(ln.dataset.e));
+        if (!interactive()) return;
+        const svg = root.querySelector('#board svg');
+        if (!svg) return;
+        const m = svg.getScreenCTM();
+        if (!m) return;
+        const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        let best = null, bestD = Infinity;
+        svg.querySelectorAll('[data-e]').forEach(g => {
+          const l = g.querySelector('line');
+          const x1 = +l.getAttribute('x1'), y1 = +l.getAttribute('y1'), x2 = +l.getAttribute('x2'), y2 = +l.getAttribute('y2');
+          const t = Math.max(0, Math.min(1, ((pt.x - x1) * (x2 - x1) + (pt.y - y1) * (y2 - y1)) / ((x2 - x1) ** 2 + (y2 - y1) ** 2)));
+          const d = Math.hypot(pt.x - (x1 + (x2 - x1) * t), pt.y - (y1 + (y2 - y1) * t));
+          if (d < bestD) { bestD = d; best = g; }
+        });
+        if (best && bestD < 30) move(JSON.parse(best.dataset.e));
       });
       render();
     }
