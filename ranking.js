@@ -71,7 +71,21 @@ if (typeof window !== 'undefined') {
   setTimeout(flush, 3000);
 }
 
-export async function fetchTop(joc, variant, limit = 30) {
+const filt = (joc, variant) => `joc=eq.${encodeURIComponent(joc)}&variant=eq.${encodeURIComponent(variant || '')}`;
+
+// La meva millor puntuació (pel nom) i la meva posició: 1 + quants en tenen més.
+export async function fetchMine(joc, variant, name) {
+  if (!name) return null;
+  const res = await fetch(`${URL}/millors?select=nom,punts&${filt(joc, variant)}&nom=eq.${encodeURIComponent(name)}&order=punts.desc&limit=1`, { headers: { apikey: KEY } });
+  if (!res.ok) return null;
+  const [me] = await res.json();
+  if (!me) return null;
+  const c = await fetch(`${URL}/millors?select=nom&${filt(joc, variant)}&punts=gt.${me.punts}`, { headers: { apikey: KEY, Prefer: 'count=exact', Range: '0-0' } });
+  const total = +((c.headers.get('Content-Range') || '').split('/')[1]);
+  return { ...me, pos: Number.isFinite(total) ? total + 1 : null };
+}
+
+export async function fetchTop(joc, variant, limit = 10) {
   const q = `select=nom,punts&joc=eq.${encodeURIComponent(joc)}&variant=eq.${encodeURIComponent(variant || '')}&order=punts.desc,creat.asc&limit=${limit}`;
   const res = await fetch(`${URL}/millors?${q}`, { headers: { apikey: KEY } });
   if (!res.ok) throw new Error('rànquing ' + res.status);
@@ -122,10 +136,14 @@ export function openRanking({ joc, title, variants = [], variant, fmt = (p) => p
     };
     const list = box.querySelector('#rk-list');
     try {
-      const rows = await fetchTop(joc, cur);
+      // els 10 primers i, si no hi ets, la teva posició a sota
+      const [rows, mine] = await Promise.all([fetchTop(joc, cur, 10), fetchMine(joc, cur, name).catch(() => null)]);
       if (!box.isConnected) return;
+      const row = (pos, r, me) => `<li class="${me ? 'rank-me' : ''}"><span class="rank-pos">${pos ?? '–'}</span><span class="rank-nom">${esc(r.nom)}</span><span class="rank-pts">${esc(fmt(r.punts))}</span></li>`;
+      const inTop = rows.some(r => r.nom === name);
       list.innerHTML = rows.length
-        ? rows.map((r, i) => `<li class="${r.nom === name ? 'rank-me' : ''}"><span class="rank-pos">${i + 1}</span><span class="rank-nom">${esc(r.nom)}</span><span class="rank-pts">${esc(fmt(r.punts))}</span></li>`).join('')
+        ? rows.map((r, i) => row(i + 1, r, r.nom === name)).join('')
+          + (mine && !inTop ? `<li class="rank-gap" aria-hidden="true">···</li>${row(mine.pos, mine, true)}` : '')
         : '<li class="muted">Encara no hi ha ningú. Sigues el primer!</li>';
     } catch (e) {
       if (box.isConnected) list.innerHTML = '<li class="muted">Sense connexió: el rànquing es veu quan hi ha internet.</li>';

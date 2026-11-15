@@ -298,6 +298,9 @@ function glyph(id) {
   return `<svg class="glyph" aria-hidden="true" viewBox="0 0 40 40" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">${g}</svg>`;
 }
 
+// quants jocs hi ha a cada opció (només els que ja es poden jugar): es compten sols
+const count = (games) => games.filter(g => g.ready).length;
+
 // ---------- pantalla inicial: tria de mode ----------
 function goLanding() {
   setLevel({ landing: true });
@@ -315,15 +318,15 @@ function goLanding() {
     <div class="modes">
       <button class="mode-card" id="mode-mp" style="--c:var(--paper-2)">
         <span>${glyph('multi')}</span>
-        <div><h3>Multijugador</h3><p>Els 6 jocs de festa: passa el mòbil i a riure.</p></div>
+        <div><h3>Multijugador</h3><p>Els ${count(PARTY_GAMES)} jocs de festa: passa el mòbil i a riure.</p></div>
       </button>
       <button class="mode-card" id="mode-duo" style="--c:var(--accent)">
         <span>${glyph('duo')}</span>
-        <div><h3>Dos jugadors</h3><p>6 jocs per a dos, un contra un.</p></div>
+        <div><h3>Dos jugadors</h3><p>${count(DUO_GAMES)} jocs per a dos, un contra un.</p></div>
       </button>
       <button class="mode-card" id="mode-sp" style="--c:var(--paper-2)">
         <span>${glyph('solo')}</span>
-        <div><h3>Un sol jugador</h3><p>${SOLO_GAMES.length} jocs per a tu sol, quan vulguis.</p></div>
+        <div><h3>Un sol jugador</h3><p>${count(SOLO_GAMES)} jocs per a tu sol, quan vulguis.</p></div>
       </button>
     </div>
   `;

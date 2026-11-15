@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 14-11-2026 és `xala-v136`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 15-11-2026 és `xala-v137`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs, els problemes de Mat en 2, Petards amagats…) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
@@ -66,3 +66,4 @@
 - 14-11-2026 (publicat): Punts i caixes amb taulers rectangulars (`newGame(files, columnes)`): 3×3, 4×4, 5×5, 4×6, 5×8 i 5×10 (columnes × files, els llargs de dalt a baix); marcador curt amb punts de color.
 - 14-11-2026 (publicat): Punts i caixes: un toc traça la ratlla lliure més propera al dit (fins a mitja caixa), amb `getScreenCTM`; als taulers petits de pantalla (5×10, caixes de ~39 px) no cal encertar-la de ple.
 - 14-11-2026 (publicat): **rànquing general** (`ranking.js`) a El Drac, La Serp, Totxos, Macedònia, 2048, Encaixa! i Petards amagats (aquest pel temps: es desa 100000 − segons). Supabase (projecte de l'usuari, `https://fpnzlfxlpjovldlrxtav.supabase.co`, clau *publishable*, pública): taula `punts` (joc, variant, nom 2-16, aparell, punts) amb RLS (llegir i afegir per a anon) i vista `millors` (la millor de cada mòbil per joc i variant). Sense nom o sense xarxa, la puntuació queda a `xala:pendents` i s'envia en tornar la xarxa o en posar nom (`xala:nom`); `xala:aparell` és un identificador a l'atzar. El service worker no toca les peticions a `supabase.co` (si no, serviria el rànquing vell de la memòria cau). Els noms lletjos s'esborren al panell de Supabase (Table Editor → punts). Hi ha una fila de prova (joc `prova`, «Proves Xala») que es pot esborrar. Xala ja funcionava sense connexió (comprovat tallant la xarxa a la web publicada).
+- 15-11-2026 (publicat): el rànquing mostra els 10 primers i, si no hi ets, «···» i la teva posició (`fetchMine`: la teva millor pel nom; posició = 1 + recompte de `punts=gt.` amb `Prefer: count=exact`, capçalera `Content-Range`). La portada compta sola els jocs de cada opció (només els `ready`): 6 de festa, 8 per a dos, 15 per a un.
