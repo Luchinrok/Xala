@@ -55,7 +55,8 @@ Jocs → **Casual** (alternativa: Trivial / Paraules).
 |---|---|---|
 | Icona de l'app | `../icon-512.png` | 512 × 512 |
 | Imatge destacada | `destacada.png` | 1024 × 500 |
-| Captures de telèfon (2 a 8) | `captura-1.png` … `captura-8.png` | 1080 × 1920 |
+| Captures de telèfon (2 a 8) — **puja aquestes** | `botiga-1.png` … `botiga-8.png` (amb títol i marc) | 1080 × 1920 |
+| Captures sense marc (per si de cas) | `captura-1.png` … `captura-8.png` | 1080 × 1920 |
 
 ## Respostes per als qüestionaris
 

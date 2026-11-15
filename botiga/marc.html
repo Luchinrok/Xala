@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <title>Captura de botiga · Xala!</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    /* Plantilla de captura per a Google Play: 1080 × 1920 (es renderitza a 360 × 640 × 3).
+       ?n=1..8 tria la captura i el títol. */
+    html, body { margin: 0; width: 360px; height: 640px; overflow: hidden; }
+    body { background: var(--bg, #FBF3E4); background-image: radial-gradient(rgba(32,24,15,.10) 1.2px, transparent 1.2px); background-size: 14px 14px; }
+    .t { position: absolute; top: 34px; left: 22px; right: 22px; text-align: center; }
+    .t h1 { font-family: var(--font-display); font-weight: 800; font-size: 31px; line-height: 1.02; letter-spacing: -0.02em; color: var(--fg, #20180F); margin: 0; }
+    .t p { margin: 8px 0 0; font-size: 15px; font-weight: 600; color: var(--fg2, #6A5A48); }
+    .ph { position: absolute; left: 50%; top: 150px; width: 252px; height: 448px; transform: translateX(-50%);
+      border: 5px solid #20180F; border-radius: 30px; overflow: hidden; background: #FBF3E4; box-shadow: 0 8px 0 #20180F; }
+    .ph img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+    .flags { position: absolute; top: 0; left: 0; width: 360px; height: 24px; }
+  </style>
+</head>
+<body>
+  <svg class="flags" viewBox="0 0 360 24"><path d="M0 4 Q180 20 360 4" stroke="#20180F" stroke-width="1.2" fill="none"/></svg>
+  <div class="t"><h1 id="h"></h1><p id="s"></p></div>
+  <div class="ph"><img id="img" alt=""></div>
+  <script>
+    const T = [
+      ['Jocs de festa en català', 'Amb la colla, cara a cara o tu sol', 'cream'],
+      ['15 jocs per jugar sol', 'Sense anuncis i sense connexió', 'coral'],
+      ['Toca per volar', 'El Drac, entre torres i banderoles', 'cream'],
+      ['Ajunta les fruites', 'De la cirera a la síndria', 'coral'],
+      ['Pinta tot el laberint', 'Quatre dificultats, fins a Expert', 'cream'],
+      ['Escacs per a dos', 'O contra la màquina', 'coral'],
+      ['Cara a cara', 'Flipers amb el mòbil a la taula', 'cream'],
+      ['Fes paraules', 'Central, valencià o balear', 'coral'],
+    ];
+    const n = Math.max(1, Math.min(8, +new URLSearchParams(location.search).get('n') || 1));
+    const [h, s, theme] = T[n - 1];
+    document.getElementById('h').textContent = h;
+    document.getElementById('s').textContent = s;
+    document.getElementById('img').src = `captura-${n}.png`;
+    if (theme === 'coral') {
+      document.body.style.setProperty('--bg', '#E4572E');
+      document.body.style.setProperty('--fg', '#FBF3E4');
+      document.body.style.setProperty('--fg2', '#20180F');
+      document.body.style.backgroundImage = 'radial-gradient(rgba(255,255,255,.18) 1.2px, transparent 1.2px)';
+    }
+    // banderoles
+    const svg = document.querySelector('.flags');
+    for (let x = 10; x < 360; x += 22) {
+      const y = 4 + 16 * (1 - ((x - 180) / 180) ** 2) * 0.5;
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('d', `M${x - 7} ${y} L${x + 7} ${y} L${x} ${y + 11} Z`);
+      p.setAttribute('fill', Math.round(x / 22) % 2 ? '#FFC828' : (theme === 'coral' ? '#FBF3E4' : '#E4572E'));
+      p.setAttribute('stroke', '#20180F'); p.setAttribute('stroke-width', '1');
+      svg.appendChild(p);
+    }
+  </script>
+</body>
+</html>
