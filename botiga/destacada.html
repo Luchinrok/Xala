@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <title>Imatge destacada · Xala!</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    html, body { margin: 0; width: 1024px; height: 500px; overflow: hidden; }
+    body { background: #E4572E; background-image: radial-gradient(rgba(255,255,255,.18) 2px, transparent 2px); background-size: 26px 26px; }
+    .wrap { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 64px; gap: 40px; }
+    .txt { flex: 1; color: #20180F; }
+    .brand { font-family: var(--font-display); font-weight: 800; font-size: 150px; line-height: .9; letter-spacing: -0.04em; color: #FBF3E4; text-shadow: 0 8px 0 #20180F; }
+    .brand span { color: #FFC828; }
+    .tag { margin-top: 26px; font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1.05; color: #20180F; }
+    .fg-chips { display: flex; justify-content: flex-start; gap: 10px; margin: 22px 0 0; padding: 0; }
+    .fg-chip { margin: 0; background: #FBF3E4; border: 3px solid #20180F; border-radius: 999px; padding: 6px 16px; font-weight: 700; font-size: 20px; box-shadow: 0 4px 0 #20180F; }
+    .phone { width: 250px; height: 444px; border: 6px solid #20180F; border-radius: 34px; background: #FBF3E4; box-shadow: 0 10px 0 #20180F; overflow: hidden; transform: rotate(4deg); }
+    .phone img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .flags { position: absolute; top: 0; left: 0; right: 0; height: 40px; }
+  </style>
+</head>
+<body>
+  <svg class="flags" viewBox="0 0 1024 40" preserveAspectRatio="none">
+    <path d="M0 6 Q512 34 1024 6" stroke="#20180F" stroke-width="2" fill="none"/>
+  </svg>
+  <div class="wrap">
+    <div class="txt">
+      <div class="brand">Xala<span>!</span></div>
+      <div class="tag">Jocs de festa en català</div>
+      <div class="fg-chips"><span class="fg-chip">En colla</span><span class="fg-chip">Per a dos</span><span class="fg-chip">Tu sol</span></div>
+    </div>
+    <div class="phone"><img src="captura-1.png" alt=""></div>
+  </div>
+  <script>
+    // banderoles de festa major a dalt
+    const svg = document.querySelector('.flags');
+    for (let x = 18; x < 1024; x += 40) {
+      const y = 6 + 28 * (1 - ((x - 512) / 512) ** 2) * 0.5;
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('d', `M${x - 12} ${y} L${x + 12} ${y} L${x} ${y + 20} Z`);
+      p.setAttribute('fill', Math.round(x / 40) % 2 ? '#FFC828' : '#FBF3E4');
+      p.setAttribute('stroke', '#20180F'); p.setAttribute('stroke-width', '2');
+      svg.appendChild(p);
+    }
+  </script>
+</body>
+</html>

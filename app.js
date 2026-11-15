@@ -454,6 +454,7 @@ function helpList(games, back) {
     <p class="kicker">${t('help.kicker')}</p>
     <h2 style="font-size:30px;margin:6px 0 22px">${t('help.title')}</h2>
     <div class="stack" id="list" style="--stack-gap:12px"></div>
+    <p class="center" style="margin-top:24px"><a class="muted" href="./privacitat.html">${t('help.privacy')}</a></p>
   `;
   app.appendChild(wrap);
   wrap.querySelector('#back').onclick = back;
