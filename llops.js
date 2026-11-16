@@ -44,7 +44,11 @@ export default {
 
     // capçalera de les pantalles de partida: tornar a preparar el poble i el títol
     const top = (k) => `<div class="chess-top"><button class="back" id="quit">${t('nav.setup')}</button><p class="kicker" style="margin:0 0 18px">${k}</p></div>`;
-    const wireTop = () => { const q = root.querySelector('#quit'); if (q) q.onclick = screenConfig; };
+    const wireTop = () => {
+      const q = root.querySelector('#quit'); if (q) q.onclick = screenConfig;
+      root.querySelectorAll('.ll-repeat').forEach(b => { b.onclick = () => { if (lastSaid) say(...lastSaid); }; });
+    };
+    const repeatBtn = () => (opts.voice ? `<button class="ll-repeat" type="button">🔊 ${L('repeat')}</button>` : '');
 
     function stop() {
       if (timer) { clearTimeout(timer); timer = null; }
@@ -77,7 +81,9 @@ export default {
       };
       next();
     }
+    let lastSaid = null; // per al botó «Torna-ho a dir»
     function say(text, clips) {
+      lastSaid = [text, clips];
       if (!opts.voice) return;
       if (clipAudio) { clipAudio.onended = null; clipAudio.pause(); clipAudio = null; }
       if (clips && clips.length && getLang() === 'ca') {
@@ -165,33 +171,47 @@ export default {
       while (roles.length < n) roles.push('villager');
       const shuffled = shuffle(roles);
       g = { players: names.map((name, i) => ({ name, role: shuffled[i], alive: true })), night: 0, lastSaved: null };
-      showRole(0, false);
+      showRole(0);
     }
-    function showRole(i, open) {
+    // Com a L'impostor: una targeta gran amb el nom; un toc la gira i ensenya el paper,
+    // un altre toc l'amaga. El botó per passar surt quan ja s'ha vist.
+    function showRole(i) {
       stop();
       const p = g.players[i];
-      if (!open) {
-        root.innerHTML = `
-          ${top(`${L('roles')} · ${i + 1}/${g.players.length}`)}
-          <h2 class="center" style="font-size:26px;margin:18px 0">${t('common.passMobileTo')}<br><span style="color:var(--accent)">${esc(p.name)}</span></h2>
-          <div class="spacer"></div>
-          <button class="btn btn--accent" id="see">${L('seeRole')}</button>`;
-        root.querySelector('#see').onclick = () => showRole(i, true);
-        wireTop();
-        return;
-      }
+      const last = i + 1 >= g.players.length;
       const others = p.role === 'wolf' ? g.players.filter(q => q.role === 'wolf' && q !== p).map(q => q.name) : [];
       root.innerHTML = `
-        ${top(esc(p.name))}
-        <div class="ll-card ll-card--${p.role}">
-          <p class="muted">${L('youAre')}</p>
-          <h2>${L(ROLE_KEY[p.role])}</h2>
-          <p>${L(DESC_KEY[p.role])}</p>
-          ${others.length ? `<p class="ll-wolves">${L('otherWolves', { names: others.map(esc).join(', ') })}</p>` : ''}
-        </div>
+        ${top(`${L('roles')} · ${i + 1}/${g.players.length}`)}
+        <p class="muted center" style="margin:0 0 10px">${t('common.passMobileTo')}</p>
+        <div class="reveal-card tap-hint ll-reveal-card" id="card" role="button" tabindex="0" aria-label="${esc(p.name)}: ${L('seeRole')}"></div>
         <div class="spacer"></div>
-        <button class="btn btn--accent" id="next">${i + 1 < g.players.length ? L('hideRole') : L('allReady')}</button>`;
-      root.querySelector('#next').onclick = () => (i + 1 < g.players.length ? showRole(i + 1, false) : night());
+        <div id="nextWrap" style="margin-top:18px"></div>`;
+      const card = root.querySelector('#card');
+      let shown = false, seen = false;
+      const cover = () => {
+        card.className = 'reveal-card tap-hint ll-reveal-card';
+        card.innerHTML = `<div class="word">${esc(p.name)}</div><div class="who">${seen ? L('tapHide') : L('seeRole')}</div>`;
+      };
+      const reveal = () => {
+        card.className = `reveal-card ll-reveal-card ll-card--${p.role}`;
+        card.innerHTML = `<div class="who">${L('youAre')}</div><div class="word">${L(ROLE_KEY[p.role])}</div>
+          <div class="who" style="font-weight:600">${L(DESC_KEY[p.role])}</div>
+          ${others.length ? `<div class="who ll-wolves">${L('otherWolves', { names: others.map(esc).join(', ') })}</div>` : ''}`;
+      };
+      const toggle = () => {
+        shown = !shown;
+        if (shown) {
+          reveal();
+          if (!seen) {
+            seen = true;
+            root.querySelector('#nextWrap').innerHTML = `<button class="btn btn--accent" id="next">${last ? L('allReady') : L('hideRole')}</button>`;
+            root.querySelector('#next').onclick = () => (last ? night() : showRole(i + 1));
+          }
+        } else cover();
+      };
+      card.onclick = toggle;
+      card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } };
+      cover();
       wireTop();
     }
 
@@ -202,7 +222,7 @@ export default {
       stop();
       root.innerHTML = `
         ${top(title)}
-        <div class="ll-night"><p class="ll-say">${text}</p><div id="pick"></div><div id="res"></div></div>
+        <div class="ll-night"><p class="ll-say">${text}</p>${repeatBtn()}<div id="pick"></div><div id="res"></div></div>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="go" ${pick ? 'disabled' : ''}>${L('done')}</button>`;
       say(text, clip ? [clip] : null);
@@ -265,7 +285,7 @@ export default {
       stop();
       root.innerHTML = `
         ${top(L('day', { n: g.night }))}
-        <div class="ll-day"><p class="ll-say">${L('dawn')}</p><p class="ll-news">${msg}</p></div>
+        <div class="ll-day"><p class="ll-say">${L('dawn')}</p><p class="ll-news">${msg}</p>${repeatBtn()}</div>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="go">${L('debate')}</button>`;
       say(`${L('dawn')} ${msg.replace(/<[^>]+>/g, ' ')}`, ['dia', tn.victim !== null && tn.victim !== tn.saved ? 'victima' : 'ningu']);
@@ -295,7 +315,7 @@ export default {
         const p = g.players[chosen]; p.alive = false;
         root.innerHTML = `
           ${top(L('day', { n: g.night }))}
-          <div class="ll-day"><p class="ll-news">${L('voteOut', { name: esc(p.name) })}<br><span class="muted">${L('wasRole', { role: L(ROLE_KEY[p.role]) })}</span></p></div>
+          <div class="ll-day"><p class="ll-news">${L('voteOut', { name: esc(p.name) })}<br><span class="muted">${L('wasRole', { role: L(ROLE_KEY[p.role]) })}</span></p>${repeatBtn()}</div>
           <div class="spacer"></div>
           <button class="btn btn--accent" id="go">${t('common.continue')}</button>`;
         say(`${L('voteOut', { name: p.name })} ${L('wasRole', { role: L(ROLE_KEY[p.role]) })}`, ['fora']);
