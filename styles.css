@@ -1672,3 +1672,21 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .px-won .px-cell { border-color: transparent; }
 .px-won .px-cell.on { background: var(--accent); }
 .px-won .px-rc, .px-won .px-cc { visibility: hidden; }
+
+/* ============================================================
+   Dibuixa-ho!: pissarra gran, colors i temps
+   ============================================================ */
+.dx-card { min-height: 230px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
+.dx-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; padding-right: 54px; }
+.dx-time { font-family: var(--font-display); font-weight: 800; font-size: 34px; line-height: 1; min-width: 2.2em; }
+.dx-time.dx-hurry { color: var(--accent); }
+.dx-peek { flex: 1; font: inherit; font-weight: 700; font-size: 14px; padding: 10px 12px; border: 2px dashed rgba(32, 24, 15, .35); border-radius: 12px;
+  background: transparent; color: var(--ink-soft); -webkit-user-select: none; user-select: none; touch-action: none; }
+.dx-peek.on { border-style: solid; border-color: var(--ink); background: var(--ink); color: var(--paper); font-family: var(--font-display); font-weight: 800; font-size: 18px; }
+.dx-board { width: 100%; height: calc(100dvh - 300px); min-height: 260px; border: 3px solid var(--ink); border-radius: var(--r-sm);
+  overflow: hidden; box-shadow: var(--shadow); touch-action: none; background: #FFFDF8; }
+.dx-board canvas { display: block; }
+.dx-tools { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 10px; }
+.dx-color { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--paper); box-shadow: 0 0 0 2px var(--ink); cursor: pointer; padding: 0; }
+.dx-color.on { box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px var(--accent); }
+.dx-tool { width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--ink); background: var(--paper); font: inherit; font-size: 17px; cursor: pointer; padding: 0; color: var(--ink); }
