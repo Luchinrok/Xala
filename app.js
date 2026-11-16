@@ -34,6 +34,7 @@ import flipers from './flipers.js';
 import marro from './marro.js';
 import llops from './llops.js';
 import dibuixa from './dibuixa.js';
+import jomai from './jomai.js';
 import girales from './girales.js';
 import sembra from './sembra.js';
 import pinzellada from './pinzellada.js';
@@ -49,7 +50,7 @@ const gameTagline = (g) => g.tagline;
 const gameInstructions = (g) => g.instructions || [];
 
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
-const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula, llops, dibuixa];
+const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula, llops, dibuixa, jomai];
 const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers, marro, girales, sembra];
 // Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
 const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada, paraula, pixelats, colors];
@@ -288,6 +289,8 @@ function glyph(id) {
     sembra:     '<rect x="3" y="10" width="34" height="20" rx="10" stroke-width="2.5"/><circle cx="14" cy="16" r="2.5"/><circle cx="20" cy="16" r="2.5"/><circle cx="26" cy="16" r="2.5"/><circle cx="14" cy="24" r="2.5"/><circle cx="20" cy="24" r="2.5"/><circle cx="26" cy="24" r="2.5"/>',
     // Gira-les: dues fitxes, una girant-se
     girales:    '<circle cx="13" cy="20" r="8" fill="currentColor" stroke-width="2.5"/><ellipse cx="28" cy="20" rx="4" ry="8" stroke-width="2.5"/><path d="M24 9c4-3 9-1 10 3M34 12l1-4M34 12l-4 0" stroke-width="2"/>',
+    // Jo mai…: una mà amb tres dits aixecats
+    jomai:      '<path d="M13 34V18M19 34V8M25 34V10M31 34V22" stroke-width="4"/><path d="M10 26c0 6 3 10 10 10h4c6 0 9-4 9-10" stroke-width="3"/>',
     // Dibuixa-ho!: un llapis traçant una corba
     dibuixa:    '<path d="M6 31c6-10 12 4 18-6" stroke-width="3"/><path d="M24 25l9-15 4 2-9 15-5 2z" stroke-width="2.5"/>',
     // Llops: un cap de llop amb dues orelles i la lluna
