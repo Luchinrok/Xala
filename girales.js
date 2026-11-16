@@ -28,7 +28,7 @@ export default {
   ],
 
   mount(root, { goHome }) {
-    let mode = getRecord('girales:mode') === '2p' ? '2p' : 'cpu';
+    let mode = '2p'; // sempre comença a 2 jugadors
     let level = ['easy', 'normal', 'hard'].includes(getRecord('girales:level')) ? getRecord('girales:level') : 'normal';
     let g = null, aiTimer = null, flipped = [];
     const isCpu = () => mode === 'cpu';

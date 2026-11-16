@@ -29,7 +29,7 @@ export default {
   ],
 
   mount(root, { goHome }) {
-    let mode = getRecord('marro:mode') === '2p' ? '2p' : 'cpu';
+    let mode = '2p'; // sempre comença a 2 jugadors
     let level = ['easy', 'normal', 'hard'].includes(getRecord('marro:level')) ? getRecord('marro:level') : 'normal';
     let g = null, sel = null, pending = null, aiTimer = null;
     const isCpu = () => mode === 'cpu';

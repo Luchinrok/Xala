@@ -11,6 +11,7 @@ import { CATEGORIES } from './impostor-paraules.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
 import { getPlayers, setPlayers } from './store.js';
 import { drawFromBag } from './word-bag.js';
+import { confirma } from './confirma.js';
 import { t } from './i18n.js';
 import { getRecord, setRecord } from './records.js';
 
@@ -57,6 +58,10 @@ export default {
     const nextWord = () => drawFromBag(bagKey(), pool);
 
     function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    // sortir a mitja partida es perd tot: primer es pregunta
+    async function askQuit() {
+      if (await confirma({ text: t('common.leaveGame'), yes: t('common.leave'), no: t('common.keepPlaying') })) screenSetup();
+    }
     function leave() { stop(); goHome(); }
 
     // ---------- 1) preparació ----------
@@ -141,7 +146,7 @@ export default {
       };
       card.onclick = () => { shown = !shown; shown ? reveal() : cover(); };
       card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.onclick(); } };
-      root.querySelector('#quit').onclick = screenSetup;
+      root.querySelector('#quit').onclick = askQuit;
       cover();
     }
 

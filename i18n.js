@@ -162,6 +162,9 @@ const STRINGS = {
     'instr.passaparaula.4': `If you miss or run out of time, you're eliminated. The last one standing wins!`,
 
     'common.playerN': `Player {n}`,
+    'common.leaveGame': `Leave? The game will be lost.`,
+    'common.leave': `Leave`,
+    'common.keepPlaying': `Keep playing`,
     'common.and': `and`,
     'common.start': `Start`,
     'common.addPlayer': `+ Add player`,
@@ -451,6 +454,9 @@ const STRINGS = {
     'instr.passaparaula.4': `Si fallas o se te acaba el tiempo, quedas eliminado. ¡Gana el último que quede!`,
 
     'common.playerN': `Jugador {n}`,
+    'common.leaveGame': `¿Salir? Se perderá la partida.`,
+    'common.leave': `Salir`,
+    'common.keepPlaying': `Seguir jugando`,
     'common.and': `y`,
     'common.start': `Empezar`,
     'common.addPlayer': `+ Añadir jugador`,
@@ -740,6 +746,9 @@ const STRINGS = {
     'instr.passaparaula.4': `Si falles o se t'acaba el temps, quedes eliminat. Guanya l'últim que quedi!`,
 
     'common.playerN': `Jugador {n}`,
+    'common.leaveGame': `Vols sortir? Es perdrà la partida.`,
+    'common.leave': `Surt`,
+    'common.keepPlaying': `Continua jugant`,
     'common.and': `i`,
     'common.start': `Comença`,
     'common.addPlayer': `+ Afegeix jugador`,
@@ -1029,6 +1038,9 @@ const STRINGS = {
     'instr.passaparaula.4': `Si tu te trompes ou n'as plus de temps, tu es éliminé. Le dernier en lice gagne !`,
 
     'common.playerN': `Joueur {n}`,
+    'common.leaveGame': `Quitter ? La partie sera perdue.`,
+    'common.leave': `Quitter`,
+    'common.keepPlaying': `Continuer à jouer`,
     'common.and': `et`,
     'common.start': `Commencer`,
     'common.addPlayer': `+ Ajouter un joueur`,
@@ -1318,6 +1330,9 @@ const STRINGS = {
     'instr.passaparaula.4': `Se sbagli o finisci il tempo, sei eliminato. Vince l'ultimo rimasto!`,
 
     'common.playerN': `Giocatore {n}`,
+    'common.leaveGame': `Uscire? La partita andrà persa.`,
+    'common.leave': `Esci`,
+    'common.keepPlaying': `Continua a giocare`,
     'common.and': `e`,
     'common.start': `Inizia`,
     'common.addPlayer': `+ Aggiungi giocatore`,
@@ -1607,6 +1622,9 @@ const STRINGS = {
     'instr.passaparaula.4': `Wenn du falsch liegst oder die Zeit abläuft, bist du raus. Der Letzte gewinnt!`,
 
     'common.playerN': `Spieler {n}`,
+    'common.leaveGame': `Verlassen? Das Spiel geht verloren.`,
+    'common.leave': `Verlassen`,
+    'common.keepPlaying': `Weiterspielen`,
     'common.and': `und`,
     'common.start': `Start`,
     'common.addPlayer': `+ Spieler hinzufügen`,
@@ -1896,6 +1914,9 @@ const STRINGS = {
     'instr.passaparaula.4': `Se falhas ou o tempo acaba, ficas eliminado. Ganha o último a restar!`,
 
     'common.playerN': `Jogador {n}`,
+    'common.leaveGame': `Sair? O jogo vai perder-se.`,
+    'common.leave': `Sair`,
+    'common.keepPlaying': `Continuar a jogar`,
     'common.and': `e`,
     'common.start': `Começar`,
     'common.addPlayer': `+ Adicionar jogador`,

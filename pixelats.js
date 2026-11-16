@@ -104,7 +104,7 @@ export default {
       let h = '<div class="px-corner"></div>';
       for (let c = 0; c < n; c++) h += `<div class="px-cc" data-cc="${c}">${cc[c].map(x => `<span>${x}</span>`).join('')}</div>`;
       for (let r = 0; r < n; r++) {
-        h += `<div class="px-rc" data-rc="${r}">${rc[r].map(x => `<span>${x}</span>`).join('')}</div>`;
+        h += `<div class="px-rc" data-rc="${r}">${rc[r].join('-')}</div>`; // «2-1», que no sembli 21
         for (let c = 0; c < n; c++) {
           const edge = (c % 5 === 4 && c < n - 1 ? ' px-er' : '') + (r % 5 === 4 && r < n - 1 ? ' px-eb' : '');
           h += `<button class="px-cell${edge}" data-r="${r}" data-c="${c}" aria-label="Fila ${r + 1}, columna ${c + 1}"></button>`;

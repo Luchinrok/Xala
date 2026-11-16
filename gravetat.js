@@ -66,7 +66,7 @@ export default {
     let raf = 0, last = 0, acc = 0;
     let s = null;
     const wins = [0, 0];
-    let cpu = getRecord(KEY + ':mode') !== '2p';
+    let cpu = false; // sempre comença a 2 jugadors
     let level = AI[getRecord(KEY + ':level')] ? getRecord(KEY + ':level') : 'normal';
     const names = () => (cpu ? ['Tu', 'Màquina'] : PLAYERS.map(p => p.name));
     // marcador curt (no ha de tapar el botó de la música): un punt de color per jugador

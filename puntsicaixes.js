@@ -29,7 +29,7 @@ export default {
   ],
 
   mount(root, { goHome }) {
-    let mode = getRecord('puntsicaixes:mode') === '2p' ? '2p' : 'cpu';
+    let mode = '2p'; // sempre comença a 2 jugadors
     let level = getRecord('puntsicaixes:level') === 'easy' ? 'easy' : 'normal';
     let size = SIZES[getRecord('puntsicaixes:size')] ? getRecord('puntsicaixes:size') : '4x4';
     let g = null, aiTimer = null;
