@@ -33,6 +33,7 @@ import gravetat from './gravetat.js';
 import flipers from './flipers.js';
 import marro from './marro.js';
 import llops from './llops.js';
+import girales from './girales.js';
 import pinzellada from './pinzellada.js';
 import paraula from './paraula.js';
 import { createMusic } from './musica.js';
@@ -45,7 +46,7 @@ const gameInstructions = (g) => g.instructions || [];
 
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula, llops];
-const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers, marro];
+const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers, marro, girales];
 // Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
 const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada, paraula];
 
@@ -279,6 +280,8 @@ function glyph(id) {
     petards:    '<circle cx="16" cy="24" r="9" stroke-width="3"/><path d="M21 16l4-5" stroke-width="3"/><path d="M28 34V8l8 4-8 4" stroke-width="3"/>',
     // Totxos (trencamurs): maons, una pilota i la pala
     trencamurs: '<rect x="6" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="22" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="14" y="16" width="12" height="6" rx="1" stroke-width="2.5"/><circle cx="20" cy="27" r="2.5"/><path d="M11 33h18" stroke-width="4"/>',
+    // Gira-les: dues fitxes, una girant-se
+    girales:    '<circle cx="13" cy="20" r="8" fill="currentColor" stroke-width="2.5"/><ellipse cx="28" cy="20" rx="4" ry="8" stroke-width="2.5"/><path d="M24 9c4-3 9-1 10 3M34 12l1-4M34 12l-4 0" stroke-width="2"/>',
     // Llops: un cap de llop amb dues orelles i la lluna
     llops:      '<path d="M10 30l-2-16 7 5 5-8 5 8 7-5-2 16z" stroke-width="3"/><circle cx="16" cy="24" r="1.6" fill="currentColor"/><circle cx="24" cy="24" r="1.6" fill="currentColor"/><path d="M31 6a5 5 0 1 0 4 8 6 6 0 0 1-4-8z" stroke-width="2.5"/>',
     // Marro: els tres quadrats amb tres fitxes en ratlla

@@ -1631,3 +1631,20 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .ll-repeat:active { transform: translateY(2px); }
 .ll-reveal-card { min-height: 230px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
 .ll-reveal-card.ll-card--wolf .who { color: rgba(251, 243, 228, .85); }
+
+/* ============================================================
+   Gira-les: tauler de 8×8 amb fitxes negres i blanques que giren
+   ============================================================ */
+.gr-board { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; padding: 5px; margin: 6px auto 0;
+  width: min(100%, calc(100dvh - 270px)); background: var(--ink); border-radius: 12px; box-shadow: var(--shadow); }
+.gr-cell { aspect-ratio: 1; padding: 0; border: 0; border-radius: 4px; background: #3E8E5A; display: flex; align-items: center; justify-content: center; cursor: default; }
+.gr-cell.gr-can { cursor: pointer; }
+.gr-cell.gr-last { background: #5FAE73; box-shadow: inset 0 0 0 3px #FFC828; }
+.gr-piece { width: 82%; height: 82%; border-radius: 50%; border: 2px solid var(--ink); box-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+.gr-p0 { background: #20180F; }
+.gr-p1 { background: #FBF3E4; }
+.gr-flip { animation: grFlip .35s ease both; }
+@keyframes grFlip { 0% { transform: scaleX(1); } 50% { transform: scaleX(.05); } 100% { transform: scaleX(1); } }
+.gr-dot { width: 22%; height: 22%; border-radius: 50%; background: rgba(251, 243, 228, .55); }
+.gr-mini { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); vertical-align: -1px; }
+@media (prefers-reduced-motion: reduce) { .gr-flip { animation: none; } }
