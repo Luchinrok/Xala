@@ -39,6 +39,7 @@ import sembra from './sembra.js';
 import pinzellada from './pinzellada.js';
 import paraula from './paraula.js';
 import pixelats from './pixelats.js';
+import colors from './colors.js';
 import { createMusic } from './musica.js';
 import { t } from './i18n.js';
 
@@ -51,7 +52,7 @@ const gameInstructions = (g) => g.instructions || [];
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula, llops, dibuixa];
 const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers, marro, girales, sembra];
 // Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
-const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada, paraula, pixelats];
+const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada, paraula, pixelats, colors];
 
 // ---------- música de fons (tota l'app) ----------
 // Comença amb el primer toc (iOS només deixa sonar després d'un gest) i es pot
@@ -299,6 +300,8 @@ function glyph(id) {
     gravetat:   '<path d="M5 8h30M5 32h30" stroke-width="4"/><rect x="14" y="21" width="9" height="9" rx="2" stroke-width="3"/><path d="M29 24V14m-3 3 3-3 3 3" stroke-width="3"/>',
     // Macedònia: dues fruites, una de petita i una de grossa, amb full
     macedonia:  '<circle cx="14" cy="27" r="6" stroke-width="3"/><circle cx="26" cy="20" r="10" stroke-width="3"/><path d="M26 10c2-4 6-5 8-4-1 3-4 5-8 4z" stroke-width="2.5"/>',
+    // Uneix colors: dos punts units per un camí que gira
+    colors:     '<circle cx="9" cy="10" r="4" fill="currentColor"/><circle cx="31" cy="30" r="4" fill="currentColor"/><path d="M9 10h12v10h10v10" stroke-width="4"/><circle cx="9" cy="30" r="3" stroke-width="2.5"/>',
     // Pixelats: una quadrícula amb caselles pintades i números
     pixelats:   '<rect x="12" y="12" width="24" height="24" rx="2" stroke-width="2.5"/><rect x="16" y="16" width="6" height="6" fill="currentColor"/><rect x="28" y="16" width="6" height="6" fill="currentColor"/><rect x="16" y="28" width="18" height="5" fill="currentColor"/><path d="M4 16h4M4 22h4M4 28h4M16 4v4M22 4v4M28 4v4" stroke-width="2.5"/>',
     // La paraula del dia: cinc caselles, dues pintades
