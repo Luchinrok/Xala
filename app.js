@@ -35,6 +35,7 @@ import marro from './marro.js';
 import llops from './llops.js';
 import dibuixa from './dibuixa.js';
 import girales from './girales.js';
+import sembra from './sembra.js';
 import pinzellada from './pinzellada.js';
 import paraula from './paraula.js';
 import pixelats from './pixelats.js';
@@ -48,7 +49,7 @@ const gameInstructions = (g) => g.instructions || [];
 
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula, llops, dibuixa];
-const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers, marro, girales];
+const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers, marro, girales, sembra];
 // Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
 const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada, paraula, pixelats];
 
@@ -282,6 +283,8 @@ function glyph(id) {
     petards:    '<circle cx="16" cy="24" r="9" stroke-width="3"/><path d="M21 16l4-5" stroke-width="3"/><path d="M28 34V8l8 4-8 4" stroke-width="3"/>',
     // Totxos (trencamurs): maons, una pilota i la pala
     trencamurs: '<rect x="6" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="22" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="14" y="16" width="12" height="6" rx="1" stroke-width="2.5"/><circle cx="20" cy="27" r="2.5"/><path d="M11 33h18" stroke-width="4"/>',
+    // Sembra: dues files de forats amb llavors i els graners
+    sembra:     '<rect x="3" y="10" width="34" height="20" rx="10" stroke-width="2.5"/><circle cx="14" cy="16" r="2.5"/><circle cx="20" cy="16" r="2.5"/><circle cx="26" cy="16" r="2.5"/><circle cx="14" cy="24" r="2.5"/><circle cx="20" cy="24" r="2.5"/><circle cx="26" cy="24" r="2.5"/>',
     // Gira-les: dues fitxes, una girant-se
     girales:    '<circle cx="13" cy="20" r="8" fill="currentColor" stroke-width="2.5"/><ellipse cx="28" cy="20" rx="4" ry="8" stroke-width="2.5"/><path d="M24 9c4-3 9-1 10 3M34 12l1-4M34 12l-4 0" stroke-width="2"/>',
     // Dibuixa-ho!: un llapis traçant una corba

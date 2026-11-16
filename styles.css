@@ -1690,3 +1690,27 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .dx-color { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--paper); box-shadow: 0 0 0 2px var(--ink); cursor: pointer; padding: 0; }
 .dx-color.on { box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px var(--accent); }
 .dx-tool { width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--ink); background: var(--paper); font: inherit; font-size: 17px; cursor: pointer; padding: 0; color: var(--ink); }
+
+/* ============================================================
+   Sembra: dues files de forats, els graners als costats
+   ============================================================ */
+.sb-board { display: flex; align-items: stretch; gap: 4px; margin: 14px -6px 0; padding: 10px 6px; background: #B5793C; border: 3px solid var(--ink);
+  border-radius: 40px; box-shadow: var(--shadow); }
+.sb-rows { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.sb-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.sb-pit, .sb-store { position: relative; border: 2px solid rgba(32, 24, 15, .65); background: #8E5A28; box-shadow: inset 0 3px 6px rgba(0, 0, 0, .35);
+  display: flex; align-items: flex-end; justify-content: center; padding: 0 0 2px; font: inherit; }
+.sb-pit { aspect-ratio: 1; border-radius: 50%; cursor: default; }
+.sb-store { width: 32px; border-radius: 18px; align-items: center; }
+.sb-pit b, .sb-store b { position: relative; z-index: 2; font-family: var(--font-display); font-weight: 800; font-size: 12px; line-height: 1; color: #FBF3E4; background: rgba(32, 24, 15, .75); border-radius: 999px; padding: 2px 5px; }
+.sb-pit b { margin-bottom: -6px; }
+.sb-store b { font-size: 16px; padding: 3px 5px; background: none; }
+.sb-pit.sb-can { cursor: pointer; border-color: #FBF3E4; box-shadow: inset 0 3px 6px rgba(0, 0, 0, .35), 0 0 0 2px #FFC828; }
+.sb-pit.sb-p0.sb-can { box-shadow: inset 0 3px 6px rgba(0, 0, 0, .35), 0 0 0 3px var(--accent); }
+.sb-pit.sb-p1.sb-can { box-shadow: inset 0 3px 6px rgba(0, 0, 0, .35), 0 0 0 3px var(--ok); }
+.sb-store.sb-p0 { border-color: var(--accent); }
+.sb-store.sb-p1 { border-color: var(--ok); }
+.sb-hot { background: #A86E35; }
+.sb-last { outline: 3px solid #FFC828; outline-offset: 1px; }
+.sb-seeds { position: absolute; inset: 0; pointer-events: none; }
+.sb-seed { position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: #F4E3B5; box-shadow: inset -1px -1px 0 rgba(0, 0, 0, .3); }
