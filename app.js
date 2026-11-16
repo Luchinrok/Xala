@@ -31,6 +31,7 @@ import trencamurs from './trencamurs.js';
 import macedonia from './macedonia.js';
 import gravetat from './gravetat.js';
 import flipers from './flipers.js';
+import marro from './marro.js';
 import pinzellada from './pinzellada.js';
 import paraula from './paraula.js';
 import { createMusic } from './musica.js';
@@ -43,7 +44,7 @@ const gameInstructions = (g) => g.instructions || [];
 
 // Tres catàlegs: jocs de festa (multijugador), per a dos i d'un sol jugador.
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
-const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers];
+const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers, marro];
 // Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
 const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada, paraula];
 
@@ -277,6 +278,8 @@ function glyph(id) {
     petards:    '<circle cx="16" cy="24" r="9" stroke-width="3"/><path d="M21 16l4-5" stroke-width="3"/><path d="M28 34V8l8 4-8 4" stroke-width="3"/>',
     // Totxos (trencamurs): maons, una pilota i la pala
     trencamurs: '<rect x="6" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="22" y="7" width="12" height="6" rx="1" stroke-width="2.5"/><rect x="14" y="16" width="12" height="6" rx="1" stroke-width="2.5"/><circle cx="20" cy="27" r="2.5"/><path d="M11 33h18" stroke-width="4"/>',
+    // Marro: els tres quadrats amb tres fitxes en ratlla
+    marro:      '<rect x="5" y="5" width="30" height="30" stroke-width="2.5"/><rect x="12" y="12" width="16" height="16" stroke-width="2.5"/><path d="M20 5v7M20 28v7M5 20h7M28 20h7" stroke-width="2.5"/><circle cx="5" cy="5" r="3.5" fill="currentColor"/><circle cx="20" cy="5" r="3.5" fill="currentColor"/><circle cx="35" cy="5" r="3.5" fill="currentColor"/>',
     // Flipers: dues paletes i una bola
     flipers:    '<path d="M6 30l11 4M34 30l-11 4" stroke-width="5"/><circle cx="20" cy="15" r="5" stroke-width="3"/><circle cx="9" cy="8" r="3"/><circle cx="31" cy="10" r="3"/>',
     // Gira la gravetat: un corredor entre terra i sostre, amb fletxes amunt i avall

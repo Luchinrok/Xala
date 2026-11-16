@@ -1572,3 +1572,24 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .pw-key.pw-hi { background: #FFC828; }
 .pw-key.pw-no { background: #6A5A48; color: var(--paper); opacity: .75; }
 @media (prefers-reduced-motion: reduce) { .pw-flip, .pw-shake, .pw-tile.pw-typed { animation: none; } }
+
+/* ============================================================
+   Marro: tres quadrats, punts per tocar i fitxes
+   ============================================================ */
+.mr-board { width: min(100%, calc(100dvh - 290px)); margin: 4px auto 0; }
+.mr-board svg { display: block; width: 100%; height: auto; }
+.mr-line { stroke: var(--ink); stroke-width: 3.5; stroke-linecap: round; }
+.mr-hit { fill: transparent; }
+.mr-dot { fill: var(--ink); }
+.mr-stone { stroke: var(--ink); stroke-width: 3; }
+[data-p] { cursor: pointer; outline: none; }
+.mr-target .mr-dot { fill: var(--accent); }
+.mr-last .mr-hit { fill: rgba(255, 200, 40, .55); }
+.mr-sel .mr-stone { stroke-width: 5; filter: drop-shadow(0 0 3px rgba(32, 24, 15, .6)); }
+.mr-can .mr-stone { stroke-dasharray: 6 3; }
+.mr-take .mr-stone { animation: mrPulse .8s ease-in-out infinite alternate; }
+@keyframes mrPulse { from { opacity: 1; } to { opacity: .35; } }
+[data-p]:focus-visible .mr-hit { fill: rgba(32, 24, 15, .12); }
+.mr-hand { display: flex; justify-content: center; gap: 4px; min-height: 14px; margin: 6px 0; }
+.mr-mini { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); }
+@media (prefers-reduced-motion: reduce) { .mr-take .mr-stone { animation: none; } }
