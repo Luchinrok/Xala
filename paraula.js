@@ -12,6 +12,8 @@ import { getRecord, setRecord } from './records.js';
 
 const ROWS = ['qwertyuiop', 'asdfghjklç', '⌫zxcvbnm↵'];
 const LINK = 'https://luchinrok.github.io/Xala/';
+// icona de retorn per a «Envia» (la paraula no hi cabia a les pantalles petites)
+const ENTER = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><path d="M20 5v6a3 3 0 0 1-3 3H5"/><path d="M9 10l-4 4 4 4"/></svg>';
 // icona d'esborrar (com la dels teclats dels mòbils)
 const BACK = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M21 5H9l-6 7 6 7h12z"/><path d="M17 9l-5 6M12 9l5 6"/></svg>';
 
@@ -156,7 +158,7 @@ export default {
       root.querySelector('#keys').innerHTML = ROWS.map(row => `<div class="pw-krow">${[...row].map(k => {
         const wide = k === '⌫' || k === '↵';
         const lab = k === '⌫' ? 'Esborra' : k === '↵' ? 'Envia' : k.toUpperCase();
-        const face = k === '↵' ? 'Envia' : k === '⌫' ? BACK : k.toUpperCase();
+        const face = k === '↵' ? ENTER : k === '⌫' ? BACK : k.toUpperCase();
         return `<button class="pw-key${wide ? ' pw-key--wide' : ''}${k === '↵' ? ' pw-key--enter' : ''}${ks[k] ? ' pw-' + ks[k] : ''}" data-k="${k}" aria-label="${lab}">${face}</button>`;
       }).join('')}</div>`).join('');
     }

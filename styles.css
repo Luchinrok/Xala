@@ -1571,7 +1571,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
   box-shadow: 0 2px 0 rgba(32, 24, 15, .28); cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: background-color .25s ease, color .25s ease; -webkit-tap-highlight-color: transparent; }
 .pw-key:active { transform: translateY(2px); box-shadow: none; }
-.pw-key--wide { flex: 1.55; font-size: 14px; }
+.pw-key--wide { flex: 1.5; }
+.pw-key--enter { flex: 1.7; }
 .pw-key--enter { background: var(--accent); color: var(--paper); font-weight: 800; letter-spacing: .02em; }
 .pw-key.pw-ok { background: var(--accent); color: var(--paper); }
 .pw-key.pw-hi { background: #FFC828; color: var(--ink); }
