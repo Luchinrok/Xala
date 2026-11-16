@@ -1648,3 +1648,27 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .gr-dot { width: 22%; height: 22%; border-radius: 50%; background: rgba(251, 243, 228, .55); }
 .gr-mini { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); vertical-align: -1px; }
 @media (prefers-reduced-motion: reduce) { .gr-flip { animation: none; } }
+
+/* ============================================================
+   Pixelats: quadrícula amb pistes a dalt i a l'esquerra
+   ============================================================ */
+.px-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.px-item { aspect-ratio: 1; border: 3px solid var(--ink); border-radius: 12px; background: var(--paper-2); box-shadow: 0 3px 0 var(--ink);
+  font: inherit; font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--ink); cursor: pointer; padding: 8px; }
+.px-item.is-done { background: var(--paper); }
+.px-item svg { width: 100%; height: 100%; fill: var(--accent); display: block; }
+.px-board { display: grid; grid-template-columns: auto repeat(var(--n), 1fr); width: min(100%, calc(100dvh - 250px)); margin: 4px auto 0;
+  touch-action: none; user-select: none; -webkit-user-select: none; }
+.px-cc { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 1px; padding-bottom: 3px;
+  font-family: var(--font-display); font-weight: 800; font-size: clamp(9px, 2.6vw, 14px); line-height: 1.05; color: var(--ink); }
+.px-rc { display: flex; justify-content: flex-end; align-items: center; gap: 4px; padding-right: 5px;
+  font-family: var(--font-display); font-weight: 800; font-size: clamp(9px, 2.6vw, 14px); color: var(--ink); white-space: nowrap; }
+.px-cc.ok, .px-rc.ok { color: rgba(32, 24, 15, .3); }
+.px-cell { aspect-ratio: 1; padding: 0; border: 1px solid rgba(32, 24, 15, .25); background: var(--paper); cursor: pointer; position: relative; }
+.px-cell.px-er { border-right: 2px solid var(--ink); }
+.px-cell.px-eb { border-bottom: 2px solid var(--ink); }
+.px-cell.on { background: var(--ink); }
+.px-cell.x::after { content: '✕'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(32, 24, 15, .45); font-size: 70%; }
+.px-won .px-cell { border-color: transparent; }
+.px-won .px-cell.on { background: var(--accent); }
+.px-won .px-rc, .px-won .px-cc { visibility: hidden; }
