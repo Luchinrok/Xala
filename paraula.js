@@ -12,6 +12,8 @@ import { getRecord, setRecord } from './records.js';
 
 const ROWS = ['qwertyuiop', 'asdfghjklç', '⌫zxcvbnm↵'];
 const LINK = 'https://luchinrok.github.io/Xala/';
+// icona d'esborrar (com la dels teclats dels mòbils)
+const BACK = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M21 5H9l-6 7 6 7h12z"/><path d="M17 9l-5 6M12 9l5 6"/></svg>';
 
 export default {
   id: 'paraula',
@@ -154,7 +156,8 @@ export default {
       root.querySelector('#keys').innerHTML = ROWS.map(row => `<div class="pw-krow">${[...row].map(k => {
         const wide = k === '⌫' || k === '↵';
         const lab = k === '⌫' ? 'Esborra' : k === '↵' ? 'Envia' : k.toUpperCase();
-        return `<button class="pw-key${wide ? ' pw-key--wide' : ''}${ks[k] ? ' pw-' + ks[k] : ''}" data-k="${k}" aria-label="${lab}">${k === '↵' ? 'Envia' : k === '⌫' ? '⌫' : k.toUpperCase()}</button>`;
+        const face = k === '↵' ? 'Envia' : k === '⌫' ? BACK : k.toUpperCase();
+        return `<button class="pw-key${wide ? ' pw-key--wide' : ''}${k === '↵' ? ' pw-key--enter' : ''}${ks[k] ? ' pw-' + ks[k] : ''}" data-k="${k}" aria-label="${lab}">${face}</button>`;
       }).join('')}</div>`).join('');
     }
 

@@ -50,16 +50,31 @@ export default {
     function leave() { stop(); goHome(); }
 
     // narrador: mostra el text gran i, si es vol, el diu en veu alta
+    // La millor veu del mòbil per a l'idioma: primer les naturals («Natural», «Neural»,
+    // «Enhanced», «Premium», les de Google), després qualsevol de l'idioma.
+    function bestVoice(lang) {
+      const vs = (speechSynthesis.getVoices() || []).filter(x => x.lang && x.lang.toLowerCase().replace('_', '-').startsWith(lang.slice(0, 2)));
+      if (!vs.length) return null;
+      const score = (x) => (/natural|neural|enhanced|premium|wavenet/i.test(x.name) ? 4 : 0) + (/google/i.test(x.name) ? 2 : 0)
+        + (x.lang.toLowerCase().replace('_', '-') === lang.toLowerCase() ? 1 : 0) + (x.localService ? 0 : 1);
+      return vs.sort((a, b) => score(b) - score(a))[0];
+    }
+    if (typeof speechSynthesis !== 'undefined') try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) { /* */ }
+
     function say(text) {
       if (!opts.voice || typeof speechSynthesis === 'undefined') return;
       try {
         speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
         const lang = { ca: 'ca-ES', es: 'es-ES', en: 'en-GB', fr: 'fr-FR', it: 'it-IT', de: 'de-DE', pt: 'pt-PT' }[getLang()] || 'ca-ES';
-        u.lang = lang;
-        const v = speechSynthesis.getVoices().find(x => x.lang && x.lang.toLowerCase().startsWith(lang.slice(0, 2)));
-        if (v) u.voice = v;
-        speechSynthesis.speak(u);
+        const v = bestVoice(lang);
+        // frase a frase, amb una mica de pausa i una mica més a poc a poc: sona menys a robot
+        const parts = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+        parts.forEach((part, i) => {
+          const u = new SpeechSynthesisUtterance(part);
+          u.lang = lang; if (v) u.voice = v;
+          u.rate = 0.92; u.pitch = 0.95;
+          speechSynthesis.speak(u);
+        });
       } catch (e) { /* sense veu */ }
     }
 
@@ -197,7 +212,8 @@ export default {
         const others = alive().map(p => g.players.indexOf(p)).filter(i => g.players[i].role !== 'seer');
         if (seerAlive) {
           const pick = others.slice();
-          pick.onPick = (v) => { const p = g.players[v]; root.querySelector('#res').innerHTML = `<p class="ll-seen ${p.role === 'wolf' ? 'is-wolf' : ''}">${esc(p.role === 'wolf' ? L('seerIs', { name: p.name }) : L('seerIsNot', { name: p.name }))}</p>`; };
+          // una sola consulta per nit: un cop triat, la resta queda bloquejada
+          pick.onPick = (v) => { root.querySelectorAll('#pick [data-v]').forEach(x => { x.disabled = +x.dataset.v !== v; }); const p = g.players[v]; root.querySelector('#res').innerHTML = `<p class="ll-seen ${p.role === 'wolf' ? 'is-wolf' : ''}">${esc(p.role === 'wolf' ? L('seerIs', { name: p.name }) : L('seerIsNot', { name: p.name }))}</p>`; };
           steps.push(() => narrate(L('night', { n: g.night }), L('seerWake'), { pick, onDone: next }));
         } else steps.push(() => narrate(L('night', { n: g.night }), L('seerWake'), { onDone: next, auto: 6000 + Math.random() * 3000 }));
         steps.push(() => narrate(L('night', { n: g.night }), L('seerSleep'), { onDone: next }));

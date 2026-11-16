@@ -1562,15 +1562,20 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 @keyframes pwPop { from { transform: scale(1.08); } to { transform: none; } }
 .pw-shake { animation: pwShake .35s ease; }
 @keyframes pwShake { 0%, 100% { transform: none; } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
-.pw-keys { margin: 14px auto 0; width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 6px; }
-.pw-krow { display: flex; gap: 4px; justify-content: center; }
-.pw-key { flex: 1; min-width: 0; height: 48px; padding: 0; border: 2px solid var(--ink); border-radius: 8px; background: var(--paper-2);
-  font: inherit; font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--ink); box-shadow: 0 3px 0 var(--ink); cursor: pointer; }
-.pw-key:active { transform: translateY(3px); box-shadow: none; }
-.pw-key--wide { flex: 1.6; font-size: 13px; }
+.pw-keys { margin: 14px auto 0; width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 7px;
+  padding: 8px 5px 10px; background: var(--paper-2); border-radius: 16px; }
+.pw-krow { display: flex; gap: 5px; justify-content: center; }
+/* tecles com les d'un mòbil: clares, sense vora, amb una ombra suau a sota */
+.pw-key { flex: 1; min-width: 0; height: 52px; padding: 0; border: 0; border-radius: 8px; background: #FFFDF8;
+  font: inherit; font-family: var(--font-display); font-weight: 700; font-size: 19px; color: var(--ink);
+  box-shadow: 0 2px 0 rgba(32, 24, 15, .28); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background-color .25s ease, color .25s ease; -webkit-tap-highlight-color: transparent; }
+.pw-key:active { transform: translateY(2px); box-shadow: none; }
+.pw-key--wide { flex: 1.55; font-size: 14px; }
+.pw-key--enter { background: var(--accent); color: var(--paper); font-weight: 800; letter-spacing: .02em; }
 .pw-key.pw-ok { background: var(--accent); color: var(--paper); }
-.pw-key.pw-hi { background: #FFC828; }
-.pw-key.pw-no { background: #6A5A48; color: var(--paper); opacity: .75; }
+.pw-key.pw-hi { background: #FFC828; color: var(--ink); }
+.pw-key.pw-no { background: #A39582; color: var(--paper); }
 @media (prefers-reduced-motion: reduce) { .pw-flip, .pw-shake, .pw-tile.pw-typed { animation: none; } }
 
 /* ============================================================
