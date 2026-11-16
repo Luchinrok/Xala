@@ -57,6 +57,6 @@ export function keyStates(guesses, answer) {
 
 // Text per compartir: quadrats de colors (sense lletres: no desvela la paraula)
 export function shareText(n, guesses, answer, won) {
-  const sq = { ok: '🟧', hi: '🟨', no: '⬛' };
+  const sq = { ok: '🟩', hi: '🟨', no: '⬜' };
   return `La paraula del dia #${n} ${won ? guesses.length : 'X'}/${TRIES}\n` + guesses.map(g => score(g, answer).map(s => sq[s]).join('')).join('\n');
 }

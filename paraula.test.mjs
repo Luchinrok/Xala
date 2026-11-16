@@ -39,7 +39,7 @@ check(wordOfDay(1) === DIA[0] && wordOfDay(DIA.length + 1) === DIA[0], 'les para
 // tecles i compartir
 const ks = keyStates(['tasca'], 'casat');
 check(ks.a === 'ok' && ks.t === 'hi' && ks.c === 'hi', 'les tecles guarden el millor estat');
-check(shareText(5, ['tasca', 'casat'], 'casat', true).startsWith('La paraula del dia #5 2/6\n🟨🟧🟧🟨🟨'), 'el text per compartir no desvela la paraula');
+check(shareText(5, ['tasca', 'casat'], 'casat', true).startsWith('La paraula del dia #5 2/6\n🟨🟩🟩🟨🟨'), 'el text per compartir no desvela la paraula');
 
 console.log(failures ? `\n✘ LA PARAULA DEL DIA: ${failures} errors` : '✔ LA PARAULA DEL DIA: TOT BÉ');
 process.exit(failures ? 1 : 0);

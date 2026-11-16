@@ -2,7 +2,7 @@
 // La paraula del dia — joc d'un sol jugador (del tipus «endevina la paraula»).
 //
 // Una paraula de 5 lletres cada dia, la mateixa per a tothom, en 6 intents.
-// Corall: lletra al seu lloc; groc: hi és però en un altre lloc; fosc: no hi és.
+// Verd: lletra al seu lloc; groc: hi és però en un altre lloc; gris: no hi és.
 // Els accents no compten. Es pot compartir el resultat sense desvelar la paraula
 // i, un cop feta, practicar amb paraules a l'atzar.
 // ============================================================
@@ -27,7 +27,7 @@ export default {
 
   instructions: [
     'Cada dia hi ha una paraula nova de 5 lletres, la mateixa per a tothom. Tens 6 intents per endevinar-la.',
-    'Escriu una paraula que existeixi i prem ↵. Cada lletra es pinta: corall si és al seu lloc, groc si hi és però en un altre lloc, i fosc si no hi és.',
+    'Escriu una paraula que existeixi i prem ↵. Cada lletra es pinta: verd si és al seu lloc, groc si hi és però en un altre lloc, i gris si no hi és.',
     'Els accents no compten: escriu sense. La ç sí que compta.',
     'Quan l\'encertis, pots compartir el resultat (només els colors, sense la paraula) i practicar amb paraules a l\'atzar.',
   ],

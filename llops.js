@@ -46,7 +46,11 @@ export default {
     const top = (k) => `<div class="chess-top"><button class="back" id="quit">${t('nav.setup')}</button><p class="kicker" style="margin:0 0 18px">${k}</p></div>`;
     const wireTop = () => { const q = root.querySelector('#quit'); if (q) q.onclick = screenConfig; };
 
-    function stop() { if (timer) { clearTimeout(timer); timer = null; } try { speechSynthesis.cancel(); } catch (e) { /* */ } }
+    function stop() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      try { speechSynthesis.cancel(); } catch (e) { /* */ }
+      if (clipAudio) { clipAudio.onended = null; clipAudio.pause(); clipAudio = null; }
+    }
     function leave() { stop(); goHome(); }
 
     // narrador: mostra el text gran i, si es vol, el diu en veu alta
@@ -61,8 +65,27 @@ export default {
     }
     if (typeof speechSynthesis !== 'undefined') try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) { /* */ }
 
-    function say(text) {
-      if (!opts.voice || typeof speechSynthesis === 'undefined') return;
+    // Veu gravada (la Txell, en català): veu-llops/ca/<id>.mp3, una després de l'altra.
+    let clipAudio = null;
+    function playClips(ids) {
+      let k = 0;
+      const next = () => {
+        if (k >= ids.length) return;
+        clipAudio = new Audio(`./veu-llops/ca/${ids[k++]}.mp3`);
+        clipAudio.onended = next;
+        clipAudio.play().catch(() => {});
+      };
+      next();
+    }
+    function say(text, clips) {
+      if (!opts.voice) return;
+      if (clipAudio) { clipAudio.onended = null; clipAudio.pause(); clipAudio = null; }
+      if (clips && clips.length && getLang() === 'ca') {
+        try { speechSynthesis.cancel(); } catch (e) { /* */ }
+        playClips(clips);
+        return;
+      }
+      if (typeof speechSynthesis === 'undefined') return;
       try {
         speechSynthesis.cancel();
         const lang = { ca: 'ca-ES', es: 'es-ES', en: 'en-GB', fr: 'fr-FR', it: 'it-IT', de: 'de-DE', pt: 'pt-PT' }[getLang()] || 'ca-ES';
@@ -175,14 +198,14 @@ export default {
     // ---------- 3) nit ----------
     const alive = () => g.players.filter(p => p.alive);
     const hasRole = (r) => alive().some(p => p.role === r);
-    function narrate(title, text, { pick = null, onDone, auto = 0 } = {}) {
+    function narrate(title, text, { pick = null, onDone, auto = 0, clip = null } = {}) {
       stop();
       root.innerHTML = `
         ${top(title)}
         <div class="ll-night"><p class="ll-say">${text}</p><div id="pick"></div><div id="res"></div></div>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="go" ${pick ? 'disabled' : ''}>${L('done')}</button>`;
-      say(text);
+      say(text, clip ? [clip] : null);
       wireTop();
       const go = root.querySelector('#go');
       go.onclick = () => onDone(go.dataset.v === undefined ? null : +go.dataset.v);
@@ -201,11 +224,11 @@ export default {
       g.night++;
       const tonight = { victim: null, saved: null };
       const steps = [];
-      steps.push(() => narrate(L('night', { n: g.night }), L('nightStart'), { onDone: next }));
+      steps.push(() => narrate(L('night', { n: g.night }), L('nightStart'), { onDone: next, clip: 'nit' }));
       // llops
       const preys = alive().map(p => g.players.indexOf(p)).filter(i => g.players[i].role !== 'wolf');
-      steps.push(() => narrate(L('night', { n: g.night }), L('wolvesWake'), { pick: preys, onDone: (v) => { tonight.victim = v; next(); } }));
-      steps.push(() => narrate(L('night', { n: g.night }), L('wolvesSleep'), { onDone: next }));
+      steps.push(() => narrate(L('night', { n: g.night }), L('wolvesWake'), { clip: 'llops-obriu', pick: preys, onDone: (v) => { tonight.victim = v; next(); } }));
+      steps.push(() => narrate(L('night', { n: g.night }), L('wolvesSleep'), { onDone: next, clip: 'llops-tanqueu' }));
       // vident
       if (opts.seer) {
         const seerAlive = hasRole('seer');
@@ -214,17 +237,17 @@ export default {
           const pick = others.slice();
           // una sola consulta per nit: un cop triat, la resta queda bloquejada
           pick.onPick = (v) => { root.querySelectorAll('#pick [data-v]').forEach(x => { x.disabled = +x.dataset.v !== v; }); const p = g.players[v]; root.querySelector('#res').innerHTML = `<p class="ll-seen ${p.role === 'wolf' ? 'is-wolf' : ''}">${esc(p.role === 'wolf' ? L('seerIs', { name: p.name }) : L('seerIsNot', { name: p.name }))}</p>`; };
-          steps.push(() => narrate(L('night', { n: g.night }), L('seerWake'), { pick, onDone: next }));
-        } else steps.push(() => narrate(L('night', { n: g.night }), L('seerWake'), { onDone: next, auto: 6000 + Math.random() * 3000 }));
-        steps.push(() => narrate(L('night', { n: g.night }), L('seerSleep'), { onDone: next }));
+          steps.push(() => narrate(L('night', { n: g.night }), L('seerWake'), { pick, onDone: next, clip: 'vident-obre' }));
+        } else steps.push(() => narrate(L('night', { n: g.night }), L('seerWake'), { clip: 'vident-obre', onDone: next, auto: 6000 + Math.random() * 3000 }));
+        steps.push(() => narrate(L('night', { n: g.night }), L('seerSleep'), { onDone: next, clip: 'vident-tanca' }));
       }
       // metge
       if (opts.doctor) {
         if (hasRole('doctor')) {
           const pick = alive().map(p => g.players.indexOf(p)).filter(i => i !== g.lastSaved);
-          steps.push(() => narrate(L('night', { n: g.night }), L('doctorWake'), { pick, onDone: (v) => { tonight.saved = v; next(); } }));
-        } else steps.push(() => narrate(L('night', { n: g.night }), L('doctorWake'), { onDone: next, auto: 5000 + Math.random() * 3000 }));
-        steps.push(() => narrate(L('night', { n: g.night }), L('doctorSleep'), { onDone: next }));
+          steps.push(() => narrate(L('night', { n: g.night }), L('doctorWake'), { clip: 'metge-obre', pick, onDone: (v) => { tonight.saved = v; next(); } }));
+        } else steps.push(() => narrate(L('night', { n: g.night }), L('doctorWake'), { clip: 'metge-obre', onDone: next, auto: 5000 + Math.random() * 3000 }));
+        steps.push(() => narrate(L('night', { n: g.night }), L('doctorSleep'), { onDone: next, clip: 'metge-tanca' }));
       }
       let k = 0;
       function next() { if (k < steps.length) steps[k++](); else dawn(tonight); }
@@ -245,7 +268,7 @@ export default {
         <div class="ll-day"><p class="ll-say">${L('dawn')}</p><p class="ll-news">${msg}</p></div>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="go">${L('debate')}</button>`;
-      say(`${L('dawn')} ${msg.replace(/<[^>]+>/g, ' ')}`);
+      say(`${L('dawn')} ${msg.replace(/<[^>]+>/g, ' ')}`, ['dia', tn.victim !== null && tn.victim !== tn.saved ? 'victima' : 'ningu']);
       root.querySelector('#go').onclick = () => (checkWin() || vote());
       wireTop();
     }
@@ -275,7 +298,7 @@ export default {
           <div class="ll-day"><p class="ll-news">${L('voteOut', { name: esc(p.name) })}<br><span class="muted">${L('wasRole', { role: L(ROLE_KEY[p.role]) })}</span></p></div>
           <div class="spacer"></div>
           <button class="btn btn--accent" id="go">${t('common.continue')}</button>`;
-        say(`${L('voteOut', { name: p.name })} ${L('wasRole', { role: L(ROLE_KEY[p.role]) })}`);
+        say(`${L('voteOut', { name: p.name })} ${L('wasRole', { role: L(ROLE_KEY[p.role]) })}`, ['fora']);
         root.querySelector('#go').onclick = () => { if (!checkWin()) night(); };
         wireTop();
       };
@@ -291,7 +314,7 @@ export default {
     function end(who) {
       stop();
       const title = who === 'wolves' ? L('winWolves') : L('winVillage');
-      say(title);
+      say(title, [who === 'wolves' ? 'guanyen-llops' : 'guanya-poble']);
       root.innerHTML = `
         ${top(t('common.final'))}
         <h2 class="center" style="font-size:32px;margin:0 0 16px;color:var(--accent)">${title}</h2>

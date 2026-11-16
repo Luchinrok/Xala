@@ -2,7 +2,7 @@
 // Quan afegeixis fitxers nous (jocs, dades), inclou-los a ASSETS
 // i puja la versió de CACHE per forçar l'actualització.
 
-const CACHE = 'xala-v143';
+const CACHE = 'xala-v144';
 const ASSETS = [
   './',
   './index.html',
@@ -56,6 +56,19 @@ const ASSETS = [
   './marro.js',
   './marro-motor.js',
   './llops.js',
+  './veu-llops/ca/nit.mp3',
+  './veu-llops/ca/llops-obriu.mp3',
+  './veu-llops/ca/llops-tanqueu.mp3',
+  './veu-llops/ca/vident-obre.mp3',
+  './veu-llops/ca/vident-tanca.mp3',
+  './veu-llops/ca/metge-obre.mp3',
+  './veu-llops/ca/metge-tanca.mp3',
+  './veu-llops/ca/dia.mp3',
+  './veu-llops/ca/victima.mp3',
+  './veu-llops/ca/ningu.mp3',
+  './veu-llops/ca/fora.mp3',
+  './veu-llops/ca/guanyen-llops.mp3',
+  './veu-llops/ca/guanya-poble.mp3',
   './vendor/matter.min.js',
   './serp-motor.js',
   './musica.js',
