@@ -32,6 +32,7 @@ import macedonia from './macedonia.js';
 import gravetat from './gravetat.js';
 import flipers from './flipers.js';
 import pinzellada from './pinzellada.js';
+import paraula from './paraula.js';
 import { createMusic } from './musica.js';
 import { t } from './i18n.js';
 
@@ -44,7 +45,7 @@ const gameInstructions = (g) => g.instructions || [];
 const PARTY_GAMES = [impostor, endevinala, bomba, quiprobable, aescena, passaparaula];
 const DUO_GAMES = [vaixells, tresenratlla, connecta4, dames, puntsicaixes, escacs, gravetat, flipers];
 // Fes-la caure (rodola*.js) s'ha tret el 14-11-2026: el codi es guarda per més endavant.
-const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada];
+const SOLO_GAMES = [encaixa, memory, sudoku, joc2048, sopa, penjat, mat2, traca, xifra, serp, drac, petards, trencamurs, macedonia, pinzellada, paraula];
 
 // ---------- música de fons (tota l'app) ----------
 // Comença amb el primer toc (iOS només deixa sonar després d'un gest) i es pot
@@ -282,6 +283,8 @@ function glyph(id) {
     gravetat:   '<path d="M5 8h30M5 32h30" stroke-width="4"/><rect x="14" y="21" width="9" height="9" rx="2" stroke-width="3"/><path d="M29 24V14m-3 3 3-3 3 3" stroke-width="3"/>',
     // Macedònia: dues fruites, una de petita i una de grossa, amb full
     macedonia:  '<circle cx="14" cy="27" r="6" stroke-width="3"/><circle cx="26" cy="20" r="10" stroke-width="3"/><path d="M26 10c2-4 6-5 8-4-1 3-4 5-8 4z" stroke-width="2.5"/>',
+    // La paraula del dia: cinc caselles, dues pintades
+    paraula:    '<rect x="3" y="14" width="6" height="12" rx="1.5" stroke-width="2.5"/><rect x="10.5" y="14" width="6" height="12" rx="1.5" fill="currentColor" stroke-width="2.5"/><rect x="18" y="14" width="6" height="12" rx="1.5" stroke-width="2.5"/><rect x="25.5" y="14" width="6" height="12" rx="1.5" fill="currentColor" stroke-width="2.5"/><rect x="33" y="14" width="5" height="12" rx="1.5" stroke-width="2.5"/>',
     // Pinzellada: un laberint amb una bola i el rastre pintat
     pinzellada: '<rect x="6" y="6" width="28" height="28" rx="3" stroke-width="3"/><path d="M12 28V13h16v12" stroke-width="4"/><circle cx="28" cy="27" r="3"/>',
     // La Serp: una serp en S amb un ull

@@ -1545,3 +1545,30 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .rank-name__row input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: var(--paper); color: var(--ink); }
 .rank-name__row .btn { flex: none; width: auto; padding: 10px 16px; }
 .rank-name .muted { margin: 0; font-size: 13px; }
+
+/* ============================================================
+   La paraula del dia: graella de 6×5 i teclat català
+   ============================================================ */
+.pw-grid { display: grid; gap: 6px; margin: 4px auto 0; width: min(100%, calc((100dvh - 330px) * 5 / 6), 320px); }
+.pw-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.pw-tile { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 2.5px solid rgba(32, 24, 15, .2);
+  border-radius: 10px; font-family: var(--font-display); font-weight: 800; font-size: clamp(20px, 7vw, 30px); background: var(--paper); color: var(--ink); }
+.pw-tile.pw-typed { border-color: var(--ink); animation: pwPop .1s ease; }
+.pw-tile.pw-ok { background: var(--accent); border-color: var(--ink); color: var(--paper); }
+.pw-tile.pw-hi { background: #FFC828; border-color: var(--ink); color: var(--ink); }
+.pw-tile.pw-no { background: #6A5A48; border-color: var(--ink); color: var(--paper); }
+.pw-flip { animation: pwFlip .45s ease both; }
+@keyframes pwFlip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+@keyframes pwPop { from { transform: scale(1.08); } to { transform: none; } }
+.pw-shake { animation: pwShake .35s ease; }
+@keyframes pwShake { 0%, 100% { transform: none; } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.pw-keys { margin: 14px auto 0; width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 6px; }
+.pw-krow { display: flex; gap: 4px; justify-content: center; }
+.pw-key { flex: 1; min-width: 0; height: 48px; padding: 0; border: 2px solid var(--ink); border-radius: 8px; background: var(--paper-2);
+  font: inherit; font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--ink); box-shadow: 0 3px 0 var(--ink); cursor: pointer; }
+.pw-key:active { transform: translateY(3px); box-shadow: none; }
+.pw-key--wide { flex: 1.6; font-size: 13px; }
+.pw-key.pw-ok { background: var(--accent); color: var(--paper); }
+.pw-key.pw-hi { background: #FFC828; }
+.pw-key.pw-no { background: #6A5A48; color: var(--paper); opacity: .75; }
+@media (prefers-reduced-motion: reduce) { .pw-flip, .pw-shake, .pw-tile.pw-typed { animation: none; } }
