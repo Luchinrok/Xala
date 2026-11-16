@@ -11,7 +11,6 @@ import { CATEGORIES } from './impostor-paraules.js';
 import { openCategoryScreen, categoriesLabel } from './category-select.js';
 import { getPlayers, setPlayers } from './store.js';
 import { drawFromBag } from './word-bag.js';
-import { confirma } from './confirma.js';
 import { t } from './i18n.js';
 import { getRecord, setRecord } from './records.js';
 
@@ -58,10 +57,6 @@ export default {
     const nextWord = () => drawFromBag(bagKey(), pool);
 
     function stop() { if (timer) { clearInterval(timer); timer = null; } }
-    // sortir a mitja partida es perd tot: primer es pregunta
-    async function askQuit() {
-      if (await confirma({ text: t('common.leaveGame'), yes: t('common.leave'), no: t('common.keepPlaying') })) screenSetup();
-    }
     function leave() { stop(); goHome(); }
 
     // ---------- 1) preparació ----------
@@ -128,7 +123,7 @@ export default {
       const name = game.names[drawerIdx()];
       let word = nextWord(), shown = false;
       root.innerHTML = `
-        <div class="chess-top"><button class="back" id="quit">${t('nav.setup')}</button><p class="kicker" style="margin:0 0 18px">${D('turnN', { n: game.turn + 1, total: game.total })}</p></div>
+        <div class="chess-top"><button class="back" id="quit" data-guard>${t('nav.setup')}</button><p class="kicker" style="margin:0 0 18px">${D('turnN', { n: game.turn + 1, total: game.total })}</p></div>
         <p class="muted center" style="margin:0 0 10px">${t('common.passMobileTo')}</p>
         <div class="reveal-card tap-hint dx-card" id="card" role="button" tabindex="0"></div>
         <div class="spacer"></div>
@@ -141,19 +136,23 @@ export default {
         root.querySelector('#nextWrap').innerHTML = `<div class="stack" style="--stack-gap:10px">
           <button class="btn btn--accent" id="draw">${D('start')}</button>
           <button class="btn btn--outline" id="other">${D('otherWord')}</button></div>`;
-        root.querySelector('#draw').onclick = () => drawScreen(word);
+        root.querySelector('#draw').onclick = () => drawScreen({ word, strokes: [], left: state.secs });
         root.querySelector('#other').onclick = () => { word = nextWord(); reveal(); };
       };
       card.onclick = () => { shown = !shown; shown ? reveal() : cover(); };
       card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.onclick(); } };
-      root.querySelector('#quit').onclick = askQuit;
+      // sortir a mitja partida: l'app pregunta abans (data-guard, vegeu confirma.js)
+      root.querySelector('#quit').onclick = screenSetup;
       cover();
     }
 
     // ---------- 3) dibuixar ----------
-    function drawScreen(word) {
-      let left = state.secs;
+    // tu = el torn: paraula, traços i temps que queda (per poder tornar a dibuixar)
+    function drawScreen(tu) {
+      const word = tu.word;
+      let left = tu.left;
       root.innerHTML = `
+<i data-guard hidden></i>
         <div class="dx-top">
           <span class="dx-time" id="time">${left}</span>
           <button class="dx-peek" id="peek" type="button">👁 ${D('holdWord')}</button>
@@ -170,7 +169,8 @@ export default {
           <button class="btn btn--outline" id="pass">${D('pass')}</button>
         </div>`;
       const cv = root.querySelector('#cv'), ctx = cv.getContext('2d');
-      let strokes = [], cur = null, color = COLORS[0], width = 6;
+      let cur = null, color = COLORS[0], width = 6;
+      const strokes = tu.strokes;
       const fit = () => {
         const w = cv.parentElement.clientWidth, h = cv.parentElement.clientHeight, dpr = window.devicePixelRatio || 1;
         cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
@@ -196,14 +196,15 @@ export default {
       const thick = root.querySelector('#thick');
       thick.onclick = () => { width = width === 6 ? 14 : width === 14 ? 3 : 6; thick.style.fontSize = width === 14 ? '26px' : width === 3 ? '10px' : '17px'; };
       root.querySelector('#undo').onclick = () => { strokes.pop(); redraw(); };
-      root.querySelector('#clear').onclick = () => { strokes = []; redraw(); };
+      root.querySelector('#clear').onclick = () => { strokes.length = 0; redraw(); };
       // la paraula, només mentre es manté premut (que no la vegin els altres)
       const peek = root.querySelector('#peek');
       const show = (e) => { e.preventDefault(); peek.textContent = word; peek.classList.add('on'); };
       const hide = () => { peek.textContent = `👁 ${D('holdWord')}`; peek.classList.remove('on'); };
       peek.addEventListener('pointerdown', show); peek.addEventListener('pointerup', hide); peek.addEventListener('pointerleave', hide); peek.addEventListener('pointercancel', hide);
-      root.querySelector('#got').onclick = () => { stop(); whoGuessed(word); };
-      root.querySelector('#pass').onclick = () => { word = nextWord(); strokes = []; redraw(); hide(); };
+      root.querySelector('#got').onclick = () => { stop(); tu.left = left; whoGuessed(tu); };
+      // passa el torn al següent (sense punts)
+      root.querySelector('#pass').onclick = () => { stop(); result(null, word, true); };
       fit();
       window.addEventListener('resize', fit, { once: true });
       stop();
@@ -212,14 +213,17 @@ export default {
         left--;
         const el = root.querySelector('#time');
         if (el) { el.textContent = left; el.classList.toggle('dx-hurry', left <= 10); }
+        tu.left = left;
         if (left <= 0) { stop(); if (navigator.vibrate) navigator.vibrate(200); result(null, word); }
       }, 1000);
     }
 
     // ---------- 4) qui l'ha endevinada ----------
-    function whoGuessed(word) {
+    function whoGuessed(tu) {
+      const word = tu.word;
       const d = drawerIdx();
       root.innerHTML = `
+        <button class="back" id="redraw" data-safe data-guard>${D('backToDraw')}</button>
         <p class="kicker center">${esc(word)}</p>
         <h2 class="center" style="font-size:26px;margin:8px 0 16px">${D('whoGuessed')}</h2>
         <div class="ll-pick">${game.names.map((n, i) => (i === d ? '' : `<button class="btn btn--outline" data-g="${i}">${esc(n)}</button>`)).join('')}</div>
@@ -227,15 +231,17 @@ export default {
         <button class="btn btn--outline" id="none">${D('nobody')}</button>`;
       root.querySelectorAll('[data-g]').forEach(b => { b.onclick = () => result(+b.dataset.g, word); });
       root.querySelector('#none').onclick = () => result(null, word);
+      // tocat per error: torna al dibuix amb el temps que quedava
+      root.querySelector('#redraw').onclick = () => drawScreen(tu);
     }
-    function result(guesser, word) {
+    function result(guesser, word, passed = false) {
       stop();
       const d = drawerIdx();
       if (guesser !== null) { game.score[guesser]++; game.score[d]++; }
       game.turn++;
       const last = game.turn >= game.total;
-      root.innerHTML = `
-        <p class="kicker center">${guesser === null ? D('timeUp') : D('point')}</p>
+      root.innerHTML = `${last ? '' : '<i data-guard hidden></i>'}
+        <p class="kicker center">${passed ? D('passed') : guesser === null ? D('timeUp') : D('point')}</p>
         <h2 class="center" style="font-size:28px;margin:8px 0 6px">${D('wasWord', { word: esc(word) })}</h2>
         <p class="muted center">${guesser === null ? D('noPoints') : D('bothScore', { a: esc(game.names[guesser]), b: esc(game.names[d]) })}</p>
         <div class="stack dx-scores" style="--stack-gap:6px;margin-top:18px">

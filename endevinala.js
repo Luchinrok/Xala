@@ -209,7 +209,7 @@ export default {
     function screenReady() {
       cleanup();
       root.innerHTML = `
-        <button class="back" id="back">${t('nav.setup')}</button>
+        <button class="back" id="back" data-guard>${t('nav.setup')}</button>
         <p class="kicker">${t('game.endevinala.title')}</p>
         <div class="spacer"></div>
         <div class="panel center stack">
@@ -321,7 +321,7 @@ export default {
     function screenPlaySensor() {
       const first = state.current || '';
       root.innerHTML = landWrap(`
-        <div class="play" id="play">
+        <div class="play" id="play" data-guard>
           <div class="play__top">
             <span class="play__timer" id="timer">${state.duration}</span>
             <span class="play__score" id="score">0</span>
@@ -378,7 +378,7 @@ export default {
       const left = root.querySelector('#timer') ? root.querySelector('#timer').textContent : state.duration;
       // Mode botons: es juga amb el mòbil en VERTICAL, sense girar res.
       root.innerHTML = vertWrap(`
-        <div class="play play--btns" id="play">
+        <div class="play play--btns" id="play" data-guard>
           <button class="zone zone--ok" id="ok">${t('endevinala.zoneOk')}</button>
           <div class="zone-mid">
             <span class="play__timer" id="timer">${left}</span>

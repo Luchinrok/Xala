@@ -87,7 +87,7 @@ export default {
       for (let i = 0; i < 3; i++) addTower(W + 80 + i * L.space);
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score">0</div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Toca per volar</p>

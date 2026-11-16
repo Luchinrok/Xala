@@ -268,7 +268,7 @@ export default {
     function screenGame() {
       const N = state.N;
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <button class="back" id="back" data-guard>‹ Enrere</button>
         <div class="sopa-head"><span class="kicker">Temps: <b id="time">0:00</b></span></div>
         <div class="sopa-board" id="board" style="--n:${N}"></div>
         <div class="sopa-words" id="words"></div>

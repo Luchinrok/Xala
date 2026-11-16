@@ -88,7 +88,7 @@ export default {
       resetBall();
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score"></div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Toca per llançar la pilota</p>

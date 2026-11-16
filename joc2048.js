@@ -218,7 +218,7 @@ export default {
     function screenGame() {
       const slotsHtml = Array.from({ length: SIZE * SIZE }, () => '<span class="g2048-slot"></span>').join('');
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <button class="back" id="back" data-guard>‹ Enrere</button>
         <div class="g2048-head">
           <span class="kicker">Punts: <b id="score">${state.score}</b></span>
           <span class="kicker">Rècord: <b id="best">${best()}</b></span>

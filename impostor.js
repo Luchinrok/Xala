@@ -231,7 +231,7 @@ export default {
     // ---------- repartiment: passa el mòbil ----------
     function screenPass() {
       const name = getName(state.revealIndex);
-      root.innerHTML = `
+      root.innerHTML = `<i data-guard hidden></i>
         <p class="kicker">${t('impostor.passKicker')}</p>
         <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${name}</h2>
         <div class="reveal-card tap-hint" id="card" role="button" tabindex="0">
@@ -291,7 +291,7 @@ export default {
       const starterLine = state.starter === null ? ''
         : `<p style="display:block;width:100%;box-sizing:border-box;text-align:center;margin:34px 0 6px;color:var(--accent);font-family:var(--font-display);font-weight:800;font-size:clamp(28px,7vw,44px);line-height:1.1;overflow-wrap:anywhere">${t('impostor.startsTurn', { name: getName(state.starter) })}</p>`;
 
-      root.innerHTML = `
+      root.innerHTML = `<i data-guard hidden></i>
         <p class="kicker">${t('impostor.debateKicker')}</p>
         <h2 style="font-size:26px;margin:6px 0 8px">${t('impostor.debateTitle')}</h2>
         ${starterLine}
@@ -332,7 +332,7 @@ export default {
       const alive = [...Array(count()).keys()].filter(i => !state.eliminated.has(i));
       const buttons = alive.map(i => `<button class="btn btn--outline" data-vote="${i}">${getName(i)}</button>`).join('');
       root.innerHTML = `
-        <button class="back" id="back">${t('nav.debate')}</button>
+        <button class="back" id="back" data-safe data-guard>${t('nav.debate')}</button>
         <p class="kicker">${t('impostor.voteKicker')}</p>
         <h2 style="font-size:28px;margin:6px 0 6px">${t('impostor.voteTitle')}</h2>
         <p class="muted" style="margin-bottom:18px">${t('impostor.voteSub')}</p>
@@ -365,7 +365,7 @@ export default {
 
     // ---------- continua (queden jugadors) ----------
     function screenContinue(accused, caught, impostorsLeft) {
-      root.innerHTML = `
+      root.innerHTML = `<i data-guard hidden></i>
         <p class="kicker">${t('impostor.expelled')}</p>
         <div class="panel center stack" style="margin-top:18px">
           <h2 style="font-size:32px;color:var(--accent)">${getName(accused)}</h2>

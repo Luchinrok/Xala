@@ -1694,17 +1694,16 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 /* ============================================================
    Sembra: dues files de forats, els graners als costats
    ============================================================ */
-.sb-board { display: flex; align-items: stretch; gap: 4px; margin: 14px -6px 0; padding: 10px 6px; background: #B5793C; border: 3px solid var(--ink);
+.sb-board { --sb: min(30vw, calc((100dvh - 250px) / 7.6)); display: grid; grid-template-columns: var(--sb) var(--sb); gap: 8px 14px;
+  justify-content: center; width: max-content; margin: 8px auto 0; padding: 12px 14px; background: #B5793C; border: 3px solid var(--ink);
   border-radius: 40px; box-shadow: var(--shadow); }
-.sb-rows { flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.sb-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
 .sb-pit, .sb-store { position: relative; border: 2px solid rgba(32, 24, 15, .65); background: #8E5A28; box-shadow: inset 0 3px 6px rgba(0, 0, 0, .35);
   display: flex; align-items: flex-end; justify-content: center; padding: 0 0 2px; font: inherit; }
 .sb-pit { aspect-ratio: 1; border-radius: 50%; cursor: default; }
-.sb-store { width: 32px; border-radius: 18px; align-items: center; }
-.sb-pit b, .sb-store b { position: relative; z-index: 2; font-family: var(--font-display); font-weight: 800; font-size: 12px; line-height: 1; color: #FBF3E4; background: rgba(32, 24, 15, .75); border-radius: 999px; padding: 2px 5px; }
+.sb-store { grid-column: 1 / -1; height: calc(var(--sb) * .72); border-radius: 22px; align-items: center; }
+.sb-pit b, .sb-store b { position: relative; z-index: 2; font-family: var(--font-display); font-weight: 800; font-size: 14px; line-height: 1; color: #FBF3E4; background: rgba(32, 24, 15, .75); border-radius: 999px; padding: 2px 5px; }
 .sb-pit b { margin-bottom: -6px; }
-.sb-store b { font-size: 16px; padding: 3px 5px; background: none; }
+.sb-store b { font-size: 24px; padding: 3px 5px; background: none; }
 .sb-pit.sb-can { cursor: pointer; border-color: #FBF3E4; box-shadow: inset 0 3px 6px rgba(0, 0, 0, .35), 0 0 0 2px #FFC828; }
 .sb-pit.sb-p0.sb-can { box-shadow: inset 0 3px 6px rgba(0, 0, 0, .35), 0 0 0 3px var(--accent); }
 .sb-pit.sb-p1.sb-can { box-shadow: inset 0 3px 6px rgba(0, 0, 0, .35), 0 0 0 3px var(--ok); }
@@ -1713,7 +1712,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 .sb-hot { background: #A86E35; }
 .sb-last { outline: 3px solid #FFC828; outline-offset: 1px; }
 .sb-seeds { position: absolute; inset: 0; pointer-events: none; }
-.sb-seed { position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: #F4E3B5; box-shadow: inset -1px -1px 0 rgba(0, 0, 0, .3); }
+.sb-seed { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #F4E3B5; box-shadow: inset -1px -1px 0 rgba(0, 0, 0, .3); }
 
 /* Uneix colors: tauler quadrat i, a l'inici, les mides de dues en dues */
 .cl-board { width: min(100%, calc(100dvh - 270px)); margin: 4px auto 0; border: 3px solid var(--ink); border-radius: var(--r-sm);

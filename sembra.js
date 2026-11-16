@@ -66,7 +66,7 @@ export default {
       g = newGame(); shown = g.b.slice(); busy = false;
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score"></div>
         </div>
         <p aria-live="polite" class="c4-turn" id="turn"></p>
@@ -114,7 +114,7 @@ export default {
       const can = human() && g.turn === mine && n > 0;
       const dots = Array.from({ length: Math.min(n, 12) }, (_, k) => {
         // en espiral, una mica amunt (a baix hi ha el número)
-        const a = k * 2.4, r = 3 + 2.4 * Math.sqrt(k);
+        const a = k * 2.4, r = 4 + 3.6 * Math.sqrt(k);
         return `<span class="sb-seed" style="left:calc(50% + ${(Math.cos(a) * r).toFixed(1)}px);top:calc(42% + ${(Math.sin(a) * r * 0.85).toFixed(1)}px)"></span>`;
       }).join('');
       const lastFrom = g.last && g.last.from === i && !busy ? ' sb-last' : '';
@@ -122,12 +122,13 @@ export default {
         <span class="sb-seeds">${dots}</span><b>${n}</b></button>`;
     }
     function render(mover, hot) {
-      const top = [12, 11, 10, 9, 8, 7].map(i => pit(i, hot)).join('');
-      const bottom = [0, 1, 2, 3, 4, 5].map(i => pit(i, hot)).join('');
+      // tauler dret (ocupa la pantalla): corall a la dreta, de baix a dalt, i el seu
+      // graner a dalt; verd a l'esquerra, de dalt a baix, i el seu graner a baix
+      const rows = [0, 1, 2, 3, 4, 5].map(r => pit(7 + r, hot) + pit(5 - r, hot)).join('');
       root.querySelector('#board').innerHTML = `
-        <div class="sb-store sb-p1${hot === 13 ? ' sb-hot' : ''}" aria-label="Graner verd: ${shown[13]}"><b>${shown[13]}</b></div>
-        <div class="sb-rows"><div class="sb-row">${top}</div><div class="sb-row">${bottom}</div></div>
-        <div class="sb-store sb-p0${hot === 6 ? ' sb-hot' : ''}" aria-label="Graner corall: ${shown[6]}"><b>${shown[6]}</b></div>`;
+        <div class="sb-store sb-p0${hot === 6 ? ' sb-hot' : ''}" aria-label="Graner corall: ${shown[6]}"><b>${shown[6]}</b></div>
+        ${rows}
+        <div class="sb-store sb-p1${hot === 13 ? ' sb-hot' : ''}" aria-label="Graner verd: ${shown[13]}"><b>${shown[13]}</b></div>`;
       const [a, b] = NAMES[mode];
       const sc = root.querySelector('#score');
       sc.innerHTML = `<span class="dot-p" style="background:var(--accent)"></span> ${shown[6]} – ${shown[13]} <span class="dot-p" style="background:var(--ok)"></span>`;

@@ -217,7 +217,7 @@ export default {
     // ---------- 2) passa el mòbil ----------
     function screenPass() {
       root.innerHTML = `
-        <button class="back" id="home">${t('nav.home')}</button>
+        <button class="back" id="home" data-guard>${t('nav.home')}</button>
         <p class="kicker">${t('aescena.turnXofY', { x: state.turn + 1, y: state.order.length })}</p>
         <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${getName(actor())}</h2>
         <div class="reveal-card tap-hint" id="card" role="button" tabindex="0">
@@ -233,7 +233,7 @@ export default {
     // ---------- 3) revelació secreta (només qui actua) ----------
     function screenReveal() {
       root.innerHTML = `
-        <button class="back" id="home">${t('nav.home')}</button>
+        <button class="back" id="home" data-guard>${t('nav.home')}</button>
         <p class="kicker center">${t('aescena.onlyName', { name: getName(actor()) })}</p>
         <div class="ae-mode-wrap"><span class="ae-mode">${modeLabel()}</span></div>
         <div class="reveal-card" id="card">
@@ -257,7 +257,7 @@ export default {
       const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
       root.innerHTML = `
-        <button class="back" id="home">${t('nav.home')}</button>
+        <button class="back" id="home" data-guard>${t('nav.home')}</button>
         <p class="kicker center">${t('aescena.actName', { name: getName(actor()) })}</p>
         <div class="ae-mode-big">${modeLabel()}</div>
         <p class="muted center">${hint}</p>

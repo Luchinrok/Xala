@@ -92,7 +92,7 @@ export default {
       queue = []; started = false; paused = false;
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score">0</div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Llisca o toca una fletxa per començar</p>

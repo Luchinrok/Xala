@@ -78,7 +78,7 @@ export default {
       markMode = false; secs = 0; started = false;
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score"></div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Toca una casella per començar</p>

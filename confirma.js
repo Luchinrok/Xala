@@ -4,6 +4,8 @@
 //   if (await confirma({ text, yes, no })) { ... }
 // ============================================================
 
+import { t } from './i18n.js';
+
 export function confirma({ text, yes, no }) {
   return new Promise((resolve) => {
     const box = document.createElement('div');
@@ -28,4 +30,23 @@ export function confirma({ text, yes, no }) {
     document.body.appendChild(box);
     box.querySelector('[data-a="no"]').focus();
   });
+}
+
+// ---------- no perdre la partida ----------
+// La pantalla d'una partida en marxa porta un element amb data-guard (sovint el
+// mateix botó «Enrere»). L'app (app.js) ho mira en tocar «Enrere» o fer el gest
+// enrere del mòbil i, si és a mitges, pregunta abans de sortir. Amb el plafó del
+// final (#endbox o #result amb contingut) ja no pregunta. Un botó .back amb
+// data-safe no fa perdre res (no pregunta). setGuard(fn) hi afegeix una condició.
+let guardFn = null;
+export function setGuard(fn) { guardFn = fn || null; }
+export function guarded() {
+  try {
+    if (!document.querySelector('#app [data-guard]')) return false;
+    if (document.querySelector('#endbox > *, #result > *')) return false;
+    return guardFn ? !!guardFn() : true;
+  } catch (e) { return false; }
+}
+export function askLeave() {
+  return confirma({ text: t('common.leaveGame'), yes: t('common.leave'), no: t('common.keepPlaying') });
 }

@@ -157,7 +157,7 @@ export default {
     // ---------- 2) joc ----------
     function screenGame() {
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <button class="back" id="back" data-guard>‹ Enrere</button>
         <div class="mem-head">
           <span class="kicker">Moviments: <b id="moves">0</b></span>
           <span class="kicker">Temps: <b id="time">0:00</b></span>

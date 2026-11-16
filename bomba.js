@@ -226,7 +226,7 @@ export default {
     function screenRound() {
       stopTimers();
       root.innerHTML = `
-        <button class="back" id="back">${t('nav.home')}</button>
+        <button class="back" id="back" data-guard>${t('nav.home')}</button>
         <p class="kicker center">${t('bomba.challenge')}</p>
         <div class="bomb-challenge" id="challenge">${state.challenge}</div>
         <div class="bomb-stage">${BOMB_SVG}</div>

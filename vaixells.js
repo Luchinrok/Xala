@@ -262,7 +262,7 @@ export default {
     function screenPlacement(player, onDone) {
       const board = state.boards[player];
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <button class="back" id="back" data-guard>‹ Enrere</button>
         <p class="kicker">Col·locació · ${playerName(player)}</p>
         <div class="vx-board vx-board--place" id="pboard"></div>
         <div class="vx-ships" id="ships"></div>
@@ -459,7 +459,7 @@ export default {
       state.confirming = false;
       const opp = state.boards[1 - shooter];
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <button class="back" id="back" data-guard>‹ Enrere</button>
         <p class="kicker">${playerName(shooter)} dispara</p>
         <p class="vx-status" id="status" aria-live="polite">Toca una casella per disparar</p>
         <div class="vx-board" id="tboard"></div>
@@ -506,7 +506,7 @@ export default {
       clearAiTimer();
       const mine = state.boards[0];
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <button class="back" id="back" data-guard>‹ Enrere</button>
         <p class="kicker">Torn de la màquina</p>
         <p class="vx-status" id="status" aria-live="polite">La màquina apunta…</p>
         <div class="vx-board" id="oboard"></div>

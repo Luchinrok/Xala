@@ -65,7 +65,7 @@ export default {
       g = newGame(); flipped = [];
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score"></div>
         </div>
         <p aria-live="polite" class="c4-turn" id="turn"></p>

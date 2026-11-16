@@ -200,7 +200,7 @@ export default {
     // ---------- 2) joc ----------
     function screenGame() {
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <button class="back" id="back" data-guard>‹ Enrere</button>
         <p aria-live="polite" class="kicker center" id="status"></p>
         <div class="hang-stage" id="gallows"></div>
         <div class="hang-word" id="word"></div>

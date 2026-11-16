@@ -10,7 +10,6 @@
 import { SUAU, ATREVIT } from './jomai-frases.js';
 import { getPlayers, setPlayers } from './store.js';
 import { drawFromBag } from './word-bag.js';
-import { confirma } from './confirma.js';
 import { t } from './i18n.js';
 import { getRecord, setRecord } from './records.js';
 
@@ -107,15 +106,12 @@ export default {
       card();
     }
     const alive = () => game.names.map((_, i) => i).filter(i => game.left[i] > 0);
-    async function askQuit() {
-      if (await confirma({ text: t('common.leaveGame'), yes: t('common.leave'), no: t('common.keepPlaying') })) screenSetup();
-    }
     function card() {
       const phrase = next();
       game.n++;
       const who = new Set();
       root.innerHTML = `
-        <div class="chess-top"><button class="back" id="quit">${t('nav.setup')}</button><p class="kicker" style="margin:0 0 18px">${J('cardN', { n: game.n })}</p></div>
+        <div class="chess-top"><button class="back" id="quit" data-guard>${t('nav.setup')}</button><p class="kicker" style="margin:0 0 18px">${J('cardN', { n: game.n })}</p></div>
         <div class="jm-card">
           <p class="jm-pre">${J('prefix')}</p>
           <p class="jm-text">${esc(phrase)}</p>
@@ -125,7 +121,8 @@ export default {
           <div class="jm-players">${alive().map(i => `<button class="jm-p" data-p="${i}" aria-pressed="false"><span>${esc(game.names[i])}</span><small>${fingers(game.left[i])}</small></button>`).join('')}</div>` : ''}
         <div class="spacer"></div>
         <button class="btn btn--accent" id="next" style="margin-top:18px">${J('next')}</button>`;
-      root.querySelector('#quit').onclick = askQuit;
+      // sortir a mitja partida: l'app pregunta abans (data-guard, vegeu confirma.js)
+      root.querySelector('#quit').onclick = screenSetup;
       root.querySelectorAll('[data-p]').forEach(b => { b.onclick = () => {
         const i = +b.dataset.p;
         if (who.has(i)) who.delete(i); else who.add(i);
@@ -146,6 +143,7 @@ export default {
 
     function outScreen(names) {
       root.innerHTML = `
+<i data-guard hidden></i>
         <div class="jm-card jm-card--out">
           <p class="jm-text">${names.map(n => J('out', { name: esc(n) })).join('<br>')}</p>
         </div>

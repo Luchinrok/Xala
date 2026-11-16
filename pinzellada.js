@@ -78,7 +78,7 @@ export default {
       anim = null;
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score">${tier.name} · ${n - tier.from + 1}</div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Llisca per moure la bola</p>

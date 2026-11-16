@@ -112,7 +112,7 @@ export default {
       };
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score" aria-label="${names()[0]} ${wins[0]}, ${names()[1]} ${wins[1]}">${scoreHtml()}</div>
         </div>
         <div class="drac-board gv-board" id="board" style="--ar:${W / H}"><canvas id="cv" role="img" aria-label="Dos corredors, un a cada meitat"></canvas></div>

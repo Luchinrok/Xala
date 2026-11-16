@@ -630,7 +630,7 @@ export default {
       stopTimer();
       clearReveal();
       root.innerHTML = `
-        <button class="back" id="home">${t('nav.home')}</button>
+        <button class="back" id="home" data-guard>${t('nav.home')}</button>
         <p class="kicker center">${t('pp.hitsAlive', { ok: okCount(), alive: aliveCount() })}</p>
         <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${getName(state.curPlayer)}</h2>
         <div class="reveal-card tap-hint" id="card" role="button" tabindex="0">
@@ -707,7 +707,7 @@ export default {
       const isReveal = !!result;
       const myScore = state.scores[state.curPlayer];
       root.innerHTML = `
-        <button class="back" id="home">${t('nav.home')}</button>
+        <button class="back" id="home" data-guard>${t('nav.home')}</button>
         <div class="pp-head">
           <span class="kicker">${getName(state.curPlayer)} · ${tc(myScore, 'hits')}</span>
           <span class="kicker">${okCount()}/26</span>

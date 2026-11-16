@@ -298,7 +298,7 @@ export default {
         `<button class="sudoku-key sudoku-key--del" data-del="1" aria-label="Esborrar">⌫</button>`;
 
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <button class="back" id="back" data-guard>‹ Enrere</button>
         <div class="sudoku-head"><span class="kicker">Temps: <b id="time">0:00</b></span></div>
         <div class="sudoku-board${classic ? ' compact' : ''}" id="board" style="--n:${state.N}"></div>
         <div class="sudoku-keys" id="keys">${keysHtml}</div>

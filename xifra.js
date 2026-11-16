@@ -125,7 +125,7 @@ export default {
       const label = isDaily ? 'Repte del dia' : `${LEVELS[level].name} · ${num + 1}`;
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score">${label}</div>
         </div>
         <div class="xifra-target">

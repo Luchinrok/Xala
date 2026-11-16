@@ -122,7 +122,7 @@ export default {
       serve();
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score"></div>
         </div>
         <div class="drac-board fp-board" id="board" style="--ar:${W / H}"><canvas id="cv" role="img" aria-label="Taula de pinball per a dos"></canvas></div>

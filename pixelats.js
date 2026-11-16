@@ -73,7 +73,7 @@ export default {
       marks = Array.from({ length: n }, () => Array(n).fill(false));
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score">${LEVELS[lv].name} · ${i + 1}/${LEVELS[lv].pics.length}</div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Pinta les caselles</p>

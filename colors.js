@@ -56,7 +56,7 @@ export default {
       cur = null; done = false;
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div class="chess-score" id="score">${tier.name} · ${lv - tier.from + 1}</div>
         </div>
         <p class="traca-status" id="status" aria-live="polite">Uneix les parelles</p>

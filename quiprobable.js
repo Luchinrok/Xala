@@ -232,7 +232,7 @@ export default {
     // ---------- repte de la ronda (en gran) ----------
     function screenChallenge() {
       root.innerHTML = `
-        <button class="back" id="back">${t('nav.home')}</button>
+        <button class="back" id="back" data-guard>${t('nav.home')}</button>
         <p class="kicker center">${t('quiprobable.newChallenge')}</p>
         <div class="spacer"></div>
         <h2 class="qp-prompt">${t('quiprobable.prompt', { x: state.challenge })}</h2>
@@ -252,7 +252,7 @@ export default {
     // ---------- 2a) porta de passada (secret) ----------
     function screenPassVote() {
       const name = getName(state.voteIndex);
-      root.innerHTML = `
+      root.innerHTML = `<i data-guard hidden></i>
         <p class="kicker">${t('quiprobable.secretVote')}</p>
         <h2 style="font-size:26px;margin:6px 0 18px">${t('common.passMobileTo')}<br>${name}</h2>
         <div class="reveal-card tap-hint" id="card" role="button" tabindex="0">
@@ -269,7 +269,7 @@ export default {
       const buttons = state.names
         .map((nm, i) => `<button class="btn btn--outline" data-vote="${i}">${getName(i)}</button>`)
         .join('');
-      root.innerHTML = `
+      root.innerHTML = `<i data-guard hidden></i>
         <p class="kicker center">${t('quiprobable.voteSecret')}</p>
         <h2 class="qp-prompt">${t('quiprobable.prompt', { x: state.challenge })}</h2>
         <p class="muted center" style="margin-bottom:16px">${t('quiprobable.voteYou', { name: `<strong>${getName(state.voteIndex)}</strong>` })}</p>
@@ -287,7 +287,7 @@ export default {
 
     // ---------- 3) tothom ha votat ----------
     function screenAllVoted() {
-      root.innerHTML = `
+      root.innerHTML = `<i data-guard hidden></i>
         <p class="kicker center">${t('quiprobable.done')}</p>
         <h2 style="font-size:30px;text-align:center;margin:6px 0 18px">${t('quiprobable.everyoneVoted')}</h2>
         <div class="spacer"></div>
@@ -312,7 +312,7 @@ export default {
       const tie = winners.length > 1;
       const names = joinAnd(winners.map(i => getName(i)));
       root.innerHTML = `
-        <button class="back" id="back">${t('nav.home')}</button>
+        <button class="back" id="back" data-guard>${t('nav.home')}</button>
         <p class="kicker center">${t('common.results')}</p>
         <p class="qp-prompt">${t('quiprobable.prompt', { x: state.challenge })}</p>
         <div class="reveal-card" id="card">
@@ -338,7 +338,7 @@ export default {
           <span class="rank-row__pts">${state.scores[i]}</span>
         </button>`).join('');
       root.innerHTML = `
-        <button class="back" id="back">${t('nav.home')}</button>
+        <button class="back" id="back" data-guard>${t('nav.home')}</button>
         <p class="kicker">${t('common.ranking')}</p>
         <h2 style="font-size:28px;margin:6px 0 6px">${t('quiprobable.accPoints')}</h2>
         <p class="muted" style="margin-bottom:16px">${t('quiprobable.rankingSub')}</p>
@@ -364,7 +364,7 @@ export default {
         .filter(v => v >= 0)
         .map(v => getName(v));
       root.innerHTML = `
-        <button class="back" id="back">${t('nav.ranking')}</button>
+        <button class="back" id="back" data-safe data-guard>${t('nav.ranking')}</button>
         <p class="kicker">${t('quiprobable.thisRound')}</p>
         <h2 style="font-size:26px;margin:6px 0 6px">${t('quiprobable.whoVoted', { name: getName(target) })}</h2>
         <p class="qp-prompt">${t('quiprobable.prompt', { x: state.challenge })}</p>

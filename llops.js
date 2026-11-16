@@ -9,7 +9,6 @@
 // ============================================================
 
 import { getPlayers, setPlayers } from './store.js';
-import { confirma } from './confirma.js';
 import { t, getLang } from './i18n.js';
 import { getRecord, setRecord } from './records.js';
 
@@ -44,10 +43,11 @@ export default {
     let g = null, timer = null;
 
     // capçalera de les pantalles de partida: tornar a preparar el poble i el títol
-    const top = (k) => `<div class="chess-top"><button class="back" id="quit">${t('nav.setup')}</button><p class="kicker" style="margin:0 0 18px">${k}</p></div>`;
+    // (data-guard: a mitja partida, l'app pregunta abans de sortir; vegeu confirma.js)
+    const top = (k, guard = true) => `<div class="chess-top"><button class="back" id="quit"${guard ? ' data-guard' : ''}>${t('nav.setup')}</button><p class="kicker" style="margin:0 0 18px">${k}</p></div>`;
     const wireTop = () => {
       const q = root.querySelector('#quit');
-      if (q) q.onclick = async () => { if (!g || await confirma({ text: t('common.leaveGame'), yes: t('common.leave'), no: t('common.keepPlaying') })) screenConfig(); };
+      if (q) q.onclick = screenConfig;
       root.querySelectorAll('.ll-repeat').forEach(b => { b.onclick = () => { if (lastSaid) say(...lastSaid); }; });
     };
     const repeatBtn = () => (opts.voice ? `<button class="ll-repeat" type="button">🔊 ${L('repeat')}</button>` : '');
@@ -338,7 +338,7 @@ export default {
       const title = who === 'wolves' ? L('winWolves') : L('winVillage');
       say(title, [who === 'wolves' ? 'guanyen-llops' : 'guanya-poble']);
       root.innerHTML = `
-        ${top(t('common.final'))}
+        ${top(t('common.final'), false)}
         <h2 class="center" style="font-size:32px;margin:0 0 16px;color:var(--accent)">${title}</h2>
         <p class="label">${L('reveal')}</p>
         <div class="stack ll-reveal" style="--stack-gap:6px">

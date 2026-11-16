@@ -444,7 +444,7 @@ export default {
     function screenBoard() {
       root.innerHTML = `
         <div class="chess-top">
-          <button class="back" id="back">‹ Enrere</button>
+          <button class="back" id="back" data-guard>‹ Enrere</button>
           <div id="score" class="chess-score"></div>
         </div>
         <p aria-live="polite" class="kicker center" id="status">El teu torn — blanques</p>

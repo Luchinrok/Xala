@@ -283,7 +283,7 @@ export default {
     // ---------- 2) joc ----------
     function screenGame() {
       root.innerHTML = `
-        <button class="back" id="back">‹ Enrere</button>
+        <button class="back" id="back" data-guard>‹ Enrere</button>
         <p class="kicker">Dames</p>
         <p aria-live="polite" class="dm-turn" id="turn"></p>
         <div class="dm-board" id="dmboard"></div>

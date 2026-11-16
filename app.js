@@ -43,6 +43,7 @@ import pixelats from './pixelats.js';
 import colors from './colors.js';
 import { createMusic } from './musica.js';
 import { t } from './i18n.js';
+import { setGuard, guarded, askLeave } from './confirma.js';
 
 // Títol, tagline i instruccions surten dels camps del mòdul de cada joc.
 const gameTitle = (g) => g.title;
@@ -131,6 +132,7 @@ function markBacking() {
 
 // Marca el nivell actual de navegació en entrar a CADA pantalla.
 function setLevel({ landing = false, game = null, back = null } = {}) {
+  setGuard(null); // cada joc la torna a posar quan comença una partida
   navAtLanding = landing;
   navCurrentGame = game;
   navCurrentBack = back;
@@ -155,20 +157,44 @@ function openFromLink() {
   try { history.replaceState({ d: navDepth }, ''); } catch (e) {}
   markBacking();
   const back = app.querySelector('.back');
-  if (navCurrentGame && back) back.click();
+  if (navCurrentGame && back) clickBack(back);
   openGame(mat2, goSingle);
   return true;
 }
 window.addEventListener('hashchange', openFromLink);
+
+// Partida a mitges (vegeu setGuard a confirma.js): abans de sortir, es pregunta.
+let guardBypass = false;    // ja s'ha preguntat: aquest clic a «Enrere» passa
+let guardAsking = false;    // la pregunta és oberta
+let guardApproved = false;  // han dit «Surt» després d'un gest enrere
+function clickBack(back) {
+  guardBypass = true;
+  try { back.click(); } finally { guardBypass = false; }
+}
 
 window.addEventListener('popstate', () => {
   if (navNoopPops > 0) { navNoopPops--; navDepth = readDepth(); return; }
   if (openFromLink()) return;
   navDepth = readDepth();
   if (navAtLanding) return;
+  const backBtn = app.querySelector('.back');
+  if (!guardApproved && (guardAsking || (guarded() && !(backBtn && backBtn.hasAttribute('data-safe'))))) {
+    // el gest ha gastat una entrada: se'n torna a posar una i es pregunta
+    pushEntry();
+    if (guardAsking) return;
+    guardAsking = true;
+    askLeave().then((ok) => {
+      guardAsking = false;
+      if (!ok) return;
+      guardApproved = true;
+      history.back();
+    });
+    return;
+  }
+  guardApproved = false;
   markBacking();
   const back = app.querySelector('.back');
-  if (back) back.click();
+  if (back) clickBack(back);
   else if (navCurrentGame) openGame(navCurrentGame, navCurrentBack);
   else goLanding();
   // Encara som dins de l'app però sense entrades a sota: en deixem una perquè el
@@ -192,7 +218,21 @@ window.addEventListener('popstate', () => {
 
 document.addEventListener('click', (e) => {
   // L'"Enrere" de la pantalla: tira enrere sense afegir cap entrada.
-  if (e.target instanceof Element && e.target.closest('.back')) { markBacking(); return; }
+  const backEl = e.target instanceof Element ? e.target.closest('.back') : null;
+  if (backEl) {
+    // partida a mitges: primer es pregunta
+    if (!guardBypass && !backEl.hasAttribute('data-safe') && guarded()) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (!guardAsking) {
+        guardAsking = true;
+        askLeave().then((ok) => { guardAsking = false; if (ok && backEl.isConnected) { markBacking(); clickBack(backEl); } });
+      }
+      return;
+    }
+    markBacking();
+    return;
+  }
   // Entrant per un enllaç no hi ha entrades: el primer toc en crea una.
   if (!navAtLanding && readDepth() === 0) pushEntry();
 }, true);
