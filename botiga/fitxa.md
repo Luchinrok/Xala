@@ -13,10 +13,13 @@ Jocs per a la colla, per a dos i per jugar sol. En català i sense anuncis.
 
 ## Descripció completa (màx. 4000)
 
-Xala! és un aplec de jocs en català per passar-ho bé: amb la colla, cara a cara o tu sol. Sense anuncis, sense comptes i funciona sense connexió.
+Xala! és un aplec de 38 jocs en català per passar-ho bé: amb la colla, cara a cara o tu sol. Sense anuncis, sense comptes i funciona sense connexió.
 
 🎉 JOCS DE FESTA (passa el mòbil)
+• Llops: de 5 a 16 jugadors. De nit els llops ataquen; de dia, el poble vota. El mòbil fa de narrador.
 • L'impostor: tothom té la mateixa paraula menys un. Qui és?
+• Dibuixa-ho!: dibuixa la paraula al mòbil i que els altres l'endevinin.
+• Jo mai…: frases suaus o atrevides. Si tu sí que ho has fet, abaixa un dit.
 • Endevina-la: fes-la endevinar sense dir-la.
 • Bomba de paraules: digues-ne una abans que peti.
 • Qui és més probable…: voteu i rieu.
@@ -25,12 +28,18 @@ Xala! és un aplec de jocs en català per passar-ho bé: amb la colla, cara a ca
 
 ⚔️ PER A DOS (o contra la màquina)
 • Escacs, Dames, Connecta 4, Tres en ratlla, Enfonsar els vaixells i Punts i caixes.
+• Marro: el joc de les nou fitxes de tota la vida.
+• Gira-les: tanca les fitxes de l'altre i gira-les del teu color.
+• Sembra: el joc de les llavors. Sembra forat a forat i omple el graner.
 • Gira la gravetat i Flipers: amb el mòbil pla a la taula, cadascú juga des de la seva banda.
 
 🧩 PER JUGAR SOL
+• La paraula del dia: sis intents per endevinar una paraula. Una de nova cada dia.
 • Mat en 2: un problema d'escacs nou cada dia.
 • La Traca: fes paraules amb set lletres (central, valencià o balear).
 • La Xifra: arriba al número amb poques fitxes.
+• Pixelats: resol les pistes de números i descobreix el dibuix.
+• Uneix colors: uneix cada parella de punts i omple tot el tauler.
 • Encaixa!, 2048, Sudoku, Sopa de lletres, El penjat i Memory.
 • El Drac, La Serp, Totxos, Macedònia, Petards amagats i Pinzellada.
 
