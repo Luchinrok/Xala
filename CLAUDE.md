@@ -11,7 +11,7 @@
 
 ## Com es treballa
 
-- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 16-11-2026 és `xala-v153`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
+- **Service worker (`sw.js`):** a cada canvi publicat, pujar la versió de `CACHE` (`xala-vNN`; a 17-11-2026 és `xala-v154`) i afegir a `ASSETS` els fitxers nous. Si no, els mòbils continuen amb la versió antiga.
 - **Proves:** `npm test` (motor d'escacs, els problemes de Mat en 2, Petards amagats…) ha de passar abans i després de cada canvi. Provar a mà els jocs que es toquen (començar una partida).
 - **Traduccions:** a `i18n.js` (7 idiomes). Qualsevol text nou de la interfície hi ha d'anar.
 - **Mòbil:** `touch-action: manipulation` a tota l'app (sense zoom per doble toc ni retard); els taulers d'arrossegar (Encaixa!, Sopa, Vaixells, 2048, La Serp, Fes-la caure) tenen `touch-action: none`. Els camps de text, 16 px o més (perquè l'iPhone no faci zoom). No tornar a posar `maximum-scale` al viewport.
