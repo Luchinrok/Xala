@@ -13,6 +13,9 @@ const STEP = 1000 / 60, SUB = 5;
 const FL = 60, FT = 7;                 // llargada i gruix de les paletes
 const REST = 0.62, UP = -0.38;         // angles (radiants) de la paleta de baix-esquerra
 import { getRecord, setRecord } from './records.js';
+import { namesField, bindNames, nameOr, playerName, winText } from './noms.js';
+// els noms vénen escapats per a HTML; per escriure'ls al canvas cal el text pla
+const plain = (h) => h.replace(/&(amp|lt|gt|quot|#39);/g, (m, c) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" }[c]));
 
 const KEY = 'flipers';
 // la màquina: des de quina distància veu venir la bola, i quantes vegades reacciona a temps
@@ -81,7 +84,9 @@ export default {
     const touches = new Map(); // pointerId -> paleta
     let cpu = false; // sempre comença a 2 jugadors
     let level = AI[getRecord(KEY + ':level')] ? getRecord(KEY + ':level') : 'normal';
-    const names = () => (cpu ? ['Tu', 'Màquina'] : PLAYERS.map(p => p.name));
+    const names = () => (cpu ? ['Tu', 'Màquina'] : PLAYERS.map((p, i) => nameOr(i, p.name)));
+    // el nom posat (text pla, per al canvas), o '' a 1 jugador o si no n'hi ha
+    const own = (i) => (cpu ? '' : plain(playerName(i)));
 
     function stop() {
       cancelAnimationFrame(raf); raf = 0;
@@ -106,6 +111,7 @@ export default {
         <div class="btn-row">
           ${Object.entries(AI).map(([id, a]) => `<button class="btn ${level === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${a.name}</button>`).join('')}
         </div>` : ''}
+        ${cpu ? '' : namesField(PLAYERS.map(p => p.name), PLAYERS.map(p => p.c))}
         <p class="muted" style="margin-top:12px">${cpu ? `Tu jugues a baix; la màquina, a dalt. Toca l'esquerra o la dreta de la pantalla per pujar cada paleta. Guanya qui fa ${GOALS} gols.` : `Deixeu el mòbil pla a la taula, entre els dos. Cadascú toca la meitat esquerra o dreta de la seva zona per pujar les paletes. Guanya qui fa ${GOALS} gols.`}</p>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
@@ -113,6 +119,7 @@ export default {
       root.querySelector('#back').onclick = leave;
       root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { cpu = b.dataset.mode === 'cpu'; setRecord(KEY + ':mode', cpu ? 'cpu' : '2p'); screenConfig(); }; });
       root.querySelectorAll('[data-level]').forEach(b => { b.onclick = () => { level = b.dataset.level; setRecord(KEY + ':level', level); screenConfig(); }; });
+      bindNames(root);
       root.querySelector('#start').onclick = begin;
     }
 
@@ -285,7 +292,7 @@ export default {
       const el = root.querySelector('#score');
       const [na, nb] = names();
       // curt (no ha de tapar el botó de la música): un punt de color per jugador
-      if (el) { el.innerHTML = `<span class="dot-p" style="background:${PLAYERS[0].c}"></span> ${s.score[0]} – ${s.score[1]} <span class="dot-p" style="background:${PLAYERS[1].c}"></span>`; el.setAttribute('aria-label', `${na} ${s.score[0]}, ${nb} ${s.score[1]}`); }
+      if (el) { el.innerHTML = `<span class="dot-p" style="background:${PLAYERS[0].c}"></span> ${s.score[0]} – ${s.score[1]} <span class="dot-p" style="background:${PLAYERS[1].c}"></span>`; el.setAttribute('aria-label', `${plain(na)} ${s.score[0]}, ${plain(nb)} ${s.score[1]}`); }
     }
 
     // ---------- dibuix ----------
@@ -307,6 +314,10 @@ export default {
       ctx.fillStyle = 'rgba(32,24,15,.12)';
       ctx.fillText(String(s.score[0]), W / 2, H / 2 + 56 + 22);
       ctx.save(); ctx.translate(W / 2, H / 2 - 56); ctx.rotate(Math.PI); ctx.fillText(String(s.score[1]), 0, 22); ctx.restore();
+      // el nom de cadascú, entre la ratlla del mig i el seu número (també girat; no trepitja els tacs)
+      ctx.font = '800 14px system-ui, sans-serif'; ctx.fillStyle = 'rgba(32,24,15,.3)';
+      if (own(0)) ctx.fillText(own(0), W / 2, H / 2 + 22, 116);
+      if (own(1)) { ctx.save(); ctx.translate(W / 2, H / 2 - 22); ctx.rotate(Math.PI); ctx.fillText(own(1), 0, 0, 116); ctx.restore(); }
       // parets
       ctx.strokeStyle = ink; ctx.lineCap = 'round';
       for (const [ax, ay, bx, by, t] of WALLS) { ctx.lineWidth = t; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); }
@@ -339,11 +350,12 @@ export default {
       if (!root.isConnected) return;
       stop(); draw();
       const w = s.winner;
+      const [na, nb] = names();
       const box = root.querySelector('#endbox');
       box.innerHTML = `
         <div class="panel center stack" style="--stack-gap:8px">
-          <h2 style="color:${PLAYERS[w].c}">${cpu ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : `Guanya el ${PLAYERS[w].name}!`}</h2>
-          <p class="muted">${s.score[0]} – ${s.score[1]}</p>
+          <h2 style="color:${PLAYERS[w].c}">${cpu ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : winText(w, `Guanya el ${PLAYERS[w].name}!`)}</h2>
+          <p class="muted">${own(0) || own(1) ? `${na} ${s.score[0]} – ${s.score[1]} ${nb}` : `${s.score[0]} – ${s.score[1]}`}</p>
         </div>
         <div class="stack">
           <button class="btn btn--accent" id="again">Revenja</button>

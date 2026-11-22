@@ -8,6 +8,7 @@
 
 import { newGame, moves, play, POS, ADJ, phaseOf, alive, removable, aiMove } from './marro-motor.js';
 import { getRecord, setRecord } from './records.js';
+import { namesField, bindNames, nameOr, turnText, winText, de } from './noms.js';
 
 const NAMES = { cpu: ['Tu', 'Màquina'], '2p': ['Corall', 'Verd'] };
 const COLORS = ['var(--accent)', 'var(--ok)'];
@@ -33,6 +34,7 @@ export default {
     let level = ['easy', 'normal', 'hard'].includes(getRecord('marro:level')) ? getRecord('marro:level') : 'normal';
     let g = null, sel = null, pending = null, aiTimer = null;
     const isCpu = () => mode === 'cpu';
+    const nm = (p) => (isCpu() ? NAMES.cpu[p] : nameOr(p, NAMES['2p'][p]));
     function stop() { if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; } }
     function leave() { stop(); goHome(); }
 
@@ -52,6 +54,7 @@ export default {
         <div class="btn-row">
           ${[['easy', 'Fàcil'], ['normal', 'Normal'], ['hard', 'Difícil']].map(([id, n]) => `<button class="btn ${level === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${n}</button>`).join('')}
         </div>` : ''}
+        ${isCpu() ? '' : namesField(NAMES['2p'], COLORS)}
         <p class="muted" style="margin-top:12px">${isCpu() ? 'Tu fas el corall i comences; la màquina, el verd.' : 'Un jugador fa el corall i comença; l\'altre, el verd.'} Tres en ratlla treu una fitxa de l'altre.</p>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>
@@ -59,6 +62,7 @@ export default {
       root.querySelector('#back').onclick = leave;
       root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { mode = b.dataset.mode; setRecord('marro:mode', mode); screenConfig(); }; });
       root.querySelectorAll('[data-level]').forEach(b => { b.onclick = () => { level = b.dataset.level; setRecord('marro:level', level); screenConfig(); }; });
+      bindNames(root);
       root.querySelector('#start').onclick = begin;
     }
 
@@ -146,7 +150,7 @@ export default {
         if (takes.includes(i)) cls.push('mr-take');
         if (sel === i) cls.push('mr-sel');
         if (movable.has(i)) cls.push('mr-can');
-        const label = v === null ? 'buit' : `fitxa ${NAMES[mode][v].toLowerCase()}`;
+        const label = v === null ? 'buit' : `fitxa ${de(nm(v))}`;
         svg += `<g data-p="${i}" class="${cls.join(' ')}" role="button" tabindex="0" aria-label="Punt ${i + 1}: ${label}">
           <circle cx="${x}" cy="${y}" r="20" class="mr-hit"/>
           ${v === null ? `<circle cx="${x}" cy="${y}" r="${targets.includes(i) ? 7 : 5}" class="mr-dot"/>` : `<circle cx="${x}" cy="${y}" r="15" class="mr-stone" fill="${COLORS[v]}"/>`}
@@ -160,14 +164,14 @@ export default {
       for (const p of [0, 1]) {
         const h = root.querySelector('#hand' + p);
         h.innerHTML = g.hand[p] ? Array.from({ length: g.hand[p] }, () => `<span class="mr-mini" style="background:${COLORS[p]}"></span>`).join('') : '';
-        h.setAttribute('aria-label', `${NAMES[mode][p]}: ${g.hand[p]} per posar`);
+        h.setAttribute('aria-label', `${nm(p)}: ${g.hand[p]} per posar`);
       }
-      const [a, b] = NAMES[mode];
+      const [a, b] = [nm(0), nm(1)];
       const sc = root.querySelector('#score');
       sc.innerHTML = `<span class="dot-p" style="background:var(--accent)"></span> ${alive(g, 0)} – ${alive(g, 1)} <span class="dot-p" style="background:var(--ok)"></span>`;
       sc.setAttribute('aria-label', `Fitxes: ${a} ${alive(g, 0)}, ${b} ${alive(g, 1)}`);
       if (g.over) return;
-      const who = isCpu() ? (g.turn === 0 ? 'El teu torn' : 'Pensa la màquina…') : `Torn del ${NAMES['2p'][g.turn]}`;
+      const who = isCpu() ? (g.turn === 0 ? 'El teu torn' : 'Pensa la màquina…') : turnText(g.turn, `Torn del ${NAMES['2p'][g.turn]}`);
       const ph = phaseOf(g, g.turn);
       const what = pending ? 'Marro! Tria una fitxa de l\'altre per treure-la'
         : !human() ? '' : ph === 'place' ? 'posa una fitxa' : ph === 'fly' ? (sel === null ? 'tria una fitxa: pots volar!' : 'on vols volar?') : (sel === null ? 'tria una fitxa per moure' : 'on la mous?');
@@ -178,13 +182,13 @@ export default {
     function finish() {
       stop();
       const w = g.winner;
-      const title = w === null ? 'Taules!' : isCpu() ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : `Guanya el ${NAMES['2p'][w]}!`;
+      const title = w === null ? 'Taules!' : isCpu() ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : winText(w, `Guanya el ${NAMES['2p'][w]}!`);
       root.querySelector('#turn').innerHTML = `<b class="${w === 1 ? 'p2' : 'p1'}">${title}</b>`;
       const box = root.querySelector('#endbox');
       box.innerHTML = `
         <div class="panel center stack" style="--stack-gap:8px">
           <h2 style="color:${w === 1 ? 'var(--ok)' : w === null ? 'var(--ink)' : 'var(--accent)'}">${title}</h2>
-          <p class="muted">${w === null ? '60 moviments sense treure cap fitxa' : `Fitxes: ${NAMES[mode][0]} ${alive(g, 0)} – ${alive(g, 1)} ${NAMES[mode][1]}`}</p>
+          <p class="muted">${w === null ? '60 moviments sense treure cap fitxa' : `Fitxes: ${nm(0)} ${alive(g, 0)} – ${alive(g, 1)} ${nm(1)}`}</p>
         </div>
         <div class="stack">
           <button class="btn btn--accent" id="again">Una altra</button>

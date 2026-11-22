@@ -12,6 +12,7 @@
 // ============================================================
 
 import { keyboardGrid, focusIfKeyboard } from './board-keys.js';
+import { namesField, bindNames, nameOr, winText } from './noms.js';
 
 const N = 10;
 
@@ -189,7 +190,7 @@ export default {
     const isCpu = () => state.mode === 'cpu';
     function playerName(i) {
       if (isCpu()) return i === 0 ? 'Tu' : 'La màquina';
-      return 'Jugador ' + (i + 1);
+      return nameOr(i, 'Jugador ' + (i + 1));
     }
 
     // ============================================================
@@ -207,6 +208,7 @@ export default {
           <button class="btn ${state.mode === 'cpu' ? 'btn--accent' : 'btn--outline'}" data-mode="cpu">1 jugador</button>
           <button class="btn ${state.mode === '2p' ? 'btn--accent' : 'btn--outline'}" data-mode="2p">2 jugadors</button>
         </div>
+        <div id="names"></div>
         <p class="muted" id="modeinfo" style="margin-top:12px"></p>
 
         <div class="spacer"></div>
@@ -217,6 +219,8 @@ export default {
         if (el) el.textContent = isCpu()
           ? 'Jugues contra la màquina al mateix mòbil.'
           : 'Dos jugadors al mateix mòbil: tornar i passar.';
+        const nb = root.querySelector('#names');
+        if (nb) { nb.innerHTML = isCpu() ? '' : namesField(['Jugador 1', 'Jugador 2']); bindNames(nb); }
       };
       info();
       root.querySelector('#back').onclick = leave;
@@ -666,7 +670,7 @@ export default {
       state.confirming = false;
       let title;
       if (isCpu()) title = winner === 0 ? 'Has guanyat!' : 'Has perdut!';
-      else title = `Guanya el ${playerName(winner)}!`;
+      else title = winText(winner, `Guanya el ${playerName(winner)}!`);
       const sub = reason === 'resign'
         ? (isCpu() ? 'T\'has rendit.' : `${playerName(1 - winner)} s'ha rendit.`)
         : 'Flota enemiga enfonsada';

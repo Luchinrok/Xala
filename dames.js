@@ -18,6 +18,7 @@
 // ============================================================
 
 import { keyboardGrid } from './board-keys.js';
+import { namesField, bindNames, nameOr, turnText, winText } from './noms.js';
 
 const DARK = (r, c) => (r + c) % 2 === 1;
 const inB = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
@@ -223,7 +224,7 @@ export default {
     const colorClass = (p) => (p === 1 ? 'p1' : 'p2');
     function playerName(p) {
       if (isCpu()) return p === 1 ? 'Tu' : 'La màquina';
-      return p === 1 ? 'Jugador 1' : 'Jugador 2';
+      return nameOr(p - 1, p === 1 ? 'Jugador 1' : 'Jugador 2');
     }
 
     // ---------- 1) configuració ----------
@@ -249,6 +250,7 @@ export default {
           </div>
         </div>
 
+        ${isCpu() ? '' : namesField(['Jugador 1', 'Jugador 2'], ['var(--accent)', 'var(--ok)'])}
         <p class="muted" id="modeinfo" style="margin-top:12px"></p>
 
         <div class="spacer"></div>
@@ -264,6 +266,7 @@ export default {
       root.querySelector('#back').onclick = leave;
       root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { state.mode = b.dataset.mode; screenConfig(); }; });
       root.querySelectorAll('[data-diff]').forEach(b => { b.onclick = () => { state.diff = b.dataset.diff; screenConfig(); }; });
+      bindNames(root);
       root.querySelector('#start').onclick = beginGame;
     }
 
@@ -375,7 +378,7 @@ export default {
       const cls = colorClass(state.turn);
       let txt;
       if (isCpu()) txt = state.turn === 1 ? 'El teu torn' : 'La màquina pensa…';
-      else txt = `Torn del ${playerName(state.turn)}`;
+      else txt = turnText(state.turn - 1, `Torn del ${playerName(state.turn)}`);
       const cap = interactive() && (mustContinue || playerHasCapture(state.board, state.turn));
       el.innerHTML = `<b class="${cls}">${txt}</b>${cap ? ' · captura obligatòria' : ''}`;
     }
@@ -586,7 +589,7 @@ export default {
       const humanLoses = isCpu() && loser === 1; // el jugador humà (Tu) perd
       let title;
       if (isCpu()) title = winner === 1 ? 'Has guanyat!' : 'Has perdut!';
-      else title = `Guanya el ${playerName(winner)}!`;
+      else title = winText(winner - 1, `Guanya el ${playerName(winner)}!`);
       let sub;
       if (reason === 'resign') sub = humanLoses ? 'T\'has rendit.' : `${playerName(loser)} s'ha rendit.`;
       else if (reason === 'nopieces') sub = humanLoses ? 'Et quedes sense fitxes.' : `${playerName(loser)} es queda sense fitxes.`;

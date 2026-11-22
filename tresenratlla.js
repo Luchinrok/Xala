@@ -44,6 +44,8 @@ function applyAction(board, p, mv) {
   return b;
 }
 
+import { namesField, bindNames, nameOr, playerName, winText } from './noms.js';
+
 const OTHER = (m) => (m === 'X' ? 'O' : 'X');
 const POS = [4, 0, 2, 6, 8, 1, 3, 5, 7]; // centre > cantonades > costats
 
@@ -140,8 +142,10 @@ export default {
     const other = (m) => (m === 'X' ? 'O' : 'X');
     function markName(m) {
       if (isCpu()) return m === 'X' ? 'Tu' : 'La màquina';
-      return m === 'X' ? 'Jugador 1' : 'Jugador 2';
+      return nameOr(m === 'X' ? 0 : 1, m === 'X' ? 'Jugador 1' : 'Jugador 2');
     }
+    // Nom posat pel jugador (només a 2 jugadors), o ''.
+    const ownName = (m) => (isCpu() ? '' : playerName(m === 'X' ? 0 : 1));
 
     // ---------- 1) configuració ----------
     function screenConfig() {
@@ -156,6 +160,7 @@ export default {
           <button class="btn ${state.mode === 'cpu' ? 'btn--accent' : 'btn--outline'}" data-mode="cpu">1 jugador</button>
           <button class="btn ${state.mode === '2p' ? 'btn--accent' : 'btn--outline'}" data-mode="2p">2 jugadors</button>
         </div>
+        <div id="names"></div>
         <p class="muted" id="modeinfo" style="margin-top:12px"></p>
         <p class="muted" style="margin-top:8px">3 fitxes cadascú: col·loca-les i després mou-les. No hi ha empats.</p>
 
@@ -167,6 +172,8 @@ export default {
         if (el) el.textContent = isCpu()
           ? 'Tu ets les X; la màquina, les O.'
           : 'Jugador 1 amb les X i Jugador 2 amb les O.';
+        const nb = root.querySelector('#names');
+        if (nb) { nb.innerHTML = isCpu() ? '' : namesField(['Jugador 1', 'Jugador 2'], ['var(--accent)', 'var(--ok)']); bindNames(nb); }
       };
       info();
       root.querySelector('#back').onclick = leave;
@@ -249,7 +256,10 @@ export default {
       const moving = pieceCount(state.board, state.turn) >= 3;
       const action = !moving ? 'col·loca una fitxa'
         : (state.selected != null ? 'toca una casella buida' : 'tria i mou una fitxa');
-      el.innerHTML = `Torn de <b class="${cls}">${markName(state.turn)}</b> (<b class="${cls}">${state.turn}</b>) · ${action}`;
+      const own = ownName(state.turn);
+      el.innerHTML = own
+        ? `<b class="${cls}">${own}</b>, et toca (<b class="${cls}">${state.turn}</b>) · ${action}`
+        : `Torn de <b class="${cls}">${markName(state.turn)}</b> (<b class="${cls}">${state.turn}</b>) · ${action}`;
     }
 
     function renderBoard() {
@@ -330,11 +340,11 @@ export default {
       if (ctl) ctl.innerHTML = '';
       let title;
       if (isCpu()) title = winner === 'X' ? 'Has guanyat!' : 'Has perdut!';
-      else title = `Guanya el ${markName(winner)}!`;
+      else title = winText(winner === 'X' ? 0 : 1, `Guanya el ${markName(winner)}!`);
       const turnEl = root.querySelector('#turn');
       if (turnEl) turnEl.innerHTML = `<b class="${winner === 'X' ? 'x' : 'o'}">${title}</b>`;
       const sub = reason === 'resign'
-        ? (isCpu() ? 'T\'has rendit.' : `El ${markName(other(winner))} s'ha rendit.`)
+        ? (isCpu() ? 'T\'has rendit.' : ownName(other(winner)) ? `${ownName(other(winner))} s'ha rendit.` : `El ${markName(other(winner))} s'ha rendit.`)
         : `Tres en ratlla amb les ${winner}`;
       const old = root.querySelector('#result');
       if (old) old.remove();

@@ -8,6 +8,7 @@
 
 import { newGame, play, over, aiMove } from './puntsicaixes-motor.js';
 import { getRecord, setRecord } from './records.js';
+import { namesField, bindNames, nameOr, winText } from './noms.js';
 
 // mides: columnes × files (les rectangulars, llargues de dalt a baix del mòbil)
 const SIZES = { '3x3': [3, 3], '4x4': [4, 4], '5x5': [5, 5], '4x6': [4, 6], '5x8': [5, 8], '5x10': [5, 10] };
@@ -35,6 +36,9 @@ export default {
     let g = null, aiTimer = null;
 
     const isCpu = () => mode === 'cpu';
+    const nm = (p) => (isCpu() ? NAMES.cpu[p] : nameOr(p, NAMES['2p'][p]));
+    // inicial per a la caixa (el nom ja ve escapat: si comença per una entitat, sencera)
+    const ini = (s) => (s[0] === '&' ? s.slice(0, s.indexOf(';') + 1) : Array.from(s)[0].toUpperCase());
     function stop() { if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; } }
     function leave() { stop(); goHome(); }
 
@@ -60,6 +64,7 @@ export default {
         <div class="pc-sizes">
           ${Object.entries(SIZES).map(([id, [c, r]]) => `<button class="btn ${size === id ? 'btn--accent' : 'btn--outline'}" data-size="${id}">${c}×${r}</button>`).join('')}
         </div>
+        ${isCpu() ? '' : namesField(NAMES['2p'], ['var(--accent)', 'var(--ok)'])}
         <p class="muted" style="margin-top:12px">${isCpu() ? 'Tu fas el corall; la màquina, el verd.' : 'Un jugador fa el corall i l\'altre el verd.'}</p>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>
@@ -68,6 +73,7 @@ export default {
       root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { mode = b.dataset.mode; setRecord('puntsicaixes:mode', mode); screenConfig(); }; });
       root.querySelectorAll('[data-level]').forEach(b => { b.onclick = () => { level = b.dataset.level; setRecord('puntsicaixes:level', level); screenConfig(); }; });
       root.querySelectorAll('[data-size]').forEach(b => { b.onclick = () => { size = b.dataset.size; setRecord('puntsicaixes:size', size); screenConfig(); }; });
+      bindNames(root);
       root.querySelector('#start').onclick = begin;
     }
 
@@ -136,7 +142,7 @@ export default {
         if (o === null) continue;
         const [x, y] = at(r, c);
         svg += `<rect x="${x + 4}" y="${y + 4}" width="${S - 8}" height="${S - 8}" rx="8" fill="${pc(o)}" opacity=".85"/>`;
-        svg += `<text x="${x + S / 2}" y="${y + S / 2 + 8}" text-anchor="middle" class="pc-ini">${NAMES[mode][o][0]}</text>`;
+        svg += `<text x="${x + S / 2}" y="${y + S / 2 + 8}" text-anchor="middle" class="pc-ini">${ini(nm(o))}</text>`;
       }
       // ratlles
       const line = (t, r, c) => {
@@ -157,7 +163,7 @@ export default {
       el.querySelectorAll('[data-e]').forEach(x => x.addEventListener('keydown', (ev) => {
         if ((ev.key === 'Enter' || ev.key === ' ') && interactive()) { ev.preventDefault(); move(JSON.parse(x.dataset.e)); }
       }));
-      const [a, b] = NAMES[mode];
+      const [a, b] = [nm(0), nm(1)];
       // marcador curt (com als altres jocs per a dos): no tapa el botó de la música
       const sc = root.querySelector('#score');
       sc.innerHTML = `<span class="dot-p" style="background:var(--accent)"></span> ${g.score[0]} – ${g.score[1]} <span class="dot-p" style="background:var(--ok)"></span>`;
@@ -165,15 +171,17 @@ export default {
       const turn = root.querySelector('#turn');
       if (!over(g)) turn.innerHTML = isCpu()
         ? (g.turn === 0 ? '<b class="p1">El teu torn</b>' : '<b class="p2">Pensa la màquina…</b>')
-        : `Torn del <b class="${g.turn === 0 ? 'p1' : 'p2'}">${NAMES['2p'][g.turn]}</b>`;
+        : nameOr(g.turn, '')
+          ? `<b class="${g.turn === 0 ? 'p1' : 'p2'}">${nm(g.turn)}</b>, et toca`
+          : `Torn del <b class="${g.turn === 0 ? 'p1' : 'p2'}">${NAMES['2p'][g.turn]}</b>`;
     }
 
     // ---------- 3) final ----------
     function finish() {
       stop();
-      const [a, b] = g.score, [na, nb] = NAMES[mode];
+      const [a, b] = g.score, [na, nb] = [nm(0), nm(1)];
       const win = a === b ? null : a > b ? 0 : 1;
-      const title = win === null ? 'Empat!' : isCpu() ? (win === 0 ? 'Has guanyat!' : 'Guanya la màquina') : `Guanya el ${NAMES['2p'][win]}!`;
+      const title = win === null ? 'Empat!' : isCpu() ? (win === 0 ? 'Has guanyat!' : 'Guanya la màquina') : winText(win, `Guanya el ${NAMES['2p'][win]}!`);
       root.querySelector('#turn').innerHTML = `<b class="${win === 1 ? 'p2' : 'p1'}">${title}</b>`;
       const box = root.querySelector('#endbox');
       box.innerHTML = `

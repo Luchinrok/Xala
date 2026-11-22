@@ -14,6 +14,8 @@
 // plenes. Cap negre de fons.
 // ============================================================
 
+import { namesField, bindNames, nameOr, turnText, winText } from './noms.js';
+
 // ---------- glifs Unicode (sempre en tinta) ----------
 const GLYPH = {
   w: { P: '♙', N: '♘', B: '♗', R: '♖', Q: '♕', K: '♔' },
@@ -356,6 +358,9 @@ function pickAIMove(pos, depth) {
 
 const DEPTH = { easy: 1, normal: 2, hard: 3 };
 
+// a 2 jugadors, jugador 0 = blanques (a baix, comencen) i jugador 1 = negres
+const NAMES2 = ['Blanques', 'Negres'];
+
 // Exports nominals del motor (per a proves; el navegador només usa el default).
 export { initialPos, genLegal, genPseudo, applyMove, inCheck, isAttacked, findKing, evaluate, pickAIMove };
 
@@ -379,6 +384,9 @@ export default {
   mount(root, { goHome }) {
     let mode = '2p';      // 'cpu' | '2p' — per defecte 2 jugadors
     const flipB = (color) => mode === '2p' && color === 'b';
+    const pi = (color) => (color === 'w' ? 0 : 1);
+    // nom del jugador d'un color (a 2 jugadors), o '' si no en té
+    const named = (color) => (mode === '2p' ? nameOr(pi(color), '') : '');
     let diff = 'normal';  // 'easy' | 'normal' | 'hard'
 
     let pos = null;
@@ -416,6 +424,7 @@ export default {
             <button class="btn ${diff === 'hard' ? 'btn--accent' : 'btn--outline'}" data-diff="hard">Difícil</button>
           </div>
         </div>
+        ${mode === '2p' ? namesField(NAMES2, ['#fff', '#222']) : ''}
 
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
@@ -423,6 +432,7 @@ export default {
       root.querySelector('#back').onclick = goHome;
       root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { mode = b.dataset.mode; screenConfig(); }; });
       root.querySelectorAll('[data-diff]').forEach(b => { b.onclick = () => { diff = b.dataset.diff; screenConfig(); }; });
+      bindNames(root);
       root.querySelector('#start').onclick = beginGame;
     }
 
@@ -499,7 +509,9 @@ export default {
       const el = root.querySelector('#score');
       if (!el || !pos) return;
       const d = materialDiff(pos.board);
-      el.textContent = d === 0 ? '' : `${d > 0 ? 'Blanques' : 'Negres'} +${Math.abs(d)}`;
+      // els noms ja venen escapats: innerHTML
+      const side = d > 0 ? 'w' : 'b';
+      el.innerHTML = d === 0 ? '' : `${named(side) || NAMES2[pi(side)]} +${Math.abs(d)}`;
     }
 
     // ---------- rendir-se ----------
@@ -587,7 +599,7 @@ export default {
       overlay.className = 'promo-overlay' + (flipB(color) ? ' promo-overlay--flip' : '');
       overlay.innerHTML = `
         <div class="promo-dialog">
-          <p class="promo-title">Corona el peó</p>
+          <p class="promo-title">${named(color) ? `${named(color)}, corona el peó` : 'Corona el peó'}</p>
           <div class="promo-opts">
             ${['Q', 'R', 'B', 'N'].map(t => `
               <button class="promo-opt" data-t="${t}" aria-label="${names[t]}">
@@ -725,13 +737,13 @@ export default {
 
     function setStatus(txt) {
       const s = root.querySelector('#status');
-      if (s) s.textContent = txt;
+      if (s) s.innerHTML = txt; // textos fixos i noms ja escapats
     }
 
     function updateStatus(check) {
       let txt;
       if (mode === 'cpu') txt = pos.turn === 'w' ? 'El teu torn — blanques' : 'Negres';
-      else txt = 'Torn de les ' + (pos.turn === 'w' ? 'blanques' : 'negres');
+      else txt = turnText(pi(pos.turn), 'Torn de les ' + (pos.turn === 'w' ? 'blanques' : 'negres'));
       if (check) txt += ' · Escac!';
       setStatus(txt);
     }
@@ -751,7 +763,7 @@ export default {
           if (winner === 'w') { title = 'Guanyes!'; sub = 'Escac i mat. Ben jugat!'; }
           else { title = 'Perds!'; sub = 'L\'ordinador t\'ha fet escac i mat.'; }
         } else {
-          title = winner === 'w' ? 'Guanyen les blanques!' : 'Guanyen les negres!';
+          title = winText(pi(winner), winner === 'w' ? 'Guanyen les blanques!' : 'Guanyen les negres!');
           sub = 'Escac i mat.';
         }
         setStatus('Escac i mat');
@@ -762,8 +774,8 @@ export default {
         const winner = loser === 'w' ? 'b' : 'w';
         if (mode === 'cpu') { title = 'Perds!'; sub = 'T\'has rendit.'; }
         else {
-          title = winner === 'w' ? 'Guanyen les blanques!' : 'Guanyen les negres!';
-          sub = (loser === 'w' ? 'Les blanques' : 'Les negres') + ' s\'han rendit.';
+          title = winText(pi(winner), winner === 'w' ? 'Guanyen les blanques!' : 'Guanyen les negres!');
+          sub = named(loser) ? `${named(loser)} s'ha rendit.` : (loser === 'w' ? 'Les blanques' : 'Les negres') + ' s\'han rendit.';
         }
         setStatus('Rendició');
       } else {

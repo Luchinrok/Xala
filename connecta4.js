@@ -11,6 +11,8 @@
 // en beix, marc en tinta. Cap negre.
 // ============================================================
 
+import { namesField, bindNames, nameOr, playerName as typedName, turnText, winText } from './noms.js';
+
 const ROWS = 6, COLS = 7, NEED = 4;
 const CENTER = 3;
 const MAXDEPTH = 6;                 // profunditat de cerca de la IA
@@ -171,8 +173,10 @@ export default {
     const colorClass = (p) => (p === 1 ? 'p1' : 'p2');
     function playerName(p) {
       if (isCpu()) return p === 1 ? 'Tu' : 'La màquina';
-      return p === 1 ? 'Jugador 1' : 'Jugador 2';
+      return nameOr(p - 1, p === 1 ? 'Jugador 1' : 'Jugador 2');
     }
+    // Nom posat pel jugador (només a 2 jugadors), o ''.
+    const ownName = (p) => (isCpu() ? '' : typedName(p - 1));
 
     // ---------- 1) configuració ----------
     function screenConfig() {
@@ -187,6 +191,7 @@ export default {
           <button class="btn ${state.mode === 'cpu' ? 'btn--accent' : 'btn--outline'}" data-mode="cpu">1 jugador</button>
           <button class="btn ${state.mode === '2p' ? 'btn--accent' : 'btn--outline'}" data-mode="2p">2 jugadors</button>
         </div>
+        <div id="names"></div>
         <p class="muted" id="modeinfo" style="margin-top:12px"></p>
 
         <div class="spacer"></div>
@@ -197,6 +202,8 @@ export default {
         if (el) el.textContent = isCpu()
           ? 'Tu jugues amb les fitxes corall; la màquina, amb les verdes.'
           : 'Jugador 1 amb les fitxes corall i jugador 2 amb les verdes.';
+        const nb = root.querySelector('#names');
+        if (nb) { nb.innerHTML = isCpu() ? '' : namesField(['Jugador 1', 'Jugador 2'], ['var(--accent)', 'var(--ok)']); bindNames(nb); }
       };
       info();
       root.querySelector('#back').onclick = leave;
@@ -331,7 +338,7 @@ export default {
       const cls = colorClass(state.turn);
       let txt;
       if (isCpu()) txt = state.turn === 1 ? 'El teu torn' : 'La màquina pensa…';
-      else txt = `Torn del ${playerName(state.turn)}`;
+      else txt = turnText(state.turn - 1, `Torn del ${playerName(state.turn)}`);
       el.innerHTML = `<b class="${cls}">${txt}</b>`;
     }
 
@@ -393,7 +400,11 @@ export default {
       let title, sub;
       if (winner == null) { title = 'Empat!'; sub = 'Tauler ple sense 4 en línia.'; }
       else if (isCpu()) { title = winner === 1 ? 'Has guanyat!' : 'Has perdut!'; sub = reason === 'resign' ? 'T\'has rendit.' : '4 en línia.'; }
-      else { title = `Guanya el ${playerName(winner)}!`; sub = reason === 'resign' ? `El ${playerName(other(winner))} s'ha rendit.` : '4 en línia.'; }
+      else {
+        title = winText(winner - 1, `Guanya el ${playerName(winner)}!`);
+        const loser = other(winner);
+        sub = reason === 'resign' ? (ownName(loser) ? `${ownName(loser)} s'ha rendit.` : `El ${playerName(loser)} s'ha rendit.`) : '4 en línia.';
+      }
 
       const el = root.querySelector('#turn');
       if (el) el.innerHTML = winner == null

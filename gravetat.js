@@ -12,6 +12,9 @@ const TILE = 25, EDGE = 10, R = 9, RX = 70;
 const GRAV = 0.55, MAXV = 9;
 const STEP = 1000 / 60;
 import { getRecord, setRecord } from './records.js';
+import { namesField, bindNames, nameOr, playerName, winText } from './noms.js';
+// els noms vénen escapats per a HTML; per escriure'ls al canvas cal el text pla
+const plain = (h) => h.replace(/&(amp|lt|gt|quot|#39);/g, (m, c) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" }[c]));
 
 const KEY = 'gravetat';
 // la màquina: quant mira endavant (en passos) i quant tarda a reaccionar
@@ -68,7 +71,9 @@ export default {
     const wins = [0, 0];
     let cpu = false; // sempre comença a 2 jugadors
     let level = AI[getRecord(KEY + ':level')] ? getRecord(KEY + ':level') : 'normal';
-    const names = () => (cpu ? ['Tu', 'Màquina'] : PLAYERS.map(p => p.name));
+    const names = () => (cpu ? ['Tu', 'Màquina'] : PLAYERS.map((p, i) => nameOr(i, p.name)));
+    // el nom posat (text pla, per al canvas), o '' a 1 jugador o si no n'hi ha
+    const own = (i) => (cpu ? '' : plain(playerName(i)));
     // marcador curt (no ha de tapar el botó de la música): un punt de color per jugador
     const scoreHtml = () => `<span class="dot-p" style="background:${PLAYERS[0].c}"></span> ${wins[0]} – ${wins[1]} <span class="dot-p" style="background:${PLAYERS[1].c}"></span>`;
 
@@ -94,6 +99,7 @@ export default {
         <div class="btn-row">
           ${Object.entries(AI).map(([id, a]) => `<button class="btn ${level === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${a.name}</button>`).join('')}
         </div>` : ''}
+        ${cpu ? '' : namesField(PLAYERS.map(p => p.name), PLAYERS.map(p => p.c))}
         <p class="muted" style="margin-top:12px">${cpu ? 'Tu corres a baix; la màquina, a dalt. Toca la pantalla per girar la gravetat.' : 'Deixeu el mòbil pla a la taula, entre els dos. Cadascú toca la meitat que té davant per girar la gravetat del seu corredor.'}</p>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:28px">Comença</button>
@@ -101,6 +107,7 @@ export default {
       root.querySelector('#back').onclick = leave;
       root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { cpu = b.dataset.mode === 'cpu'; setRecord(KEY + ':mode', cpu ? 'cpu' : '2p'); screenConfig(); }; });
       root.querySelectorAll('[data-level]').forEach(b => { b.onclick = () => { level = b.dataset.level; setRecord(KEY + ':level', level); screenConfig(); }; });
+      bindNames(root);
       root.querySelector('#start').onclick = () => { wins[0] = wins[1] = 0; begin(); };
     }
 
@@ -293,10 +300,12 @@ export default {
         ctx.fillText(String(Math.ceil(s.count / 60)), W / 2, LANE / 2 + 18);
         ctx.font = '700 12px system-ui, sans-serif';
         ctx.fillText('Toca la teva meitat per girar', W / 2, LANE / 2 + 40);
+        if (own(i)) { ctx.font = '800 16px system-ui, sans-serif'; ctx.fillStyle = P.c; ctx.fillText(own(i), W / 2, LANE / 2 - 34, W - 90); }
       } else if (s.over) {
         ctx.font = '800 26px "Bricolage Grotesque", system-ui, sans-serif';
         ctx.fillStyle = s.winner === i ? P.c : ink;
         ctx.fillText(s.winner == null ? 'Empat!' : s.winner === i ? 'Guanyes!' : 'Has caigut', W / 2, LANE / 2 + 8);
+        if (own(i)) { ctx.font = '700 14px system-ui, sans-serif'; ctx.fillStyle = P.c; ctx.fillText(own(i), W / 2, LANE / 2 - 22, W - 90); }
       }
       ctx.textAlign = 'left';
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -312,8 +321,9 @@ export default {
       stop(); draw();
       const [na, nb] = names();
       root.querySelector('#score').innerHTML = scoreHtml();
+      root.querySelector('#score').setAttribute('aria-label', `${plain(na)} ${wins[0]}, ${plain(nb)} ${wins[1]}`);
       const w = s.winner;
-      const title = w == null ? 'Empat!' : cpu ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : `Guanya el ${PLAYERS[w].name}!`;
+      const title = w == null ? 'Empat!' : cpu ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : winText(w, `Guanya el ${PLAYERS[w].name}!`);
       const box = root.querySelector('#endbox');
       box.innerHTML = `
         <div class="panel center stack" style="--stack-gap:8px">

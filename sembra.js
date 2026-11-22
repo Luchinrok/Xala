@@ -9,6 +9,7 @@
 
 import { newGame, moves, play, clone, winner, aiMove, store, pitsOf } from './sembra-motor.js';
 import { getRecord, setRecord } from './records.js';
+import { namesField, bindNames, nameOr, turnText, winText } from './noms.js';
 
 const NAMES = { cpu: ['Tu', 'Màquina'], '2p': ['Corall', 'Verd'] };
 const STEP_MS = 140, AI_PAUSE = 600;
@@ -32,6 +33,9 @@ export default {
     let level = ['easy', 'normal', 'hard'].includes(getRecord('sembra:level')) ? getRecord('sembra:level') : 'normal';
     let g = null, shown = null, busy = false, timers = [];
     const isCpu = () => mode === 'cpu';
+    const nm = (p) => (isCpu() ? NAMES.cpu[p] : nameOr(p, NAMES['2p'][p]));
+    // «Graner corall» o, amb nom, «Graner corall, Marta»
+    const storeLabel = (p) => `Graner ${p ? 'verd' : 'corall'}${!isCpu() && nameOr(p, '') ? `, ${nm(p)}` : ''}`;
     function stop() { timers.forEach(clearTimeout); timers = []; }
     function leave() { stop(); goHome(); }
     const later = (fn, ms) => { timers.push(setTimeout(fn, ms)); };
@@ -51,6 +55,7 @@ export default {
         <div class="btn-row">
           ${[['easy', 'Fàcil'], ['normal', 'Normal'], ['hard', 'Difícil']].map(([id, n]) => `<button class="btn ${level === id ? 'btn--accent' : 'btn--outline'}" data-level="${id}">${n}</button>`).join('')}
         </div>` : ''}
+        ${isCpu() ? '' : namesField(NAMES['2p'], ['var(--accent)', 'var(--ok)'])}
         <p class="muted" style="margin-top:12px">${isCpu() ? 'Tu jugues a baix (corall) i comences; la màquina, a dalt (verd).' : 'Un jugador a baix (corall), que comença, i l\'altre a dalt (verd).'}</p>
         <div class="spacer"></div>
         <button class="btn btn--accent" id="start" style="margin-top:24px">Comença</button>
@@ -58,6 +63,7 @@ export default {
       root.querySelector('#back').onclick = leave;
       root.querySelectorAll('[data-mode]').forEach(b => { b.onclick = () => { mode = b.dataset.mode; screenConfig(); }; });
       root.querySelectorAll('[data-level]').forEach(b => { b.onclick = () => { level = b.dataset.level; setRecord('sembra:level', level); screenConfig(); }; });
+      bindNames(root);
       root.querySelector('#start').onclick = begin;
     }
 
@@ -126,30 +132,30 @@ export default {
       // graner a dalt; verd a l'esquerra, de dalt a baix, i el seu graner a baix
       const rows = [0, 1, 2, 3, 4, 5].map(r => pit(7 + r, hot) + pit(5 - r, hot)).join('');
       root.querySelector('#board').innerHTML = `
-        <div class="sb-store sb-p0${hot === 6 ? ' sb-hot' : ''}" aria-label="Graner corall: ${shown[6]}"><b>${shown[6]}</b></div>
+        <div class="sb-store sb-p0${hot === 6 ? ' sb-hot' : ''}" aria-label="${storeLabel(0)}: ${shown[6]}"><b>${shown[6]}</b></div>
         ${rows}
-        <div class="sb-store sb-p1${hot === 13 ? ' sb-hot' : ''}" aria-label="Graner verd: ${shown[13]}"><b>${shown[13]}</b></div>`;
-      const [a, b] = NAMES[mode];
+        <div class="sb-store sb-p1${hot === 13 ? ' sb-hot' : ''}" aria-label="${storeLabel(1)}: ${shown[13]}"><b>${shown[13]}</b></div>`;
+      const [a, b] = [nm(0), nm(1)];
       const sc = root.querySelector('#score');
       sc.innerHTML = `<span class="dot-p" style="background:var(--accent)"></span> ${shown[6]} – ${shown[13]} <span class="dot-p" style="background:var(--ok)"></span>`;
       sc.setAttribute('aria-label', `${a} ${shown[6]}, ${b} ${shown[13]}`);
       if (g.over) return;
       const extra = !busy && g.last && g.last.path[g.last.path.length - 1] === store(g.turn) ? ' · torna a tirar!' : '';
       const cap = !busy && g.last && g.last.capture ? ` · s'ha quedat ${g.last.capture.n} llavors!` : '';
-      const who = isCpu() ? (g.turn === 0 ? 'El teu torn' : 'Pensa la màquina…') : `Torn del ${NAMES['2p'][g.turn]}`;
+      const who = isCpu() ? (g.turn === 0 ? 'El teu torn' : 'Pensa la màquina…') : turnText(g.turn, `Torn del ${NAMES['2p'][g.turn]}`);
       root.querySelector('#turn').innerHTML = `<b class="${g.turn ? 'p2' : 'p1'}">${who}</b>${extra}${cap}`;
     }
 
     function finish() {
       stop();
       const w = winner(g);
-      const title = w === null ? 'Empat!' : isCpu() ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : `Guanya el ${NAMES['2p'][w]}!`;
+      const title = w === null ? 'Empat!' : isCpu() ? (w === 0 ? 'Has guanyat!' : 'Guanya la màquina') : winText(w, `Guanya el ${NAMES['2p'][w]}!`);
       root.querySelector('#turn').innerHTML = `<b class="${w === 1 ? 'p2' : 'p1'}">${title}</b>`;
       const box = root.querySelector('#endbox');
       box.innerHTML = `
         <div class="panel center stack" style="--stack-gap:8px">
           <h2 style="color:${w === 1 ? 'var(--ok)' : 'var(--accent)'}">${title}</h2>
-          <p class="muted">${NAMES[mode][0]} ${g.b[6]} – ${g.b[13]} ${NAMES[mode][1]}</p>
+          <p class="muted">${nm(0)} ${g.b[6]} – ${g.b[13]} ${nm(1)}</p>
         </div>
         <div class="stack">
           <button class="btn btn--accent" id="again">Una altra</button>

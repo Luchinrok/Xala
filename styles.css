@@ -390,6 +390,15 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.
 }
 .name-del:active { background: var(--paper-2); }
 
+/* noms dels dos jugadors (jocs per a dos, noms.js) */
+.duo-names { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.duo-name { position: relative; display: block; min-width: 0; }
+.duo-name .input { padding-left: 38px; }
+.duo-name__dot {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--ink); pointer-events: none;
+}
+
 /* ============================================================
    Endevina-la (mòbil al front, estil Heads Up)
    ============================================================ */
