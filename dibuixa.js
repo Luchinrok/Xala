@@ -160,6 +160,7 @@ export default {
         <div class="dx-board" id="board"><canvas id="cv" aria-label="${D('canvas')}"></canvas></div>
         <div class="dx-tools">
           ${COLORS.map((c, i) => `<button class="dx-color${i === 0 ? ' on' : ''}" data-c="${c}" style="background:${c}" aria-label="${D('color')} ${i + 1}"></button>`).join('')}
+          <button class="dx-tool" id="eraser" aria-label="${D('eraser')}" aria-pressed="false"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3.5 15.5 12.8 6.2a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8L11 20H7z" fill="#F7B3C2" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m8.5 10.5 6 6M7 20h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
           <button class="dx-tool" id="thick" aria-label="${D('thick')}">●</button>
           <button class="dx-tool" id="undo" aria-label="${D('undo')}">↶</button>
           <button class="dx-tool" id="clear" aria-label="${D('clear')}">🗑</button>
@@ -169,7 +170,8 @@ export default {
           <button class="btn btn--outline" id="pass">${D('pass')}</button>
         </div>`;
       const cv = root.querySelector('#cv'), ctx = cv.getContext('2d');
-      let cur = null, color = COLORS[0], width = 6;
+      let cur = null, color = COLORS[0], width = 6, erasing = false;
+      const PAPER = '#FFFDF8'; // la goma pinta del color del paper
       const strokes = tu.strokes;
       const fit = () => {
         const w = cv.parentElement.clientWidth, h = cv.parentElement.clientHeight, dpr = window.devicePixelRatio || 1;
@@ -178,7 +180,7 @@ export default {
       };
       const redraw = () => {
         const k = cv.width / 1000; // coordenades en una amplada de 1000 (no depèn de la mida)
-        ctx.fillStyle = '#FFFDF8'; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.fillStyle = PAPER; ctx.fillRect(0, 0, cv.width, cv.height);
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         for (const s of strokes) {
           ctx.strokeStyle = s.c; ctx.lineWidth = s.w * k * 2.5;
@@ -188,11 +190,14 @@ export default {
         }
       };
       const pos = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 1000, (e.clientY - r.top) / r.width * 1000]; };
-      cv.addEventListener('pointerdown', (e) => { e.preventDefault(); cur = { c: color, w: width, p: [pos(e)] }; strokes.push(cur); redraw(); });
+      cv.addEventListener('pointerdown', (e) => { e.preventDefault(); cur = erasing ? { c: PAPER, w: width * 4, p: [pos(e)] } : { c: color, w: width, p: [pos(e)] }; strokes.push(cur); redraw(); });
       cv.addEventListener('pointermove', (e) => { if (!cur) return; cur.p.push(pos(e)); redraw(); });
       const end = () => { cur = null; };
       cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end); cv.addEventListener('pointerleave', end);
-      root.querySelectorAll('.dx-color').forEach(b => { b.onclick = () => { color = b.dataset.c; root.querySelectorAll('.dx-color').forEach(x => x.classList.toggle('on', x === b)); }; });
+      const eraser = root.querySelector('#eraser');
+      const setEraser = (on) => { erasing = on; eraser.classList.toggle('on', on); eraser.setAttribute('aria-pressed', String(on)); };
+      root.querySelectorAll('.dx-color').forEach(b => { b.onclick = () => { color = b.dataset.c; setEraser(false); root.querySelectorAll('.dx-color').forEach(x => x.classList.toggle('on', x === b)); }; });
+      eraser.onclick = () => { setEraser(!erasing); root.querySelectorAll('.dx-color').forEach(x => x.classList.toggle('on', !erasing && x.dataset.c === color)); };
       const thick = root.querySelector('#thick');
       thick.onclick = () => { width = width === 6 ? 14 : width === 14 ? 3 : 6; thick.style.fontSize = width === 14 ? '26px' : width === 3 ? '10px' : '17px'; };
       root.querySelector('#undo').onclick = () => { strokes.pop(); redraw(); };
