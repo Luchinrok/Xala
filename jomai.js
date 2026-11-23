@@ -9,7 +9,6 @@
 
 import { SUAU, ATREVIT } from './jomai-frases.js';
 import { getPlayers, setPlayers } from './store.js';
-import { drawFromBag } from './word-bag.js';
 import { t } from './i18n.js';
 import { getRecord, setRecord } from './records.js';
 
@@ -40,8 +39,21 @@ export default {
     };
     while (state.names.length < 3) state.names.push('');
     let game = null;
-    const pool = () => (state.bold ? [...SUAU, ...ATREVIT] : SUAU);
-    const next = () => drawFromBag('jomai:' + (state.bold ? 'atrevit' : 'suau'), pool);
+    // Cada llista té una bossa desada: no torna a sortir cap frase fins que
+    // s'han vist totes, encara que es tanqui l'app. A l'atrevit, 6 de cada 10
+    // són atrevides i la resta suaus.
+    const fromBag = (key, list) => {
+      let bag = getRecord(key);
+      if (!bag || bag.n !== list.length || !Array.isArray(bag.left) || !bag.left.length) {
+        const left = list.map((_, i) => i);
+        for (let i = left.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [left[i], left[j]] = [left[j], left[i]]; }
+        bag = { n: list.length, left };
+      }
+      const i = bag.left.pop();
+      setRecord(key, bag);
+      return list[i];
+    };
+    const next = () => (state.bold && Math.random() < 0.6 ? fromBag('jomai:bossa:atrevit', ATREVIT) : fromBag('jomai:bossa:suau', SUAU));
     function leave() { goHome(); }
 
     // ---------- 1) preparació ----------
