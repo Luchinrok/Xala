@@ -475,9 +475,12 @@ function goSingle() {
 
 // ---------- render compartit d'una graella de jocs ----------
 function renderGameGrid(grid, games, back) {
-  games.forEach(game => {
+  games.forEach((game, i) => {
     const card = document.createElement('button');
-    const cardColor = game.color || game.accent;
+    // Colors en escacs (corall, beix / beix, corall…) segons la posició a la
+    // graella de dues columnes: així un joc nou mai trenca l'alternança.
+    const coral = (Math.floor(i / 2) + (i % 2)) % 2 === 0;
+    const cardColor = game.color === 'var(--ink)' ? game.color : coral ? '#E4572E' : 'var(--paper-2)';
     const dark = cardColor === 'var(--ink)';
     card.className = 'card' + (game.ready ? '' : ' locked') + (dark ? ' card--dark' : '');
     card.style.setProperty('--c', cardColor);
